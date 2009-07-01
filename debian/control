@@ -1,0 +1,15 @@
+Source: sipwise-mediator
+Section: utils
+Priority: extra
+Maintainer: Michael Prokop <mprokop@sipwise.com>
+Build-Depends: debhelper (>= 5), libmysqlclient15-dev, libglib2.0-dev
+Standards-Version: 3.8.0
+Homepage: http://sipwise.com/
+Vcs-svn: https://dev.sipwise.com/svn/voip-tools/mediator
+Vcs-Browser: https://dev.sipwise.com/svn/voip-tools/mediator
+
+Package: sipwise-mediator
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: a mediator software package
+ TODO
