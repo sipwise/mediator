@@ -3,7 +3,7 @@ Section: utils
 Priority: extra
 Maintainer: Michael Prokop <mprokop@sipwise.com>
 Build-Depends: debhelper (>= 5), libmysqlclient15-dev, libglib2.0-dev
-Standards-Version: 3.8.0
+Standards-Version: 3.8.3
 Homepage: http://sipwise.com/
 Vcs-svn: https://dev.sipwise.com/svn/voip-tools/mediator
 Vcs-Browser: https://dev.sipwise.com/svn/voip-tools/mediator
