@@ -1,3 +1,10 @@
+sipwise-mediator (0.1.2) unstable; urgency=low
+
+  [ Jon Bonilla ]
+  * Install default configuration and init script.
+
+ -- Michael Prokop <mprokop@sipwise.com>  Wed, 24 Feb 2010 15:40:23 +0100
+
 sipwise-mediator (0.1.1) unstable; urgency=low
 
   * Initial release.
