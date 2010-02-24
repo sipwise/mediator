@@ -1,0 +1,14 @@
+RUN_MEDIATOR="yes"
+PIDFILE="/var/run/mediator.pid"
+FORK="yes"
+INTERVAL="10"
+SOURCE_HOST="localhost"
+SOURCE_PORT="0"
+SOURCE_USER="mediator"
+SOURCE_PASS='GimmeAllUr$$$'
+SOURCE_DB="accounting"
+DEST_HOST="localhost"
+DEST_PORT="0"
+DEST_USER="mediator"
+DEST_PASS='GimmeAllUr$$$'
+DEST_DB="accounting"

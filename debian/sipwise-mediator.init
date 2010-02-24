@@ -1,0 +1,82 @@
+#! /bin/sh
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+NAME=mediator
+DESC="ACC mediator"
+RUN_MEDIATOR=no
+
+case $(dirname $0) in
+        /*) FULLPATH=$(dirname $0);;
+        *)  FULLPATH=$(pwd)/$(dirname $0);;
+esac
+
+BASEDIR=$(echo $FULLPATH | sed -e 's,/sbin,,')
+DAEMON=$BASEDIR/sbin/mediator
+DEFAULTS=$BASEDIR/etc/mediator.default
+
+test -f $DAEMON || exit 0
+
+# Load startup options if available
+if [ -f $DEFAULTS ]; then
+   . $DEFAULTS || true
+fi
+
+if [ "$RUN_MEDIATOR" != "yes" ]; then
+    echo "mediator not yet configured. Edit $DEFAULTS first."
+    exit 0
+fi
+[ -z "$PIDFILE" ] && PIDFILE="/var/run/mediator.pid"
+
+set -e
+
+OPTIONS=""
+
+[ -z "$PIDFILE" ] || OPTIONS="$OPTIONS -D $PIDFILE"
+[ -z "$INTERVAL" ] || OPTIONS="$OPTIONS -i $INTERVAL"
+[ -z "$SOURCE_HOST" ] || OPTIONS="$OPTIONS -h $SOURCE_HOST"
+[ -z "$SOURCE_PORT" ] || OPTIONS="$OPTIONS -o $SOURCE_PORT"
+[ -z "$SOURCE_USER" ] || OPTIONS="$OPTIONS -u $SOURCE_USER"
+[ -z "$SOURCE_PASS" ] || OPTIONS="$OPTIONS -p $SOURCE_PASS"
+[ -z "$SOURCE_DB" ] || OPTIONS="$OPTIONS -b $SOURCE_DB"
+[ -z "$DEST_HOST" ] || OPTIONS="$OPTIONS -H $DEST_HOST"
+[ -z "$DEST_PORT" ] || OPTIONS="$OPTIONS -O $DEST_PORT"
+[ -z "$DEST_USER" ] || OPTIONS="$OPTIONS -U $DEST_USER"
+[ -z "$DEST_PASS" ] || OPTIONS="$OPTIONS -P $DEST_PASS"
+[ -z "$DEST_DB" ] || OPTIONS="$OPTIONS -B $DEST_DB"
+if test "$FORK" = "yes" ; then
+        OPTIONS="$OPTIONS -d"    
+fi
+
+
+case "$1" in
+  start)
+
+        echo -n "Starting $DESC: $NAME"
+        start-stop-daemon --start --quiet --pidfile $PIDFILE \
+                --exec $DAEMON -- $OPTIONS || echo -n " already running"
+        echo "."
+        ;;
+  stop)
+        echo -n "Stopping $DESC: $NAME"
+        start-stop-daemon --oknodo --stop --quiet --pidfile $PIDFILE \
+                --exec $DAEMON
+        echo "."
+        ;;
+  restart|force-reload)
+
+        echo -n "Restarting $DESC: $NAME"
+        start-stop-daemon --oknodo --stop --quiet --pidfile \
+                $PIDFILE --exec $DAEMON
+        sleep 1
+        start-stop-daemon --start --quiet --pidfile \
+                $PIDFILE --exec $DAEMON  -- $OPTIONS
+        echo "."
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart|force-reload}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
+
