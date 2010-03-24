@@ -5,6 +5,11 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/file.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+
 
 #include "mediator.h"
 #include "config.h"
@@ -93,7 +98,7 @@ static void mediator_signal(int signal)
 /**********************************************************************/
 static int mediator_lock()
 {
-	mediator_lockfd = open(MEDIATOR_LOCK_FILE, O_CREAT|O_RDWR);
+	mediator_lockfd = open(MEDIATOR_LOCK_FILE, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
 	if(mediator_lockfd == -1)
 	{
 		syslog(LOG_CRIT, "Error creating lock file: %s", strerror(errno));

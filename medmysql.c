@@ -12,7 +12,9 @@
 	"src_leg, dst_leg, id " \
 	"from acc where callid = '%s' order by time asc"
 
-#define MED_LOAD_PEER_QUERY "select domain, ip, provider_id from provisioning.voip_peer_hosts"
+#define MED_LOAD_PEER_QUERY "select h.domain, h.ip, g.peering_contract_id " \
+	"from provisioning.voip_peer_hosts h, provisioning.voip_peer_groups g " \
+	"where g.id = h.group_id"
 #define MED_LOAD_UUID_QUERY "select vs.uuid, r.contract_id from billing.voip_subscribers vs, " \
 	"billing.contracts c, billing.resellers r where c.id = vs.contract_id and " \
 	"c.reseller_id = r.id"

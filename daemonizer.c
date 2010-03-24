@@ -19,6 +19,7 @@ int daemonize()
 	else if(pid == 0)
 	{
 		int fds;
+		int tmp;
 		setsid();
 		for(fds = getdtablesize(); fds >= 0; --fds) 
 		{
@@ -26,10 +27,10 @@ int daemonize()
 				close(fds);
 		}
 		fds = open("/dev/null", O_RDWR); /* stdin */
-		dup(fds); /* stdout */
-		dup(fds); /* stderr */
+		tmp = dup(fds); /* stdout */
+		tmp = dup(fds); /* stderr */
 		umask(027);
-		chdir("/");
+		tmp = chdir("/");
 	}
 
 	return 0;
