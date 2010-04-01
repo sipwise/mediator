@@ -59,7 +59,7 @@ binary-arch: build install
 	dh_installdocs
 	dh_installexamples
 	dh_installman
-	dh_installinit
+	dh_installinit --name=mediator
 	dh_link
 	dh_strip
 	mkdir -p $(CURDIR)/debian/sipwise-mediator/usr/share/lintian/overrides/
