@@ -10,9 +10,8 @@ case $(dirname $0) in
         *)  FULLPATH=$(pwd)/$(dirname $0);;
 esac
 
-BASEDIR=$(echo $FULLPATH | sed -e 's,/sbin,,')
-DAEMON=$BASEDIR/sbin/mediator
-DEFAULTS=$BASEDIR/etc/mediator.default
+DAEMON=`which mediator`
+DEFAULTS=/etc/default/mediator
 
 test -f $DAEMON || exit 0
 
