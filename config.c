@@ -38,6 +38,11 @@ static u_int8_t config_cdr_user_free = 0;
 static u_int8_t config_cdr_pass_free = 0;
 static u_int8_t config_cdr_db_free = 0;
 
+static u_int8_t config_prov_host_free = 0;
+static u_int8_t config_prov_user_free = 0;
+static u_int8_t config_prov_pass_free = 0;
+static u_int8_t config_prov_db_free = 0;
+
 
 static void config_help(const char *self)
 {
@@ -73,7 +78,7 @@ int config_parse_cmdopts(int argc, char **argv)
 {
 	int c;
 
-	while((c = getopt(argc, argv, "D:i:dl?h:u:p:b:o:H:U:P:B:O:")) != -1)
+	while((c = getopt(argc, argv, "D:i:dl?h:u:p:b:o:H:U:P:B:O:S:T:R:A:N:")) != -1)
 	{
 		if(c == '?')
 		{
@@ -145,6 +150,30 @@ int config_parse_cmdopts(int argc, char **argv)
 		{
 			config_cdr_port = atoi(optarg);
 		}
+		else if(c == 'S')
+		{
+			config_prov_host = (char*)strdup(optarg);
+			config_prov_host_free = 1;
+		}
+		else if(c == 'R')
+		{
+			config_prov_user = (char*)strdup(optarg);
+			config_prov_user_free = 1;
+		}
+		else if(c == 'A')
+		{
+			config_prov_pass = (char*)strdup(optarg);
+			config_prov_pass_free = 1;
+		}
+		else if(c == 'N')
+		{
+			config_prov_db = (char*)strdup(optarg);
+			config_prov_db_free = 1;
+		}
+		else if(c == 'T')
+		{
+			config_prov_port = atoi(optarg);
+		}
 	}
 
 	return 0;
@@ -187,5 +216,21 @@ void config_cleanup()
 	if(config_med_db_free)
 	{
 		free(config_med_db);
+	}
+	if(config_prov_host_free)
+	{
+		free(config_prov_host);
+	}
+	if(config_prov_user_free)
+	{
+		free(config_prov_user);
+	}
+	if(config_prov_pass_free)
+	{
+		free(config_prov_pass);
+	}
+	if(config_prov_db_free)
+	{
+		free(config_prov_db);
 	}
 }
