@@ -20,6 +20,12 @@ char *config_cdr_pass = MEDIATOR_DEFAULT_CDRPASS;
 char *config_cdr_db = MEDIATOR_DEFAULT_CDRDB;
 unsigned int config_cdr_port = MEDIATOR_DEFAULT_CDRPORT;
 
+char *config_prov_host = MEDIATOR_DEFAULT_PROVHOST;
+char *config_prov_user = MEDIATOR_DEFAULT_PROVUSER;
+char *config_prov_pass = MEDIATOR_DEFAULT_PROVPASS;
+char *config_prov_db = MEDIATOR_DEFAULT_PROVDB;
+unsigned int config_prov_port = MEDIATOR_DEFAULT_PROVPORT;
+
 static u_int8_t config_pid_path_free = 0;
 
 static u_int8_t config_med_host_free = 0;
@@ -35,7 +41,7 @@ static u_int8_t config_cdr_db_free = 0;
 
 static void config_help(const char *self)
 {
-	printf("mediator 1.0 - Creates call detail records from SER accounting.\n" \
+	printf("mediator 1.2.0 - Creates call detail records from OpenSER accounting.\n" \
 		"Usage: %s [-?] [-d] [-D pidpath]\n" \
 		"  -D\tThe path of the PID file (default = '%s').\n" \
 		"  -d\tEnables daemonization of the process (default = disabled).\n" \
@@ -51,10 +57,16 @@ static void config_help(const char *self)
 		"  -U\tThe CDR db user (default = '%s').\n" \
 		"  -P\tThe CDR db pass (default = '%s').\n" \
 		"  -B\tThe CDR db name (default = '%s').\n" \
+		"  -S\tThe prov db host (default = '%s').\n" \
+		"  -T\tThe prov db port (default = '%d').\n" \
+		"  -R\tThe prov db user (default = '%s').\n" \
+		"  -A\tThe prov db pass (default = '%s').\n" \
+		"  -N\tThe prov db name (default = '%s').\n" \
 		"  -?\tDisplays this message.\n",
 		self, config_pid_path, config_interval,
 		config_med_host, config_med_port, config_med_user, config_med_pass, config_med_db,
-		config_cdr_host, config_cdr_port, config_cdr_user, config_cdr_pass, config_cdr_db);
+		config_cdr_host, config_cdr_port, config_cdr_user, config_cdr_pass, config_cdr_db,
+		config_prov_host, config_prov_port, config_prov_user, config_prov_pass, config_prov_db);
 }
 
 int config_parse_cmdopts(int argc, char **argv)

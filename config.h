@@ -20,6 +20,12 @@ extern char *config_cdr_user;
 extern char *config_cdr_pass;
 extern char *config_cdr_db;
 
+extern char *config_prov_host;
+extern unsigned int config_prov_port;
+extern char *config_prov_user;
+extern char *config_prov_pass;
+extern char *config_prov_db;
+
 extern unsigned int config_interval;
 extern u_int8_t config_dumpcdr;
 

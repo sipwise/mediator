@@ -21,6 +21,7 @@
 
 static MYSQL *cdr_handler = NULL;
 static MYSQL *med_handler = NULL;
+static MYSQL *prov_handler = NULL;
 
 /**********************************************************************/
 int medmysql_init()
@@ -55,6 +56,20 @@ int medmysql_init()
 		syslog(LOG_CRIT, "Error setting reconnect-option for ACC db: %s", mysql_error(med_handler));
 		goto err;
 	}
+	
+	prov_handler = mysql_init(NULL);
+	if(!mysql_real_connect(prov_handler, 
+				config_prov_host, config_prov_user, config_prov_pass,
+				config_prov_db, config_prov_port, NULL, 0))
+	{
+		syslog(LOG_CRIT, "Error connecting to provisioning db: %s", mysql_error(prov_handler));
+		goto err;
+	}
+	if(mysql_options(prov_handler, MYSQL_OPT_RECONNECT, &recon) != 0)
+	{
+		syslog(LOG_CRIT, "Error setting reconnect-option for provisioning db: %s", mysql_error(prov_handler));
+		goto err;
+	}
 
 	return 0;
 
@@ -75,6 +90,11 @@ void medmysql_cleanup()
 	{
 		mysql_close(med_handler);
 		med_handler = NULL;
+	}
+	if(prov_handler != NULL)
+	{
+		mysql_close(prov_handler);
+		prov_handler = NULL;
 	}
 }
 
@@ -359,14 +379,14 @@ int medmysql_load_maps(GHashTable *host_table, GHashTable *ip_table)
 	snprintf(query, sizeof(query), MED_LOAD_PEER_QUERY);
 
 	/* syslog(LOG_DEBUG, "q='%s'", query); */
-	if(mysql_real_query(med_handler, query, strlen(query)) != 0)
+	if(mysql_real_query(prov_handler, query, strlen(query)) != 0)
 	{
 		syslog(LOG_CRIT, "Error loading peer hosts: %s", 
-				mysql_error(med_handler));
+				mysql_error(prov_handler));
 		return -1;
 	}
 
-	res = mysql_store_result(med_handler);
+	res = mysql_store_result(prov_handler);
 
 	while((row = mysql_fetch_row(res)) != NULL)
 	{
@@ -439,14 +459,14 @@ int medmysql_load_uuids(GHashTable *uuid_table)
 	snprintf(query, sizeof(query), MED_LOAD_UUID_QUERY);
 
 	/* syslog(LOG_DEBUG, "q='%s'", query); */
-	if(mysql_real_query(med_handler, query, strlen(query)) != 0)
+	if(mysql_real_query(prov_handler, query, strlen(query)) != 0)
 	{
 		syslog(LOG_CRIT, "Error loading uuids: %s", 
-				mysql_error(med_handler));
+				mysql_error(prov_handler));
 		return -1;
 	}
 
-	res = mysql_store_result(med_handler);
+	res = mysql_store_result(prov_handler);
 
 	while((row = mysql_fetch_row(res)) != NULL)
 	{

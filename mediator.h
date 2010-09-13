@@ -32,6 +32,12 @@
 #define MEDIATOR_DEFAULT_CDRDB   "accounting"
 #define MEDIATOR_DEFAULT_CDRPORT 0
 
+#define MEDIATOR_DEFAULT_PROVHOST "localhost"
+#define MEDIATOR_DEFAULT_PROVUSER "mediator"
+#define MEDIATOR_DEFAULT_PROVPASS "GimmeAllUr$$$"
+#define MEDIATOR_DEFAULT_PROVDB   "provisioning"
+#define MEDIATOR_DEFAULT_PROVPORT 0
+
 #define MED_GW_STRING "gw"
 #define MED_AS_STRING "as"
 #define MED_PEER_STRING "peer"
