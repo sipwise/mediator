@@ -1,3 +1,9 @@
+sipwise-mediator (0.1.5) unstable; urgency=low
+
+  * separate CDR and billing databases
+
+ -- Daniel Tiefnig <dtiefnig@sipwise.com>  Wed, 22 Sep 2010 19:56:39 +0200
+
 sipwise-mediator (0.1.4) unstable; urgency=low
 
   [ Jon Bonilla ]
