@@ -1,8 +1,14 @@
 sipwise-mediator (0.1.5) unstable; urgency=low
 
+  [ Daniel Tiefnig ]
   * separate CDR and billing databases
 
- -- Daniel Tiefnig <dtiefnig@sipwise.com>  Wed, 22 Sep 2010 19:56:39 +0200
+  [ Michael Prokop ]
+  * Debian packaging:
+    - Bump Standards-Version to 3.9.1 (no further changes).
+    - Update lintian overrides file.
+
+ -- Michael Prokop <mprokop@sipwise.com>  Sat, 25 Sep 2010 13:07:03 +0200
 
 sipwise-mediator (0.1.4) unstable; urgency=low
 

@@ -1,2 +1,1 @@
-mediator: binary-without-manpage usr/bin/mediator
-mediator: new-package-should-close-itp-bug
+sipwise-mediator: binary-without-manpage usr/bin/mediator
