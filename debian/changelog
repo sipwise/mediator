@@ -1,3 +1,9 @@
+sipwise-mediator (0.1.5-1) unstable; urgency=low
+
+  * re-uploaded 0.1.5 due to checksum error
+
+ -- Daniel Tiefnig <dtiefnig@sipwise.com>  Wed, 22 Sep 2010 22:50:23 +0200
+
 sipwise-mediator (0.1.5) unstable; urgency=low
 
   [ Daniel Tiefnig ]
