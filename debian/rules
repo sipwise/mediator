@@ -43,8 +43,8 @@ install: build
 	dh_clean -k 
 	dh_installdirs usr/bin
 
-	# Add here commands to install the package into debian/sipwise-mediator.
-	install -m 755 mediator $(CURDIR)/debian/sipwise-mediator/usr/bin/mediator
+	# Add here commands to install the package into debian/ngcp-mediator.
+	install -m 755 mediator $(CURDIR)/debian/ngcp-mediator/usr/bin/mediator
 
 
 # Build architecture-independent files here.
@@ -62,8 +62,8 @@ binary-arch: build install
 	dh_installinit --name=mediator
 	dh_link
 	dh_strip
-	mkdir -p $(CURDIR)/debian/sipwise-mediator/usr/share/lintian/overrides/
-	cp -av debian/overrides $(CURDIR)/debian/sipwise-mediator/usr/share/lintian/overrides/sipwise-mediator
+	mkdir -p $(CURDIR)/debian/ngcp-mediator/usr/share/lintian/overrides/
+	cp -av debian/overrides $(CURDIR)/debian/ngcp-mediator/usr/share/lintian/overrides/ngcp-mediator
 	dh_compress
 	dh_fixperms
 	dh_installdeb

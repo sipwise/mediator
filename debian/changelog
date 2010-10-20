@@ -1,10 +1,10 @@
-sipwise-mediator (0.1.5-1) unstable; urgency=low
+ngcp-mediator (0.1.5-1) unstable; urgency=low
 
   * re-uploaded 0.1.5 due to checksum error
 
  -- Daniel Tiefnig <dtiefnig@sipwise.com>  Wed, 22 Sep 2010 22:50:23 +0200
 
-sipwise-mediator (0.1.5) unstable; urgency=low
+ngcp-mediator (0.1.5) unstable; urgency=low
 
   [ Daniel Tiefnig ]
   * separate CDR and billing databases
@@ -16,21 +16,21 @@ sipwise-mediator (0.1.5) unstable; urgency=low
 
  -- Michael Prokop <mprokop@sipwise.com>  Sat, 25 Sep 2010 13:07:03 +0200
 
-sipwise-mediator (0.1.4) unstable; urgency=low
+ngcp-mediator (0.1.4) unstable; urgency=low
 
   [ Jon Bonilla ]
   * Path fixes
 
  -- Jon Bonilla <jbonilla@sipwise.com>  Wed, 24 Feb 2010 15:40:23 +0100
 
-sipwise-mediator (0.1.2) unstable; urgency=low
+ngcp-mediator (0.1.2) unstable; urgency=low
 
   [ Jon Bonilla ]
   * Install default configuration and init script.
 
  -- Michael Prokop <mprokop@sipwise.com>  Wed, 24 Feb 2010 15:40:23 +0100
 
-sipwise-mediator (0.1.1) unstable; urgency=low
+ngcp-mediator (0.1.1) unstable; urgency=low
 
   * Initial release.
 

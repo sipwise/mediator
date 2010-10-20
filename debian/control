@@ -1,4 +1,4 @@
-Source: sipwise-mediator
+Source: ngcp-mediator
 Section: utils
 Priority: extra
 Maintainer: Michael Prokop <mprokop@sipwise.com>
@@ -8,7 +8,7 @@ Homepage: http://sipwise.com/
 Vcs-svn: https://dev.sipwise.com/svn/voip-tools/mediator
 Vcs-Browser: https://dev.sipwise.com/svn/voip-tools/mediator
 
-Package: sipwise-mediator
+Package: ngcp-mediator
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: a mediator software package
