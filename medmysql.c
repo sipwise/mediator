@@ -110,7 +110,7 @@ int medmysql_fetch_callids(med_callid_t **callids, u_int64_t *count)
 
 	*count = 0;
 
-	strncpy(query, MED_CALLID_QUERY, sizeof(query));
+	g_strlcpy(query, MED_CALLID_QUERY, sizeof(query));
 	
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
 
@@ -205,14 +205,14 @@ int medmysql_fetch_records(med_callid_t *callid,
 	{
 		med_entry_t *e = &(*entries)[i++];
 
-		strncpy(e->sip_code, row[0], sizeof(e->sip_code));
-		strncpy(e->sip_reason, row[1], sizeof(e->sip_reason));
-		strncpy(e->sip_method, row[2], sizeof(e->sip_method));
-		strncpy(e->callid, row[3], sizeof(e->callid));
-		strncpy(e->timestamp, row[4], sizeof(e->timestamp));
+		g_strlcpy(e->sip_code, row[0], sizeof(e->sip_code));
+		g_strlcpy(e->sip_reason, row[1], sizeof(e->sip_reason));
+		g_strlcpy(e->sip_method, row[2], sizeof(e->sip_method));
+		g_strlcpy(e->callid, row[3], sizeof(e->callid));
+		g_strlcpy(e->timestamp, row[4], sizeof(e->timestamp));
 		e->unix_timestamp = atoll(row[5]);
-		strncpy(e->src_leg, row[6], sizeof(e->src_leg));
-		strncpy(e->dst_leg, row[7], sizeof(e->dst_leg));
+		g_strlcpy(e->src_leg, row[6], sizeof(e->src_leg));
+		g_strlcpy(e->dst_leg, row[7], sizeof(e->dst_leg));
 		e->med_id = atoll(row[8]);
 		e->valid = 1;
 	}

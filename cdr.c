@@ -169,7 +169,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 		return -1;
 	}
 	*tmp1 = '\0';
-	strncpy(cdr->source_user_id, tmp2, sizeof(cdr->source_user_id));
+	g_strlcpy(cdr->source_user_id, tmp2, sizeof(cdr->source_user_id));
 	tmp2 = ++tmp1;
 
 	tmp1 = strchr(tmp2, MED_SEP);
@@ -179,7 +179,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 		return -1;
 	}
 	*tmp1 = '\0';
-	strncpy(cdr->source_user, tmp2, sizeof(cdr->source_user));
+	g_strlcpy(cdr->source_user, tmp2, sizeof(cdr->source_user));
 	tmp2 = ++tmp1;
 	
 	tmp1 = strchr(tmp2, MED_SEP);
@@ -189,7 +189,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 		return -1;
 	}
 	*tmp1 = '\0';
-	strncpy(cdr->source_domain, tmp2, sizeof(cdr->source_domain));
+	g_strlcpy(cdr->source_domain, tmp2, sizeof(cdr->source_domain));
 	tmp2 = ++tmp1;
 	
 
@@ -200,7 +200,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 		return -1;
 	}
 	*tmp1 = '\0';
-	strncpy(cdr->source_cli, tmp2, sizeof(cdr->source_cli));
+	g_strlcpy(cdr->source_cli, tmp2, sizeof(cdr->source_cli));
 	tmp2 = ++tmp1;
 
 	tmp1 = strchr(tmp2, MED_SEP);
@@ -218,7 +218,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 		syslog(LOG_WARNING, "Call-Id '%s' has no separated call type, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
-	strncpy(cdr->call_type, tmp2, sizeof(cdr->call_type));
+	g_strlcpy(cdr->call_type, tmp2, sizeof(cdr->call_type));
 	
 	return 0;
 }
@@ -241,7 +241,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 		return -1;
 	}
 	*tmp1 = '\0';
-	strncpy(cdr->destination_dialed, tmp2, sizeof(cdr->destination_dialed));
+	g_strlcpy(cdr->destination_dialed, tmp2, sizeof(cdr->destination_dialed));
 	tmp2 = ++tmp1;
 	
 	tmp1 = strchr(tmp2, MED_SEP);
@@ -251,7 +251,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 		return -1;
 	}
 	*tmp1 = '\0';
-	strncpy(cdr->destination_user_id, tmp2, sizeof(cdr->destination_user_id));
+	g_strlcpy(cdr->destination_user_id, tmp2, sizeof(cdr->destination_user_id));
 	tmp2 = ++tmp1;
 	
 	tmp1 = strchr(tmp2, MED_SEP);
@@ -261,7 +261,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 		return -1;
 	}
 	*tmp1 = '\0';
-	strncpy(cdr->destination_user, tmp2, sizeof(cdr->destination_user));
+	g_strlcpy(cdr->destination_user, tmp2, sizeof(cdr->destination_user));
 	tmp2 = ++tmp1;
 
 	tmp1 = strchr(tmp2, MED_SEP);
@@ -271,7 +271,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 		return -1;
 	}
 	*tmp1 = '\0';
-	strncpy(cdr->destination_domain, tmp2, sizeof(cdr->destination_domain));
+	g_strlcpy(cdr->destination_domain, tmp2, sizeof(cdr->destination_domain));
 	tmp2 = ++tmp1;
 
 	tmp1 = strchr(tmp2, MED_SEP);
@@ -281,7 +281,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 		return -1;
 	}
 	*tmp1 = '\0';
-	strncpy(cdr->destination_user_in, tmp2, sizeof(cdr->destination_user_in));
+	g_strlcpy(cdr->destination_user_in, tmp2, sizeof(cdr->destination_user_in));
 	tmp2 = ++tmp1;
 
 	//syslog(LOG_INFO, "Call-Id '%s' tmp calc: len=%d, rest=%d, tmp2='%s'", cdr->call_id, len, tmp2 - dstleg + 1, tmp2); 
@@ -291,7 +291,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 		syslog(LOG_WARNING, "Call-Id '%s' has no separated incoming destination domain", cdr->call_id);
 		return -1;
 	}
-	strncpy(cdr->destination_domain_in, tmp2, sizeof(cdr->destination_domain_in));
+	g_strlcpy(cdr->destination_domain_in, tmp2, sizeof(cdr->destination_domain_in));
 
 	syslog(LOG_INFO, "Call-Id '%s' dst_domain_in='%s'", cdr->call_id, cdr->destination_domain_in);
 
@@ -371,11 +371,11 @@ int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 				tmp_unix_endtime = unix_endtime;
 			}
 	
-			strncpy(cdr->call_id, e->callid, sizeof(cdr->call_id));
-			strncpy(cdr->start_time, e->timestamp, sizeof(cdr->start_time));
+			g_strlcpy(cdr->call_id, e->callid, sizeof(cdr->call_id));
+			g_strlcpy(cdr->start_time, e->timestamp, sizeof(cdr->start_time));
 			cdr->duration = tmp_unix_endtime - e->unix_timestamp > 0 ? tmp_unix_endtime - e->unix_timestamp : 0;
-			strncpy(cdr->call_status, call_status, sizeof(cdr->call_status));
-			strncpy(cdr->call_code, e->sip_code, sizeof(cdr->call_code));
+			g_strlcpy(cdr->call_status, call_status, sizeof(cdr->call_status));
+			g_strlcpy(cdr->call_code, e->sip_code, sizeof(cdr->call_code));
 
 
 			cdr->carrier_cost = 0;
@@ -430,48 +430,48 @@ void cdr_set_provider(cdr_entry_t *cdr)
 	{
 		if((val = g_hash_table_lookup(med_uuid_table, cdr->source_user_id)) != NULL)
 		{
-			strncpy(cdr->source_provider_id, val, sizeof(cdr->source_provider_id));
+			g_strlcpy(cdr->source_provider_id, val, sizeof(cdr->source_provider_id));
 		}
 		else
 		{
-			strncpy(cdr->source_provider_id, "0", sizeof(cdr->source_provider_id));
+			g_strlcpy(cdr->source_provider_id, "0", sizeof(cdr->source_provider_id));
 		}
 	}
 	else if((val = g_hash_table_lookup(med_peer_ip_table, cdr->source_domain)) != NULL)
 	{
-		strncpy(cdr->source_provider_id, val, sizeof(cdr->source_provider_id));
+		g_strlcpy(cdr->source_provider_id, val, sizeof(cdr->source_provider_id));
 	}
 	else if((val = g_hash_table_lookup(med_peer_host_table, cdr->source_domain)) != NULL)
 	{
-		strncpy(cdr->source_provider_id, val, sizeof(cdr->source_provider_id));
+		g_strlcpy(cdr->source_provider_id, val, sizeof(cdr->source_provider_id));
 	}
 	else
 	{
-		strncpy(cdr->source_provider_id, "0", sizeof(cdr->source_provider_id));
+		g_strlcpy(cdr->source_provider_id, "0", sizeof(cdr->source_provider_id));
 	}
 
 	if(strncmp("0", cdr->destination_user_id, sizeof(cdr->destination_user_id)) != 0)
 	{
 		if((val = g_hash_table_lookup(med_uuid_table, cdr->destination_user_id)) != NULL)
 		{
-			strncpy(cdr->destination_provider_id, val, sizeof(cdr->destination_provider_id));
+			g_strlcpy(cdr->destination_provider_id, val, sizeof(cdr->destination_provider_id));
 		}
 		else
 		{
-			strncpy(cdr->destination_provider_id, "0", sizeof(cdr->destination_provider_id));
+			g_strlcpy(cdr->destination_provider_id, "0", sizeof(cdr->destination_provider_id));
 		}
 	}
 	else if((val = g_hash_table_lookup(med_peer_ip_table, cdr->destination_domain)) != NULL)
 	{
-		strncpy(cdr->destination_provider_id, val, sizeof(cdr->destination_provider_id));
+		g_strlcpy(cdr->destination_provider_id, val, sizeof(cdr->destination_provider_id));
 	}
 	else if((val = g_hash_table_lookup(med_peer_host_table, cdr->destination_domain)) != NULL)
 	{
-		strncpy(cdr->destination_provider_id, val, sizeof(cdr->destination_provider_id));
+		g_strlcpy(cdr->destination_provider_id, val, sizeof(cdr->destination_provider_id));
 	}
 	else
 	{
-		strncpy(cdr->destination_provider_id, "0", sizeof(cdr->destination_provider_id));
+		g_strlcpy(cdr->destination_provider_id, "0", sizeof(cdr->destination_provider_id));
 	}
 }
 

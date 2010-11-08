@@ -199,9 +199,8 @@ int main(int argc, char **argv)
 		}
 		--maprefresh;
 
-		/*
-		mediator_print_maps();
-		*/
+		if (0)
+			mediator_print_maps();
 
 		id_count = 0, rec_count = 0, cdr_count = 0;
 		last_count = mediator_count;
