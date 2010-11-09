@@ -30,9 +30,7 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *);
 int medmysql_insert_cdrs(cdr_entry_t *records, u_int64_t count, struct medmysql_batches *);
 int medmysql_load_maps(GHashTable *host_table, GHashTable *ip_table);
 int medmysql_load_uuids(GHashTable *uuid_table);
-void medmysql_batch_start(struct medmysql_batches *);
-int medmysql_flush_cdr(struct medmysql_batches *);
-int medmysql_flush_medlist(struct medmysql_str *);
-void medmysql_batch_end(struct medmysql_batches *);
+int medmysql_batch_start(struct medmysql_batches *);
+int medmysql_batch_end(struct medmysql_batches *);
 
 #endif /* _MED_MYSQL_H */

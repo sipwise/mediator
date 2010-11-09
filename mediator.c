@@ -98,6 +98,8 @@ static void mediator_signal(int signal)
 /**********************************************************************/
 static int mediator_lock()
 {
+	struct stat sb;
+
 	mediator_lockfd = open(MEDIATOR_LOCK_FILE, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
 	if(mediator_lockfd == -1)
 	{
@@ -107,6 +109,14 @@ static int mediator_lock()
 	if(flock(mediator_lockfd, LOCK_EX|LOCK_NB) == -1)
 	{
 		syslog(LOG_CRIT, "Error locking lock file: %s", strerror(errno));
+		return -1;
+	}
+	if (fstat(mediator_lockfd, &sb)) {
+		syslog(LOG_CRIT, "Error getting file stats for lock file: %m");
+		return -1;
+	}
+	if (sb.st_size) {
+		syslog(LOG_CRIT, "Non-empty lock file '%s' detected, refusing to start. Examine its contents to learn about the cause, and then delete it to clear the error", MEDIATOR_LOCK_FILE);
 		return -1;
 	}
 
@@ -206,15 +216,12 @@ int main(int argc, char **argv)
 		last_count = mediator_count;
 
 		if(medmysql_fetch_callids(&callids, &id_count) != 0)
-		{
-			/* TODO: error processing? */
-			sleep(config_interval);
-			continue;
+			break;
 
-		}
 		if(id_count > 0)
 		{
-			medmysql_batch_start(&batches);
+			if (medmysql_batch_start(&batches))
+				break;
 
 			/*syslog(LOG_DEBUG, "Processing %"PRIu64" accounting record group(s).", id_count);*/
 			for(i = 0; i < id_count && !mediator_shutdown; ++i)
@@ -224,15 +231,10 @@ int main(int argc, char **argv)
 #endif
 				
 				if(medmysql_fetch_records(&(callids[i]), &records, &rec_count) != 0)
-				{
-					/* TODO: error processing? */
-					continue;
-				}
+					goto out;
 
 				if(cdr_process_records(records, rec_count, &cdr_count, &batches) != 0)
-				{
-					/* TODO: error processing? */
-				}
+					goto out;
 
 				if(rec_count > 0)
 				{
@@ -249,7 +251,8 @@ int main(int argc, char **argv)
 			}
 
 			free(callids);
-			medmysql_batch_end(&batches);
+			if (medmysql_batch_end(&batches))
+				break;
 
 		}
 				
@@ -265,6 +268,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+out:
 	mediator_destroy_maps();
 	syslog(LOG_INFO, "Shutting down.");
 
@@ -272,4 +276,10 @@ int main(int argc, char **argv)
 
 	syslog(LOG_INFO, "Successfully shut down.");
 	return 0;
+}
+
+
+void critical(const char *msg) {
+	write(mediator_lockfd, msg, strlen(msg));
+	write(mediator_lockfd, "\n", 1);
 }

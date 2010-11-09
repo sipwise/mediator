@@ -88,15 +88,11 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 				syslog(LOG_WARNING, "Multiple (%d) BYE messages for callid '%s' found, trashing...", 
 						msg_byes, callid);
 				trash = 1;
-				ret = -1;
 			}
 			else
 			{
 				if(cdr_create_cdrs(records, count, &cdrs, &cdr_count, &trash) != 0)
-				{
-					/* try again next round */
-					ret = -1;
-				}
+					goto error;
 				else
 				{
 					*ext_count = cdr_count;
@@ -108,15 +104,11 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 						}
 
 						if(medmysql_insert_cdrs(cdrs, cdr_count, batches) != 0)
-						{
-							/* TODO: error handling */
-						}
+							goto error;
 						else
 						{
 							if(medmysql_backup_entries(callid, batches) != 0)
-							{
-								// TODO: error handling
-							}
+								goto error;
 						}
 						
 					}
@@ -140,17 +132,18 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 	{
 		/*syslog(LOG_WARNING, "No INVITE message for callid '%s' found, trashing...", callid);*/
 		trash = 1;
-		ret = -1;
 	}
 
 	if(trash)
 	{
 		if(medmysql_trash_entries(callid, batches) != 0)
-		{
-			/* TODO: error handling */
-		}
+			goto error;
 	}
 	return ret;
+
+
+error:
+	return -1;
 }
 
 static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
@@ -385,13 +378,13 @@ int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 			if(cdr_parse_srcleg(e->src_leg, cdr) < 0)
 			{
 				*trash = 1;
-				return -1;
+				return 0;
 			}
 			
 			if(cdr_parse_dstleg(e->dst_leg, cdr) < 0)
 			{
 				*trash = 1;
-				return -1;
+				return 0;
 			}
 			
 			if(cdr_fill_record(cdr) != 0)

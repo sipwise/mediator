@@ -23,6 +23,9 @@ static MYSQL *cdr_handler = NULL;
 static MYSQL *med_handler = NULL;
 static MYSQL *prov_handler = NULL;
 
+static int medmysql_flush_cdr(struct medmysql_batches *);
+static int medmysql_flush_medlist(struct medmysql_str *);
+
 /**********************************************************************/
 int medmysql_init()
 {
@@ -495,18 +498,22 @@ out:
 }
 
 
-void medmysql_batch_start(struct medmysql_batches *batches) {
-	mysql_real_query(cdr_handler, "start transaction", 17);
-	mysql_real_query(med_handler, "start transaction", 17);
+int medmysql_batch_start(struct medmysql_batches *batches) {
+	if (mysql_real_query(cdr_handler, "start transaction", 17))
+		return -1;
+	if (mysql_real_query(med_handler, "start transaction", 17))
+		return -1;
 
 	batches->cdrs.len = 0;
 	batches->acc_backup.len = 0;
 	batches->acc_trash.len = 0;
 	batches->to_delete.len = 0;
+
+	return 0;
 }
 
 
-int medmysql_flush_cdr(struct medmysql_batches *batches) {
+static int medmysql_flush_cdr(struct medmysql_batches *batches) {
 	if (batches->cdrs.len == 0)
 		return 0;
 	if (batches->cdrs.str[batches->cdrs.len - 1] != ',')
@@ -527,7 +534,7 @@ int medmysql_flush_cdr(struct medmysql_batches *batches) {
 	return 0;
 }
 
-int medmysql_flush_medlist(struct medmysql_str *str) {
+static int medmysql_flush_medlist(struct medmysql_str *str) {
 	if (str->len == 0)
 		return 0;
 	if (str->str[str->len - 1] != ',')
@@ -539,7 +546,8 @@ int medmysql_flush_medlist(struct medmysql_str *str) {
 	{
 		str->len = 0;
 		syslog(LOG_CRIT, "Error executing query: %s", 
-				mysql_error(cdr_handler));
+				mysql_error(med_handler));
+		critical("Failed to execute potentially crucial SQL query, check syslog for details");
 		return -1;
 	}
 
@@ -547,12 +555,20 @@ int medmysql_flush_medlist(struct medmysql_str *str) {
 	return 0;
 }
 
-void medmysql_batch_end(struct medmysql_batches *batches) {
-	medmysql_flush_cdr(batches);
-	medmysql_flush_medlist(&batches->acc_trash);
-	medmysql_flush_medlist(&batches->acc_backup);
-	medmysql_flush_medlist(&batches->to_delete);
+int medmysql_batch_end(struct medmysql_batches *batches) {
+	if (medmysql_flush_cdr(batches))
+		return -1;
+	if (medmysql_flush_medlist(&batches->acc_trash))
+		return -1;
+	if (medmysql_flush_medlist(&batches->acc_backup))
+		return -1;
+	if (medmysql_flush_medlist(&batches->to_delete))
+		return -1;
 
-	mysql_real_query(cdr_handler, "commit", 6);
-	mysql_real_query(med_handler, "commit", 6);
+	if (mysql_real_query(cdr_handler, "commit", 6))
+		return -1;
+	if (mysql_real_query(med_handler, "commit", 6))
+		return -1;
+
+	return 0;
 }
