@@ -21,7 +21,6 @@ static sig_atomic_t mediator_shutdown = 0;
 int mediator_lockfd = -1;
 u_int64_t mediator_count = 0;
 
-GHashTable *med_peer_host_table = NULL;
 GHashTable *med_peer_ip_table = NULL;
 GHashTable *med_uuid_table = NULL;
 
@@ -29,11 +28,10 @@ GHashTable *med_uuid_table = NULL;
 /**********************************************************************/
 static int mediator_load_maps()
 {
-	med_peer_host_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
 	med_peer_ip_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
 	med_uuid_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
 
-	if(medmysql_load_maps(med_peer_host_table, med_peer_ip_table))
+	if(medmysql_load_maps(med_peer_ip_table))
 		return -1;
 	if(medmysql_load_uuids(med_uuid_table))
 		return -1;
@@ -50,8 +48,6 @@ static void mediator_print_mapentry(gpointer key, gpointer value, gpointer d)
 /**********************************************************************/
 static void mediator_destroy_maps()
 {
-	if(med_peer_host_table)
-		g_hash_table_destroy(med_peer_host_table);
 	if(med_peer_ip_table)
 		g_hash_table_destroy(med_peer_ip_table);
 	if(med_uuid_table)
@@ -61,8 +57,6 @@ static void mediator_destroy_maps()
 /**********************************************************************/
 static void mediator_print_maps()
 {
-	syslog(LOG_DEBUG, "Peer host map:");
-	g_hash_table_foreach(med_peer_host_table, mediator_print_mapentry, NULL);
 	syslog(LOG_DEBUG, "Peer IP map:");
 	g_hash_table_foreach(med_peer_ip_table, mediator_print_mapentry, NULL);
 	syslog(LOG_DEBUG, "UUID map:");
@@ -280,6 +274,7 @@ out:
 
 
 void critical(const char *msg) {
-	write(mediator_lockfd, msg, strlen(msg));
-	write(mediator_lockfd, "\n", 1);
+	int ret;
+	ret = write(mediator_lockfd, msg, strlen(msg));
+	ret = write(mediator_lockfd, "\n", 1);
 }

@@ -13,7 +13,7 @@
 	"src_leg, dst_leg, id " \
 	"from acc where callid = '%s' order by time asc"
 
-#define MED_LOAD_PEER_QUERY "select h.domain, h.ip, g.peering_contract_id " \
+#define MED_LOAD_PEER_QUERY "select h.ip, g.peering_contract_id " \
 	"from provisioning.voip_peer_hosts h, provisioning.voip_peer_groups g " \
 	"where g.id = h.group_id"
 #define MED_LOAD_UUID_QUERY "select vs.uuid, r.contract_id from billing.voip_subscribers vs, " \
@@ -391,14 +391,13 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 }
 
 /**********************************************************************/
-int medmysql_load_maps(GHashTable *host_table, GHashTable *ip_table)
+int medmysql_load_maps(GHashTable *ip_table)
 {
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 	int ret = 0;
 	char query[1024] = "";
 	gpointer key;
-	char* host_id;
 	char* ip_id;
 
 	snprintf(query, sizeof(query), MED_LOAD_PEER_QUERY);
@@ -415,52 +414,32 @@ int medmysql_load_maps(GHashTable *host_table, GHashTable *ip_table)
 
 	while((row = mysql_fetch_row(res)) != NULL)
 	{
-		host_id = NULL;
 		ip_id = NULL;
 
-		if(row[0] == NULL || row[1] == NULL || row[2] == NULL)
+		if(row[0] == NULL || row[1] == NULL)
 		{
 			syslog(LOG_CRIT, "Error loading peer hosts, a column is NULL");
 			ret = -1;
 			goto out;
 		}
 
-		host_id = strdup(row[2]);
-		if(host_id == NULL)
-		{
-			syslog(LOG_CRIT, "Error allocating host id memory: %s", strerror(errno));
-			ret = -1;
-			goto out;
-		}
-
-		ip_id = strdup(row[2]);
+		ip_id = strdup(row[1]);
 		if(ip_id == NULL)
 		{
 			syslog(LOG_CRIT, "Error allocating ip id memory: %s", strerror(errno));
-			free(host_id);
 			ret = -1;
 			goto out;
 		}
 
-		if(g_hash_table_lookup(host_table, row[0]) != NULL)
-		{
-			syslog(LOG_WARNING, "Skipping duplicate hostname '%s'", row[0]);
-		}
-		else
-		{
-			key = (gpointer)g_strdup(row[0]);
-			g_hash_table_insert(host_table, key, host_id);
-		}
-	
 		if(ip_table != NULL)
 		{
-			if(g_hash_table_lookup(ip_table, row[1]) != NULL)
+			if(g_hash_table_lookup(ip_table, row[0]) != NULL)
 			{
 				syslog(LOG_WARNING, "Skipping duplicate IP '%s'", row[1]);
 			}
 			else
 			{
-				key = (gpointer)g_strdup(row[1]);
+				key = (gpointer)g_strdup(row[0]);
 				g_hash_table_insert(ip_table, key, ip_id);
 			}
 		}
