@@ -222,9 +222,6 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	int len;
 		
 	len = strlen(dstleg);
-
-	//syslog(LOG_INFO, "Call-Id '%s' has dstleg '%s' with length %d", cdr->call_id, dstleg, len);
-
 	tmp2 = dstleg;
 	
 	tmp1 = strchr(tmp2, MED_SEP);
@@ -277,16 +274,12 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	g_strlcpy(cdr->destination_user_in, tmp2, sizeof(cdr->destination_user_in));
 	tmp2 = ++tmp1;
 
-	//syslog(LOG_INFO, "Call-Id '%s' tmp calc: len=%d, rest=%d, tmp2='%s'", cdr->call_id, len, tmp2 - dstleg + 1, tmp2); 
-
 	if(len < tmp2 - dstleg + 1)	
 	{
 		syslog(LOG_WARNING, "Call-Id '%s' has no separated incoming destination domain", cdr->call_id);
 		return -1;
 	}
 	g_strlcpy(cdr->destination_domain_in, tmp2, sizeof(cdr->destination_domain_in));
-
-	syslog(LOG_INFO, "Call-Id '%s' dst_domain_in='%s'", cdr->call_id, cdr->destination_domain_in);
 
 	return 0;
 }
