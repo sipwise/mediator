@@ -435,7 +435,7 @@ int medmysql_load_maps(GHashTable *ip_table)
 		{
 			if(g_hash_table_lookup(ip_table, row[0]) != NULL)
 			{
-				syslog(LOG_WARNING, "Skipping duplicate IP '%s'", row[1]);
+				syslog(LOG_WARNING, "Skipping duplicate IP '%s'", row[0]);
 			}
 			else
 			{
