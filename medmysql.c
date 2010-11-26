@@ -256,7 +256,7 @@ int medmysql_trash_entries(const char *callid, struct medmysql_batches *batches)
 	}
 
 	if (batches->acc_trash.len == 0)
-		batches->acc_trash.len = sprintf(batches->acc_trash.str, "insert into acc_trash select * from acc where callid in (");
+		batches->acc_trash.len = sprintf(batches->acc_trash.str, "insert into acc_trash (method, from_tag, to_tag, callid, sip_code, sip_reason, time, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain) select method, from_tag, to_tag, callid, sip_code, sip_reason, time, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain from acc where callid in (");
 
 	batches->acc_trash.len += sprintf(batches->acc_trash.str + batches->acc_trash.len, "'%s',", callid);
 
@@ -272,7 +272,7 @@ int medmysql_backup_entries(const char *callid, struct medmysql_batches *batches
 	}
 
 	if (batches->acc_backup.len == 0)
-		batches->acc_backup.len = sprintf(batches->acc_backup.str, "insert into acc_backup select * from acc where callid in (");
+		batches->acc_backup.len = sprintf(batches->acc_backup.str, "insert into acc_backup (method, from_tag, to_tag, callid, sip_code, sip_reason, time, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain) select method, from_tag, to_tag, callid, sip_code, sip_reason, time, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain from acc where callid in (");
 
 	batches->acc_backup.len += sprintf(batches->acc_backup.str + batches->acc_backup.len, "'%s',", callid);
 
