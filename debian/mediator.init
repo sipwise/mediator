@@ -28,6 +28,9 @@ fi
 
 set -e
 
+. /lib/lsb/init-functions
+
+
 OPTIONS=""
 
 [ -z "$PIDFILE" ] || OPTIONS="$OPTIONS -D $PIDFILE"
@@ -56,15 +59,15 @@ case "$1" in
   start)
 
         echo -n "Starting $DESC: $NAME"
-        start-stop-daemon --start --quiet --pidfile $PIDFILE \
+        start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE \
                 --exec $DAEMON -- $OPTIONS || echo -n " already running"
-        echo "."
+         log_end_msg $?
         ;;
   stop)
         echo -n "Stopping $DESC: $NAME"
         start-stop-daemon --oknodo --stop --quiet --pidfile $PIDFILE \
                 --exec $DAEMON
-        echo "."
+        log_end_msg $?
         ;;
   restart|force-reload)
 
@@ -76,8 +79,11 @@ case "$1" in
                 $PIDFILE --exec $DAEMON  -- $OPTIONS
         echo "."
         ;;
+  status)
+       status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
+       ;;
   *)
-        echo "Usage: $0 {start|stop|restart|force-reload}" >&2
+        echo "Usage: $0 {start|stop|restart|force-reload|status}" >&2
         exit 1
         ;;
 esac
