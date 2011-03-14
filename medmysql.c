@@ -169,8 +169,9 @@ int medmysql_fetch_callids(med_callid_t **callids, u_int64_t *count)
 		if(row == NULL || row[0] == NULL)
 		{
 			strcpy(c->value, "0");
+		} else {
+			strcpy(c->value, row[0]);
 		}
-		strcpy(c->value, row[0]);
 
 		/*syslog(LOG_DEBUG, "callid[%"PRIu64"]='%s'", i, c->value);*/
 	}
