@@ -67,6 +67,10 @@ case "$1" in
         echo -n "Stopping $DESC: $NAME"
         start-stop-daemon --oknodo --stop --quiet --pidfile $PIDFILE \
                 --exec $DAEMON
+	if [ "$?" -ne 0 ]; then
+                return $?
+        fi
+        rm -f $PIDFILE	
         log_end_msg $?
         ;;
   restart|force-reload)
@@ -74,10 +78,14 @@ case "$1" in
         echo -n "Restarting $DESC: $NAME"
         start-stop-daemon --oknodo --stop --quiet --pidfile \
                 $PIDFILE --exec $DAEMON
+	if [ "$?" -ne 0 ]; then
+                return $?
+        fi
+        rm -f $PIDFILE
         sleep 1
         start-stop-daemon --start --quiet --pidfile \
                 $PIDFILE --exec $DAEMON  -- $OPTIONS
-        echo "."
+        log_end_msg $?
         ;;
   status)
        status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
