@@ -1,3 +1,9 @@
+ngcp-mediator (1.2.1) unstable; urgency=low
+
+  * Aligned debian version with old, non-debianized versioning scheme.
+
+ -- Andreas Granig <agranig@sheep.linguin.org>  Fri, 29 Apr 2011 12:06:19 +0200
+
 ngcp-mediator (0.2.0) unstable; urgency=low
 
   [ Daniel Tiefnig ]
