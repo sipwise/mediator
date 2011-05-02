@@ -1,3 +1,9 @@
+ngcp-mediator (1.2.2) unstable; urgency=low
+
+  * Use "mysql" instead of "$mysql" in LSB headers.
+
+ -- Michael Prokop <mprokop@sipwise.com>  Mon, 02 May 2011 15:26:27 +0200
+
 ngcp-mediator (1.2.1) unstable; urgency=low
 
   * Aligned debian version with old, non-debianized versioning scheme.
