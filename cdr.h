@@ -20,7 +20,10 @@ typedef struct {
 	char call_id[128];
 
 	char source_user_id[37];
+	char source_ext_subscriber_id[256];
+	char source_ext_contract_id[256];
 	char source_provider_id[256];
+	u_int64_t source_account_id;
 	char source_user[256];
 	char source_domain[256];
 	char source_cli[65];
@@ -28,6 +31,9 @@ typedef struct {
 	
 	char destination_user_id[37];
 	char destination_provider_id[256];
+	char destination_ext_subscriber_id[256];
+	char destination_ext_contract_id[256];
+	u_int64_t destination_account_id;
 	char destination_user[256];
 	char destination_domain[256];
 	char destination_user_in[256];
@@ -37,6 +43,9 @@ typedef struct {
 	char call_type[8];
 	char call_status[16];
 	char call_code[4];
+	
+	char peer_auth_user[256];
+	char peer_auth_realm[256];
 
 	char start_time[32];
 	u_int32_t duration;

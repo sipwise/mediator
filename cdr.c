@@ -199,6 +199,56 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated source external subscriber id, '%s'", cdr->call_id, tmp2);
+		return -1;
+	}
+	*tmp1 = '\0';
+	g_strlcpy(cdr->source_ext_subscriber_id, tmp2, sizeof(cdr->source_ext_subscriber_id));
+	tmp2 = ++tmp1;
+
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
+	{
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated source external contract id, '%s'", cdr->call_id, tmp2);
+		return -1;
+	}
+	*tmp1 = '\0';
+	g_strlcpy(cdr->source_ext_contract_id, tmp2, sizeof(cdr->source_ext_contract_id));
+	tmp2 = ++tmp1;
+
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
+	{
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated source account id, '%s'", cdr->call_id, tmp2);
+		return -1;
+	}
+	*tmp1 = '\0';
+	cdr->source_account_id = atoll(tmp2);
+	tmp2 = ++tmp1;
+
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
+	{
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated peer auth user, '%s'", cdr->call_id, tmp2);
+		return -1;
+	}
+	*tmp1 = '\0';
+	g_strlcpy(cdr->peer_auth_user, tmp2, sizeof(cdr->peer_auth_user));
+	tmp2 = ++tmp1;
+
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
+	{
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated peer auth realm, '%s'", cdr->call_id, tmp2);
+		return -1;
+	}
+	*tmp1 = '\0';
+	g_strlcpy(cdr->peer_auth_realm, tmp2, sizeof(cdr->peer_auth_realm));
+	tmp2 = ++tmp1;
+
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
+	{
 		syslog(LOG_WARNING, "Call-Id '%s' has no separated source clir status, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
@@ -223,7 +273,37 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 		
 	len = strlen(dstleg);
 	tmp2 = dstleg;
-	
+
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
+	{
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination external subscriber id, '%s'", cdr->call_id, tmp2);
+		return -1;
+	}
+	*tmp1 = '\0';
+	g_strlcpy(cdr->destination_ext_subscriber_id, tmp2, sizeof(cdr->destination_ext_subscriber_id));
+	tmp2 = ++tmp1;
+
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
+	{
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination external contract id, '%s'", cdr->call_id, tmp2);
+		return -1;
+	}
+	*tmp1 = '\0';
+	g_strlcpy(cdr->destination_ext_contract_id, tmp2, sizeof(cdr->destination_ext_contract_id));
+	tmp2 = ++tmp1;
+
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
+	{
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination account id, '%s'", cdr->call_id, tmp2);
+		return -1;
+	}
+	*tmp1 = '\0';
+	cdr->destination_account_id = atoll(tmp2);
+	tmp2 = ++tmp1;
+
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
