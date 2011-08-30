@@ -1,3 +1,10 @@
+ngcp-mediator (1.2.3) unstable; urgency=low
+
+  * Fix int overflow bug for duration.
+  * Fix formatting when printing uint32_t to char[].
+
+ -- Andreas Granig <agranig@sipwise.com>  Tue, 30 Aug 2011 19:41:33 +0200
+
 ngcp-mediator (1.2.2) unstable; urgency=low
 
   * Use "mysql" instead of "$mysql" in LSB headers.
