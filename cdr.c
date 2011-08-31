@@ -439,7 +439,7 @@ int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 	
 			g_strlcpy(cdr->call_id, e->callid, sizeof(cdr->call_id));
 			g_strlcpy(cdr->start_time, e->timestamp, sizeof(cdr->start_time));
-			cdr->duration = tmp_unix_endtime - e->unix_timestamp > 0 ? tmp_unix_endtime - e->unix_timestamp : 0;
+			cdr->duration = (tmp_unix_endtime >= e->unix_timestamp) ? tmp_unix_endtime - e->unix_timestamp : 0;
 			g_strlcpy(cdr->call_status, call_status, sizeof(cdr->call_status));
 			g_strlcpy(cdr->call_code, e->sip_code, sizeof(cdr->call_code));
 

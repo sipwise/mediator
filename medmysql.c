@@ -334,13 +334,13 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		char str_customer_cost[32] = "";
 		char str_source_accid[32] = "";
 		char str_dest_accid[32] = "";
-		snprintf(str_source_clir, sizeof(str_source_clir), "%d", e->source_clir);
-		snprintf(str_duration, sizeof(str_duration), "%d", e->duration);
-		snprintf(str_carrier_cost, sizeof(str_carrier_cost), "%d", e->carrier_cost);
-		snprintf(str_reseller_cost, sizeof(str_reseller_cost), "%d", e->reseller_cost);
-		snprintf(str_customer_cost, sizeof(str_customer_cost), "%d", e->customer_cost);
-		snprintf(str_source_accid, sizeof(str_source_accid), "%d", e->source_account_id);
-		snprintf(str_dest_accid, sizeof(str_dest_accid), "%d", e->destination_account_id);
+		snprintf(str_source_clir, sizeof(str_source_clir), "%u", e->source_clir);
+		snprintf(str_duration, sizeof(str_duration), "%u", e->duration);
+		snprintf(str_carrier_cost, sizeof(str_carrier_cost), "%u", e->carrier_cost);
+		snprintf(str_reseller_cost, sizeof(str_reseller_cost), "%u", e->reseller_cost);
+		snprintf(str_customer_cost, sizeof(str_customer_cost), "%u", e->customer_cost);
+		snprintf(str_source_accid, sizeof(str_source_accid), "%u", e->source_account_id);
+		snprintf(str_dest_accid, sizeof(str_dest_accid), "%u", e->destination_account_id);
 
 		CDRPRINT("(NULL, now(), '");
 		CDRESCAPE(e->source_user_id);
@@ -538,6 +538,8 @@ int medmysql_batch_start(struct medmysql_batches *batches) {
 
 
 static int medmysql_flush_cdr(struct medmysql_batches *batches) {
+	/* FILE *qlog; */
+
 	if (batches->cdrs.len == 0)
 		return 0;
 	if (batches->cdrs.str[batches->cdrs.len - 1] != ',')
@@ -551,6 +553,22 @@ static int medmysql_flush_cdr(struct medmysql_batches *batches) {
 		batches->cdrs.len = 0;
 		syslog(LOG_CRIT, "Error inserting cdrs: %s", 
 				mysql_error(cdr_handler));
+		/* 
+		// agranig: tmp. way to log failed query, since it's too big
+		// for syslog. Make this configurable (path, enable) via
+		// cmd line switches
+		qlog = fopen("/var/log/ngcp/cdr-query.log", "a");
+		if(qlog == NULL)
+		{
+			syslog(LOG_CRIT, "Failed to open cdr query log file '/var/log/ngcp/cdr-query.log': %s", strerror(errno));
+			return -1;
+		}
+		if(fputs(batches->cdrs.str, qlog) == EOF)
+		{
+			syslog(LOG_CRIT, "Failed to write to cdr query log file '/var/log/ngcp/cdr-query.log': %s", strerror(errno));
+		}
+		fclose(qlog);
+		*/
 		return -1;
 	}
 
