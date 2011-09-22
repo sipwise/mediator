@@ -1,3 +1,9 @@
+ngcp-mediator (1.2.4) unstable; urgency=low
+
+  * Change required start/stop to should start/stop in init.
+
+ -- Andrew Pogrebennyk <apogrebennyk@sipwise.com>  Thu, 22 Sep 2011 14:55:00 +0200
+
 ngcp-mediator (1.2.3) unstable; urgency=low
 
   * Fix int overflow bug for duration.
