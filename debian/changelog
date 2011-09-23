@@ -1,3 +1,9 @@
+ngcp-mediator (1.2.5) unstable; urgency=low
+
+  * Return required start/stop for remote_fs and syslog in init script.
+
+ -- Andrew Pogrebennyk <apogrebennyk@sipwise.com>  Fri, 23 Sep 2011 13:45:52 +0200
+
 ngcp-mediator (1.2.4) unstable; urgency=low
 
   * Change required start/stop to should start/stop in init.
