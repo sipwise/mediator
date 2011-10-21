@@ -62,7 +62,7 @@ typedef struct {
 	char sip_reason[32];
 	char callid[128];
 	char timestamp[24];
-	u_int64_t unix_timestamp;
+	double unix_timestamp;
 	u_int64_t med_id;
 	u_int8_t valid;
 	med_method_t method;

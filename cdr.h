@@ -47,8 +47,8 @@ typedef struct {
 	char peer_auth_user[256];
 	char peer_auth_realm[256];
 
-	char start_time[32];
-	u_int32_t duration;
+	double start_time;
+	double duration;
 
 	u_int32_t carrier_cost;
 	u_int32_t reseller_cost;

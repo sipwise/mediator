@@ -9,9 +9,9 @@
 /*#define MED_CALLID_QUERY "(select a.callid, a.time from acc a, acc b where a.callid = b.callid and a.method = 'INVITE' and b.method = 'BYE' group by callid) union (select callid, time from acc where method = 'INVITE' and sip_code != '200') order by time asc limit 0,200000"*/
 #define MED_CALLID_QUERY "select a.callid from acc a left join acc b on a.callid = b.callid and b.method = 'BYE' where a.method = 'INVITE' and (a.sip_code != '200' or b.id is not null) group by a.callid limit 0,200000"
 
-#define MED_FETCH_QUERY "select sip_code, sip_reason, method, callid, time, unix_timestamp(time), " \
+#define MED_FETCH_QUERY "select sip_code, sip_reason, method, callid, time, time_hires, " \
 	"src_leg, dst_leg, id " \
-	"from acc where callid = '%s' order by time asc"
+	"from acc where callid = '%s' order by time_hires asc"
 
 #define MED_LOAD_PEER_QUERY "select h.ip, g.peering_contract_id " \
 	"from provisioning.voip_peer_hosts h, provisioning.voip_peer_groups g " \
@@ -236,7 +236,7 @@ int medmysql_fetch_records(med_callid_t *callid,
 		g_strlcpy(e->sip_method, row[2], sizeof(e->sip_method));
 		g_strlcpy(e->callid, row[3], sizeof(e->callid));
 		g_strlcpy(e->timestamp, row[4], sizeof(e->timestamp));
-		e->unix_timestamp = atoll(row[5]);
+		e->unix_timestamp = atof(row[5]);
 		g_strlcpy(e->src_leg, row[6], sizeof(e->src_leg));
 		g_strlcpy(e->dst_leg, row[7], sizeof(e->dst_leg));
 		e->med_id = atoll(row[8]);
@@ -328,6 +328,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 
 		cdr_entry_t *e = &(entries[i]);
 		char str_source_clir[2] = "";
+		char str_start_time[32] = "";
 		char str_duration[32] = "";
 		char str_carrier_cost[32] = "";
 		char str_reseller_cost[32] = "";
@@ -335,7 +336,8 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		char str_source_accid[32] = "";
 		char str_dest_accid[32] = "";
 		snprintf(str_source_clir, sizeof(str_source_clir), "%u", e->source_clir);
-		snprintf(str_duration, sizeof(str_duration), "%u", e->duration);
+		snprintf(str_start_time, sizeof(str_start_time), "%f", e->start_time);
+		snprintf(str_duration, sizeof(str_duration), "%f", e->duration);
 		snprintf(str_carrier_cost, sizeof(str_carrier_cost), "%u", e->carrier_cost);
 		snprintf(str_reseller_cost, sizeof(str_reseller_cost), "%u", e->reseller_cost);
 		snprintf(str_customer_cost, sizeof(str_customer_cost), "%u", e->customer_cost);
@@ -392,9 +394,9 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		CDRESCAPE(e->call_status);
 		CDRPRINT("','");
 		CDRESCAPE(e->call_code);
-		CDRPRINT("','");
-		CDRESCAPE(e->start_time);
 		CDRPRINT("',");
+		CDRESCAPE(str_start_time);
+		CDRPRINT(",");
 		CDRESCAPE(str_duration);
 		CDRPRINT(",'");
 		CDRESCAPE(e->call_id);
