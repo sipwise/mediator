@@ -13,7 +13,7 @@
 	"src_leg, dst_leg, id " \
 	"from acc where callid = '%s' order by time_hires asc"
 
-#define MED_LOAD_PEER_QUERY "select h.ip, g.peering_contract_id " \
+#define MED_LOAD_PEER_QUERY "select h.ip, h.host, g.peering_contract_id " \
 	"from provisioning.voip_peer_hosts h, provisioning.voip_peer_groups g " \
 	"where g.id = h.group_id"
 #define MED_LOAD_UUID_QUERY "select vs.uuid, r.contract_id from billing.voip_subscribers vs, " \
@@ -416,7 +416,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 }
 
 /**********************************************************************/
-int medmysql_load_maps(GHashTable *ip_table)
+int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table)
 {
 	MYSQL_RES *res;
 	MYSQL_ROW row;
@@ -441,9 +441,9 @@ int medmysql_load_maps(GHashTable *ip_table)
 	{
 		ip_id = NULL;
 
-		if(row[0] == NULL || row[1] == NULL)
+		if(row[0] == NULL || row[2] == NULL)
 		{
-			syslog(LOG_CRIT, "Error loading peer hosts, a column is NULL");
+			syslog(LOG_CRIT, "Error loading peer hosts, a mandatory column is NULL");
 			ret = -1;
 			goto out;
 		}
@@ -466,6 +466,18 @@ int medmysql_load_maps(GHashTable *ip_table)
 			{
 				key = (gpointer)g_strdup(row[0]);
 				g_hash_table_insert(ip_table, key, ip_id);
+			}
+		}
+		if(host_table != NULL && row[1] != NULL) // host column is optional
+		{
+			if(g_hash_table_lookup(host_table, row[1]) != NULL)
+			{
+				syslog(LOG_WARNING, "Skipping duplicate host '%s'", row[1]);
+			}
+			else
+			{
+				key = (gpointer)g_strdup(row[1]);
+				g_hash_table_insert(host_table, key, ip_id);
 			}
 		}
 	}
