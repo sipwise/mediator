@@ -448,7 +448,7 @@ int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table)
 			goto out;
 		}
 
-		ip_id = strdup(row[1]);
+		ip_id = strdup(row[2]);
 		if(ip_id == NULL)
 		{
 			syslog(LOG_CRIT, "Error allocating ip id memory: %s", strerror(errno));
