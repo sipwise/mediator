@@ -56,6 +56,10 @@ static void mediator_destroy_maps()
 		g_hash_table_destroy(med_peer_host_table);
 	if(med_uuid_table)
 		g_hash_table_destroy(med_uuid_table);
+
+	med_peer_ip_table = NULL;
+	med_peer_host_table = NULL;
+	med_uuid_table = NULL;
 }
 
 /**********************************************************************/
