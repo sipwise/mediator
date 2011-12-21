@@ -1,7 +1,7 @@
 Source: ngcp-mediator
 Section: utils
 Priority: extra
-Maintainer: Michael Prokop <mprokop@sipwise.com>
+Maintainer: Sipwise Development Team <support@sipwise.com>
 Build-Depends: debhelper (>= 5), libmysqlclient15-dev, libglib2.0-dev
 Standards-Version: 3.9.1
 Homepage: http://sipwise.com/
