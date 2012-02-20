@@ -60,7 +60,7 @@ typedef struct {
 	char dst_leg[256];
 	char sip_code[4];
 	char sip_reason[32];
-	char callid[128];
+	char callid[256];
 	char timestamp[24];
 	double unix_timestamp;
 	u_int64_t med_id;
@@ -70,7 +70,7 @@ typedef struct {
 } med_entry_t;
 
 typedef struct {
-	char value[128];
+	char value[256];
 } med_callid_t;
 
 extern GHashTable *med_peer_host_table;
