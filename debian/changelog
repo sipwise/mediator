@@ -1,3 +1,9 @@
+ngcp-mediator (1.3.4) unstable; urgency=low
+
+  * Increase call-id string size.
+
+ -- Andrew Pogrebennyk <apogrebennyk@sipwise.com>  Mon, 20 Feb 2012 18:23:08 +0100
+
 ngcp-mediator (1.3.3) unstable; urgency=low
 
   * fix bug in acc_trash query, which causes mediator to fail
