@@ -155,7 +155,7 @@ int medmysql_fetch_callids(med_callid_t **callids, u_int64_t *count)
 
 	callid_size = sizeof(med_callid_t) * (*count);
 	*callids = (med_callid_t*)malloc(callid_size);
-	memset(*callids, 0, callid_size);
+	memset(*callids, '\0', callid_size);
 	if(*callids == NULL)
 	{
 		syslog(LOG_CRIT, "Error allocating callid memory: %s", strerror(errno));
@@ -168,9 +168,9 @@ int medmysql_fetch_callids(med_callid_t **callids, u_int64_t *count)
 		med_callid_t *c = &(*callids)[i++];
 		if(row == NULL || row[0] == NULL)
 		{
-			strcpy(c->value, "0");
+			g_strlcpy(c->value, "0", sizeof(c->value));
 		} else {
-			strcpy(c->value, row[0]);
+			g_strlcpy(c->value, row[0], sizeof(c->value));
 		}
 
 		/*syslog(LOG_DEBUG, "callid[%"PRIu64"]='%s'", i, c->value);*/
