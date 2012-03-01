@@ -322,12 +322,13 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 					"source_cli, source_clir, "\
 					"destination_user_id, destination_provider_id, destination_external_subscriber_id, destination_external_contract_id, destination_account_id, destination_user, destination_domain, " \
 					"destination_user_in, destination_domain_in, destination_user_dialed, " \
-					"peer_auth_user, peer_auth_realm, call_type, call_status, call_code, start_time, duration, call_id, " \
+					"peer_auth_user, peer_auth_realm, call_type, call_status, call_code, init_time, start_time, duration, call_id, " \
 					"carrier_cost, reseller_cost, customer_cost) values ");
 		}
 
 		cdr_entry_t *e = &(entries[i]);
 		char str_source_clir[2] = "";
+		char str_init_time[32] = "";
 		char str_start_time[32] = "";
 		char str_duration[32] = "";
 		char str_carrier_cost[32] = "";
@@ -336,6 +337,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		char str_source_accid[32] = "";
 		char str_dest_accid[32] = "";
 		snprintf(str_source_clir, sizeof(str_source_clir), "%u", e->source_clir);
+		snprintf(str_init_time, sizeof(str_init_time), "%f", e->init_time);
 		snprintf(str_start_time, sizeof(str_start_time), "%f", e->start_time);
 		snprintf(str_duration, sizeof(str_duration), "%f", e->duration);
 		snprintf(str_carrier_cost, sizeof(str_carrier_cost), "%u", e->carrier_cost);
@@ -395,6 +397,8 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		CDRPRINT("','");
 		CDRESCAPE(e->call_code);
 		CDRPRINT("',");
+		CDRESCAPE(str_init_time);
+		CDRPRINT(",");
 		CDRESCAPE(str_start_time);
 		CDRPRINT(",");
 		CDRESCAPE(str_duration);
