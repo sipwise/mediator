@@ -256,23 +256,13 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	cdr->source_clir = atoi(tmp2);
 	tmp2 = ++tmp1;
 
-	tmp1 = strchr(tmp2, MED_SEP);
-	if(tmp1 == NULL)
+	if(len < tmp2 - srcleg + 1)	
 	{
 		syslog(LOG_WARNING, "Call-Id '%s' has no separated call type, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
-	*tmp1 = '\0';
 	g_strlcpy(cdr->call_type, tmp2, sizeof(cdr->call_type));
-	tmp2 = ++tmp1;
-
-	if(len < tmp2 - srcleg + 1)	
-	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated init time, '%s'", cdr->call_id, tmp2);
-		return -1;
-	}
-	cdr->init_time = g_strtod(tmp2, NULL);
-
+	
 	return 0;
 }
 
