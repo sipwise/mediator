@@ -27,6 +27,7 @@ typedef struct {
 	char source_user[256];
 	char source_domain[256];
 	char source_cli[65];
+	char source_ip[65];
 	u_int8_t source_clir;
 	
 	char destination_user_id[37];

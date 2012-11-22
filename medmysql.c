@@ -319,7 +319,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		if (batches->cdrs.len == 0) {
 			batches->cdrs.len = sprintf(batches->cdrs.str, "insert into cdr (id, update_time, " \
 					"source_user_id, source_provider_id, source_external_subscriber_id, source_external_contract_id, source_account_id, source_user, source_domain, " \
-					"source_cli, source_clir, "\
+					"source_cli, source_clir, source_ip, "\
 					"destination_user_id, destination_provider_id, destination_external_subscriber_id, destination_external_contract_id, destination_account_id, destination_user, destination_domain, " \
 					"destination_user_in, destination_domain_in, destination_user_dialed, " \
 					"peer_auth_user, peer_auth_realm, call_type, call_status, call_code, init_time, start_time, duration, call_id, " \
@@ -367,6 +367,8 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		CDRPRINT("',");
 		CDRESCAPE(str_source_clir);
 		CDRPRINT(",'");
+		CDRESCAPE(e->source_ip);
+		CDRPRINT("','");
 		CDRESCAPE(e->destination_user_id);
 		CDRPRINT("','");
 		CDRESCAPE(e->destination_provider_id);

@@ -266,6 +266,16 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	g_strlcpy(cdr->call_type, tmp2, sizeof(cdr->call_type));
 	tmp2 = ++tmp1;
 
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
+	{
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated source ip, '%s'", cdr->call_id, tmp2);
+		return -1;
+	}
+	*tmp1 = '\0';
+	g_strlcpy(cdr->source_ip, tmp2, sizeof(cdr->source_ip));
+	tmp2 = ++tmp1;
+
 	if(len < tmp2 - srcleg + 1)	
 	{
 		syslog(LOG_WARNING, "Call-Id '%s' has no separated init time, '%s'", cdr->call_id, tmp2);
