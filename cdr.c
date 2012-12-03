@@ -297,6 +297,16 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated split flag, '%s'", cdr->call_id, tmp2);
+		return -1;
+	}
+	*tmp1 = '\0';
+	cdr->split = atoi(tmp2);
+	tmp2 = ++tmp1;
+
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
+	{
 		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination external subscriber id, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}

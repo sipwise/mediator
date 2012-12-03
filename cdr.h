@@ -56,6 +56,8 @@ typedef struct {
 	u_int32_t reseller_cost;
 	u_int32_t customer_cost;
 
+	u_int8_t split;
+
 } cdr_entry_t;
 
 int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *cdr_count, struct medmysql_batches *);
