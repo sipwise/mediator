@@ -406,7 +406,7 @@ int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 	u_int32_t invites = 0;
 	size_t cdr_size;
 
-	char *endtime = NULL, *tmp_endtime = NULL;
+	char *endtime = NULL;
 	double unix_endtime = 0, tmp_unix_endtime = 0;
 	char *call_status;
 
@@ -465,12 +465,10 @@ int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 			if(strncmp("200", e->sip_code, 3))
 			{
 				/* missed calls have duration of 0 */
-				tmp_endtime = e->timestamp;
 				tmp_unix_endtime = e->unix_timestamp;
 			}
 			else
 			{
-				tmp_endtime = endtime;
 				tmp_unix_endtime = unix_endtime;
 			}
 	

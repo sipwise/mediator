@@ -284,7 +284,6 @@ out:
 
 
 void critical(const char *msg) {
-	int ret;
-	ret = write(mediator_lockfd, msg, strlen(msg));
-	ret = write(mediator_lockfd, "\n", 1);
+	write(mediator_lockfd, msg, strlen(msg));
+	write(mediator_lockfd, "\n", 1);
 }
