@@ -1,8 +1,8 @@
 #include <ctype.h>
 
+#include "cdr.h"
 #include "medmysql.h"
 #include "config.h"
-#include "cdr.h"
 #include "mediator.h"
 
 static char* cdr_map_status(const char *sip_status)

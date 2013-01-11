@@ -1,7 +1,7 @@
 #include <getopt.h>
 
-#include "mediator.h"
 #include "config.h"
+#include "mediator.h"
 
 unsigned int config_interval = MEDIATOR_DEFAULT_INTERVAL;
 u_int8_t config_dumpcdr = MEDIATOR_DEFAULT_DUMPCDR;
