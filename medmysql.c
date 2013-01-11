@@ -174,6 +174,9 @@ int medmysql_fetch_callids(med_callid_t **callids, u_int64_t *count)
 		}
 
 		/*syslog(LOG_DEBUG, "callid[%"PRIu64"]='%s'", i, c->value);*/
+
+		if (check_shutdown())
+			return -1;
 	}
 			
 out:
@@ -241,6 +244,9 @@ int medmysql_fetch_records(med_callid_t *callid,
 		g_strlcpy(e->dst_leg, row[7], sizeof(e->dst_leg));
 		e->med_id = atoll(row[8]);
 		e->valid = 1;
+
+		if (check_shutdown())
+			return -1;
 	}
 
 out:
@@ -420,6 +426,9 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		CDRPRINT(",");
 		CDRESCAPE(str_split);
 		CDRPRINT("),");
+
+		if (check_shutdown())
+			return -1;
 	}
 	
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
@@ -603,13 +612,13 @@ static int medmysql_flush_medlist(struct medmysql_str *str) {
 }
 
 int medmysql_batch_end(struct medmysql_batches *batches) {
-	if (medmysql_flush_cdr(batches))
+	if (medmysql_flush_cdr(batches) || check_shutdown())
 		return -1;
-	if (medmysql_flush_medlist(&batches->acc_trash))
+	if (medmysql_flush_medlist(&batches->acc_trash) || check_shutdown())
 		return -1;
-	if (medmysql_flush_medlist(&batches->acc_backup))
+	if (medmysql_flush_medlist(&batches->acc_backup) || check_shutdown())
 		return -1;
-	if (medmysql_flush_medlist(&batches->to_delete))
+	if (medmysql_flush_medlist(&batches->to_delete) || check_shutdown())
 		return -1;
 
 	if (mysql_query_wrapper(cdr_handler, "commit", 6))

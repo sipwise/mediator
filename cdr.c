@@ -3,6 +3,7 @@
 #include "medmysql.h"
 #include "config.h"
 #include "cdr.h"
+#include "mediator.h"
 
 static char* cdr_map_status(const char *sip_status)
 {
@@ -75,6 +76,9 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 			++msg_unknowns;
 			e->method = MED_UNRECOGNIZED;
 		}
+
+		if (check_shutdown())
+			return -1;
 	}
 				
 	/*syslog(LOG_DEBUG, "%d INVITEs, %d BYEs, %d unrecognized", msg_invites, msg_byes, msg_unknowns);*/
@@ -422,6 +426,9 @@ int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 			endtime = e->timestamp;
 			unix_endtime = e->unix_timestamp;
 		}
+
+		if (check_shutdown())
+			return -1;
 	}
 
 	if(invites == 0)
@@ -496,6 +503,9 @@ int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 				// TODO: error handling
 			}
 		}
+
+		if (check_shutdown())
+			return -1;
 	}
 
 	*cdr_count = cdr_index;

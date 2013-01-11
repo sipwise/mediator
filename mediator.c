@@ -17,7 +17,7 @@
 #include "medmysql.h"
 #include "cdr.h"
 
-static sig_atomic_t mediator_shutdown = 0;
+sig_atomic_t mediator_shutdown = 0;
 int mediator_lockfd = -1;
 u_int64_t mediator_count = 0;
 

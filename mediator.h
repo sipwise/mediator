@@ -47,6 +47,7 @@
 #define MED_SEP '|'
 
 extern int mediator_lockfd;
+extern sig_atomic_t mediator_shutdown;
 
 typedef enum {
 	MED_INVITE = 1,
@@ -79,6 +80,14 @@ extern GHashTable *med_uuid_table;
 
 
 void critical(const char *);
+
+static inline int check_shutdown(void) {
+	if (mediator_shutdown) {
+		syslog(LOG_INFO, "Shutdown detected, aborting work in progress");
+		return 1;
+	}
+	return 0;
+}
 
 
 #endif /* _MEDIATOR_H */
