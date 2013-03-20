@@ -480,9 +480,12 @@ int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 			g_strlcpy(cdr->call_code, e->sip_code, sizeof(cdr->call_code));
 
 
-			cdr->carrier_cost = 0;
-			cdr->reseller_cost = 0;
-			cdr->customer_cost = 0;
+			cdr->source_carrier_cost = 0;
+			cdr->source_reseller_cost = 0;
+			cdr->source_customer_cost = 0;
+			cdr->destination_carrier_cost = 0;
+			cdr->destination_reseller_cost = 0;
+			cdr->destination_customer_cost = 0;
 
 			if(cdr_parse_srcleg(e->src_leg, cdr) < 0)
 			{

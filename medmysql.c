@@ -332,7 +332,9 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 					"destination_user_in, destination_domain_in, destination_user_dialed, " \
 					"peer_auth_user, peer_auth_realm, call_type, call_status, call_code, init_time, start_time, "\
 					"duration, call_id, " \
-					"carrier_cost, reseller_cost, customer_cost, split) values ");
+					"source_carrier_cost, source_reseller_cost, source_customer_cost, " \
+					"destination_carrier_cost, destination_reseller_cost, destination_customer_cost, " \
+					"split) values ");
 		}
 
 		cdr_entry_t *e = &(entries[i]);
@@ -341,9 +343,12 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		char str_init_time[32] = "";
 		char str_start_time[32] = "";
 		char str_duration[32] = "";
-		char str_carrier_cost[32] = "";
-		char str_reseller_cost[32] = "";
-		char str_customer_cost[32] = "";
+		char str_source_carrier_cost[32] = "";
+		char str_source_reseller_cost[32] = "";
+		char str_source_customer_cost[32] = "";
+		char str_dest_carrier_cost[32] = "";
+		char str_dest_reseller_cost[32] = "";
+		char str_dest_customer_cost[32] = "";
 		char str_source_accid[32] = "";
 		char str_dest_accid[32] = "";
 		snprintf(str_source_clir, sizeof(str_source_clir), "%u", e->source_clir);
@@ -351,9 +356,12 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		snprintf(str_init_time, sizeof(str_init_time), "%f", e->init_time);
 		snprintf(str_start_time, sizeof(str_start_time), "%f", e->start_time);
 		snprintf(str_duration, sizeof(str_duration), "%f", e->duration);
-		snprintf(str_carrier_cost, sizeof(str_carrier_cost), "%u", e->carrier_cost);
-		snprintf(str_reseller_cost, sizeof(str_reseller_cost), "%u", e->reseller_cost);
-		snprintf(str_customer_cost, sizeof(str_customer_cost), "%u", e->customer_cost);
+		snprintf(str_source_carrier_cost, sizeof(str_source_carrier_cost), "%u", e->source_carrier_cost);
+		snprintf(str_source_reseller_cost, sizeof(str_source_reseller_cost), "%u", e->source_reseller_cost);
+		snprintf(str_source_customer_cost, sizeof(str_source_customer_cost), "%u", e->source_customer_cost);
+		snprintf(str_dest_carrier_cost, sizeof(str_dest_carrier_cost), "%u", e->destination_carrier_cost);
+		snprintf(str_dest_reseller_cost, sizeof(str_dest_reseller_cost), "%u", e->destination_reseller_cost);
+		snprintf(str_dest_customer_cost, sizeof(str_dest_customer_cost), "%u", e->destination_customer_cost);
 		snprintf(str_source_accid, sizeof(str_source_accid), "%llu", (long long unsigned int) e->source_account_id);
 		snprintf(str_dest_accid, sizeof(str_dest_accid), "%llu", (long long unsigned int) e->destination_account_id);
 
@@ -418,11 +426,17 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		CDRPRINT(",'");
 		CDRESCAPE(e->call_id);
 		CDRPRINT("',");
-		CDRESCAPE(str_carrier_cost);
+		CDRESCAPE(str_source_carrier_cost);
 		CDRPRINT(",");
-		CDRESCAPE(str_reseller_cost);
+		CDRESCAPE(str_source_reseller_cost);
 		CDRPRINT(",");
-		CDRESCAPE(str_customer_cost);
+		CDRESCAPE(str_source_customer_cost);
+		CDRPRINT(",");
+		CDRESCAPE(str_dest_carrier_cost);
+		CDRPRINT(",");
+		CDRESCAPE(str_dest_reseller_cost);
+		CDRPRINT(",");
+		CDRESCAPE(str_dest_customer_cost);
 		CDRPRINT(",");
 		CDRESCAPE(str_split);
 		CDRPRINT("),");

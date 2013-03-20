@@ -52,9 +52,12 @@ typedef struct {
 	double start_time;
 	double duration;
 
-	u_int32_t carrier_cost;
-	u_int32_t reseller_cost;
-	u_int32_t customer_cost;
+	u_int32_t source_carrier_cost;
+	u_int32_t source_reseller_cost;
+	u_int32_t source_customer_cost;
+	u_int32_t destination_carrier_cost;
+	u_int32_t destination_reseller_cost;
+	u_int32_t destination_customer_cost;
 
 	u_int8_t split;
 
