@@ -1,3 +1,10 @@
+ngcp-mediator (1.7.0) unstable; urgency=low
+
+  [ agranig ]
+  * Align cdrs to new accounting.cdr schema.
+
+ -- Andreas Granig <agranig@sipwise.com>  Wed, 27 Mar 2013 16:54:51 +0100
+
 ngcp-mediator (1.6.0) unstable; urgency=low
 
   [ agranig ]
