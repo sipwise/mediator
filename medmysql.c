@@ -17,8 +17,8 @@
 	"from provisioning.voip_peer_hosts h, provisioning.voip_peer_groups g " \
 	"where g.id = h.group_id"
 #define MED_LOAD_UUID_QUERY "select vs.uuid, r.contract_id from billing.voip_subscribers vs, " \
-	"billing.contracts c, billing.resellers r where c.id = vs.contract_id and " \
-	"c.reseller_id = r.id"
+	"billing.contracts c, billing.contacts ct, billing.resellers r where c.id = vs.contract_id and " \
+	"c.contact_id = ct.id and ct.reseller_id = r.id"
 
 static MYSQL *cdr_handler = NULL;
 static MYSQL *med_handler = NULL;
