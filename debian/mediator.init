@@ -70,13 +70,13 @@ fi
 case "$1" in
   start)
 
-        echo -n "Starting $DESC: $NAME"
+        printf "Starting $DESC: $NAME"
         start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE \
-                --exec $DAEMON -- $OPTIONS || echo -n " already running"
+                --exec $DAEMON -- $OPTIONS || printf " already running"
          log_end_msg $?
         ;;
   stop)
-        echo -n "Stopping $DESC: $NAME"
+        printf "Stopping $DESC: $NAME"
         start-stop-daemon --oknodo --stop --quiet --pidfile $PIDFILE \
                 --exec $DAEMON
 	if [ "$?" -ne 0 ]; then
@@ -87,7 +87,7 @@ case "$1" in
         ;;
   restart|force-reload)
 
-        echo -n "Restarting $DESC: $NAME"
+        printf "Restarting $DESC: $NAME"
         start-stop-daemon --oknodo --stop --quiet --pidfile \
                 $PIDFILE --exec $DAEMON
 	if [ "$?" -ne 0 ]; then
