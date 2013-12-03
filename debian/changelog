@@ -1,3 +1,18 @@
+ngcp-mediator (1.8.2) unstable; urgency=low
+
+  [ Kirill Solomko ]
+  * [f89c788] MT#5257 - only distint acc records are selected per callid,
+    removed unused acc.id field selection
+
+ -- Kirill Solomko <ksolomko@sipwise.com>  Tue, 03 Dec 2013 16:51:43 +0100
+
+ngcp-mediator (1.8.1) unstable; urgency=low
+
+  [ Michael Prokop ]
+  * [5792d19] MT#4517 Get rid of bashism in init script
+
+ -- Victor Seva <vseva@sipwise.com>  Tue, 29 Oct 2013 14:03:57 +0100
+
 ngcp-mediator (1.8.0) unstable; urgency=low
 
   [ agranig ]
