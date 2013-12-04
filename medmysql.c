@@ -9,8 +9,8 @@
 /*#define MED_CALLID_QUERY "(select a.callid, a.time from acc a, acc b where a.callid = b.callid and a.method = 'INVITE' and b.method = 'BYE' group by callid) union (select callid, time from acc where method = 'INVITE' and sip_code != '200') order by time asc limit 0,200000"*/
 #define MED_CALLID_QUERY "select a.callid from acc a left join acc b on a.callid = b.callid and b.method = 'BYE' where a.method = 'INVITE' and (a.sip_code != '200' or b.id is not null) group by a.callid limit 0,200000"
 
-#define MED_FETCH_QUERY "select sip_code, sip_reason, method, callid, time, time_hires, " \
-	"src_leg, dst_leg, id " \
+#define MED_FETCH_QUERY "select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
+	"src_leg, dst_leg " \
 	"from acc where callid = '%s' order by time_hires asc"
 
 #define MED_LOAD_PEER_QUERY "select h.ip, h.host, g.peering_contract_id " \
@@ -242,7 +242,6 @@ int medmysql_fetch_records(med_callid_t *callid,
 		e->unix_timestamp = atof(row[5]);
 		g_strlcpy(e->src_leg, row[6], sizeof(e->src_leg));
 		g_strlcpy(e->dst_leg, row[7], sizeof(e->dst_leg));
-		e->med_id = atoll(row[8]);
 		e->valid = 1;
 
 		if (check_shutdown())
