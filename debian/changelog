@@ -1,3 +1,9 @@
+ngcp-mediator (1.8.2+0~mr3.2.1) unstable; urgency=low
+
+  * New release.
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Sat, 01 Feb 2014 19:49:32 +0100
+
 ngcp-mediator (1.8.2) unstable; urgency=low
 
   [ Kirill Solomko ]
