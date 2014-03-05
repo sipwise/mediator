@@ -61,7 +61,7 @@ typedef struct {
 
 	u_int8_t split;
 
-	u_int32_t fci_data;
+	u_int64_t fci_data;
 
 } cdr_entry_t;
 

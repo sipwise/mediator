@@ -350,6 +350,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		char str_dest_customer_cost[32] = "";
 		char str_source_accid[32] = "";
 		char str_dest_accid[32] = "";
+		char str_fci_data[32] = "";
 		snprintf(str_source_clir, sizeof(str_source_clir), "%u", e->source_clir);
 		snprintf(str_split, sizeof(str_split), "%u", e->split);
 		snprintf(str_init_time, sizeof(str_init_time), "%f", e->init_time);
@@ -363,6 +364,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		snprintf(str_dest_customer_cost, sizeof(str_dest_customer_cost), "%u", e->destination_customer_cost);
 		snprintf(str_source_accid, sizeof(str_source_accid), "%llu", (long long unsigned int) e->source_account_id);
 		snprintf(str_dest_accid, sizeof(str_dest_accid), "%llu", (long long unsigned int) e->destination_account_id);
+		snprintf(str_fci_data, sizeof(str_fci_data), "%llu", (long long unsigned int) e->fci_data);
 
 		CDRPRINT("(NULL, now(), '");
 		CDRESCAPE(e->source_user_id);
@@ -439,7 +441,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		CDRPRINT(",");
 		CDRESCAPE(str_split);
 		CDRPRINT(",");
-		CDRESCAPE(e->fci_data);
+		CDRESCAPE(str_fci_data);
 		CDRPRINT("),");
 
 		if (check_shutdown())

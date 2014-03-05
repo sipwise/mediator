@@ -400,10 +400,10 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 
 	if(len < tmp2 - dstleg + 1)	
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated FCI data", cdr->call_id);
-		return -1;
+		//syslog(LOG_WARNING, "Call-Id '%s' has no separated FCI data", cdr->call_id);
+		return 0;
 	}
-	g_strlcpy(cdr->fci_data, tmp2, sizeof(cdr->fci_data));
+	cdr->fci_data = atoll(tmp2);
 
 	return 0;
 }
