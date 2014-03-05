@@ -333,7 +333,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 					"duration, call_id, " \
 					"source_carrier_cost, source_reseller_cost, source_customer_cost, " \
 					"destination_carrier_cost, destination_reseller_cost, destination_customer_cost, " \
-					"split) values ");
+					"split, fci_data) values ");
 		}
 
 		cdr_entry_t *e = &(entries[i]);
@@ -438,6 +438,8 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		CDRESCAPE(str_dest_customer_cost);
 		CDRPRINT(",");
 		CDRESCAPE(str_split);
+		CDRPRINT("),");
+		CDRESCAPE(e->fci_data);
 		CDRPRINT("),");
 
 		if (check_shutdown())

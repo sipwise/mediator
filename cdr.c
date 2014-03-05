@@ -388,12 +388,22 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	g_strlcpy(cdr->destination_user_in, tmp2, sizeof(cdr->destination_user_in));
 	tmp2 = ++tmp1;
 
-	if(len < tmp2 - dstleg + 1)	
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
 	{
 		syslog(LOG_WARNING, "Call-Id '%s' has no separated incoming destination domain", cdr->call_id);
 		return -1;
 	}
+	*tmp1 = '\0';
 	g_strlcpy(cdr->destination_domain_in, tmp2, sizeof(cdr->destination_domain_in));
+	tmp2 = ++tmp1;
+
+	if(len < tmp2 - dstleg + 1)	
+	{
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated FCI data", cdr->call_id);
+		return -1;
+	}
+	g_strlcpy(cdr->fci_data, tmp2, sizeof(cdr->fci_data));
 
 	return 0;
 }
