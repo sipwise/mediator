@@ -438,7 +438,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		CDRESCAPE(str_dest_customer_cost);
 		CDRPRINT(",");
 		CDRESCAPE(str_split);
-		CDRPRINT("),");
+		CDRPRINT(",");
 		CDRESCAPE(e->fci_data);
 		CDRPRINT("),");
 
