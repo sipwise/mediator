@@ -386,7 +386,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		CDRESCAPE(e->source_domain);
 		CDRPRINT("','");
 		CDRESCAPE(e->source_cli);
-		CDRPRINT("',");
+		CDRPRINT("','");
 		CDRESCAPE(e->source_div);
 		CDRPRINT("',");
 		CDRESCAPE(str_source_clir);
