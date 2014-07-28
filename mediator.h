@@ -75,6 +75,7 @@ typedef struct {
 
 extern GHashTable *med_peer_host_table;
 extern GHashTable *med_peer_ip_table;
+extern GHashTable *med_peer_id_table;
 extern GHashTable *med_uuid_table;
 
 
