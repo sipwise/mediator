@@ -388,12 +388,19 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	g_strlcpy(cdr->destination_user_in, tmp2, sizeof(cdr->destination_user_in));
 	tmp2 = ++tmp1;
 
-	if(len < tmp2 - dstleg + 1)	
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
 	{
 		syslog(LOG_WARNING, "Call-Id '%s' has no separated incoming destination domain", cdr->call_id);
 		return -1;
 	}
+	*tmp1 = '\0';
 	g_strlcpy(cdr->destination_domain_in, tmp2, sizeof(cdr->destination_domain_in));
+	tmp2 = ++tmp1;
+
+	if(len < tmp2 - dstleg + 1)
+		return 0;
+	cdr->destination_lcr_id = atoll(tmp2);
 
 	return 0;
 }
@@ -568,6 +575,12 @@ void cdr_set_provider(cdr_entry_t *cdr)
 		{
 			g_strlcpy(cdr->destination_provider_id, "0", sizeof(cdr->destination_provider_id));
 		}
+	}
+	else if (cdr->destination_lcr_id) {
+		snprintf(cdr->destination_provider_id, sizeof(cdr->destination_provider_id),
+				"%llu", (unsigned long long) cdr->destination_lcr_id);
+		val = g_hash_table_lookup(med_peer_id_table, cdr->destination_provider_id);
+		g_strlcpy(cdr->destination_provider_id, val ? : "0", sizeof(cdr->destination_provider_id));
 	}
 	else if((val = g_hash_table_lookup(med_peer_ip_table, cdr->destination_domain)) != NULL)
 	{

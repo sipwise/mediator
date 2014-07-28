@@ -40,6 +40,7 @@ typedef struct {
 	char destination_user_in[256];
 	char destination_domain_in[256];
 	char destination_dialed[256];
+	u_int64_t destination_lcr_id;
 
 	char call_type[8];
 	char call_status[16];
