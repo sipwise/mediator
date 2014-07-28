@@ -13,7 +13,7 @@
 	"src_leg, dst_leg " \
 	"from acc where callid = '%s' order by time_hires asc"
 
-#define MED_LOAD_PEER_QUERY "select h.ip, h.host, g.peering_contract_id " \
+#define MED_LOAD_PEER_QUERY "select h.ip, h.host, g.peering_contract_id, h.id " \
 	"from provisioning.voip_peer_hosts h, provisioning.voip_peer_groups g " \
 	"where g.id = h.group_id"
 #define MED_LOAD_UUID_QUERY "select vs.uuid, r.contract_id from billing.voip_subscribers vs, " \
@@ -451,7 +451,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 }
 
 /**********************************************************************/
-int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table)
+int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable *id_table)
 {
 	MYSQL_RES *res;
 	MYSQL_ROW row;
@@ -493,6 +493,8 @@ int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table)
 			else
 				g_hash_table_insert(host_table, strdup(row[1]), strdup(row[2]));
 		}
+		if (id_table)
+			g_hash_table_insert(id_table, strdup(row[3]), strdup(row[2]));
 	}
 
 out:	
