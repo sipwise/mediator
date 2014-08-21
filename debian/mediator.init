@@ -3,8 +3,7 @@
 # Provides:          mediator
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
-# Should-Start:      mysql
-# Should-Stop:       mysql
+# Should-Start:      sshd mysql
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Ngcp Mediator
@@ -38,8 +37,6 @@ if [ "$RUN_MEDIATOR" != "yes" ]; then
 fi
 [ -z "$PIDFILE" ] && PIDFILE="/var/run/mediator.pid"
 
-set -e
-
 . /lib/lsb/init-functions
 
 
@@ -63,49 +60,77 @@ OPTIONS=""
 [ -z "$PROV_PASS" ] || OPTIONS="$OPTIONS -A $PROV_PASS"
 [ -z "$PROV_DB" ] || OPTIONS="$OPTIONS -N $PROV_DB"
 if test "$FORK" = "yes" ; then
-        OPTIONS="$OPTIONS -d"    
+        OPTIONS="$OPTIONS -d"
 fi
 
 
 case "$1" in
   start)
+      if [ -x "/usr/sbin/ngcp-check_active" ]; then
+        /usr/sbin/ngcp-check_active -q
+        status=$?
+        case "${status}" in
+          0|3)
+            echo "Active node or transition."
+            ;;
+          *)
+            echo "Ignored start action in inactive node ($status)"
+            exit 0
+            ;;
+        esac
+      fi
+      set -e
 
-        printf "Starting $DESC: $NAME"
-        start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE \
-                --exec $DAEMON -- $OPTIONS || printf " already running"
-         log_end_msg $?
-        ;;
+      echo -n "Starting $DESC: $NAME"
+      start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE \
+              --exec $DAEMON -- $OPTIONS || echo -n " already running"
+       log_end_msg $?
+      ;;
   stop)
-        printf "Stopping $DESC: $NAME"
-        start-stop-daemon --oknodo --stop --quiet --pidfile $PIDFILE \
-                --exec $DAEMON
-	if [ "$?" -ne 0 ]; then
-                return $?
-        fi
-        rm -f $PIDFILE	
-        log_end_msg $?
-        ;;
+      echo -n "Stopping $DESC: $NAME"
+      start-stop-daemon --oknodo --stop --quiet --pidfile $PIDFILE \
+              --exec $DAEMON
+      if [ "$?" -ne 0 ]; then
+          return $?
+      fi
+      rm -f $PIDFILE
+      log_end_msg $?
+      ;;
   restart|force-reload)
+      echo -n "Restarting $DESC: $NAME"
+      start-stop-daemon --oknodo --stop --quiet --pidfile \
+              $PIDFILE --exec $DAEMON
+      if [ "$?" -ne 0 ]; then
+          return $?
+      fi
+      rm -f $PIDFILE
+      sleep 1
 
-        printf "Restarting $DESC: $NAME"
-        start-stop-daemon --oknodo --stop --quiet --pidfile \
-                $PIDFILE --exec $DAEMON
-	if [ "$?" -ne 0 ]; then
-                return $?
-        fi
-        rm -f $PIDFILE
-        sleep 1
-        start-stop-daemon --start --quiet --pidfile \
-                $PIDFILE --exec $DAEMON  -- $OPTIONS
-        log_end_msg $?
-        ;;
+      if [ -x "/usr/sbin/ngcp-check_active" ]; then
+        /usr/sbin/ngcp-check_active -q
+        status=$?
+        case "${status}" in
+          0|3)
+            echo "Active node or transition."
+            ;;
+          *)
+            echo "Ignored start action in inactive node ($status)"
+            exit 0
+            ;;
+        esac
+      fi
+      set -e
+      start-stop-daemon --start --quiet --pidfile \
+              $PIDFILE --exec $DAEMON  -- $OPTIONS
+      log_end_msg $?
+      ;;
   status)
-       status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
-       ;;
+      status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
+      ;;
   *)
-        echo "Usage: $0 {start|stop|restart|force-reload|status}" >&2
-        exit 1
-        ;;
+      echo "Usage: $0 {start|stop|restart|force-reload|status}" >&2
+      exit 1
+      ;;
 esac
 
 exit 0
