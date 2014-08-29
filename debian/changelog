@@ -1,3 +1,12 @@
+ngcp-mediator (1.10.3.0+0~mr3.4.3.0) unstable; urgency=low
+
+  [ Richard Fuchs ]
+  * [1ce97b4] MT#8195 use dst_leg peer id and lookup against peer group/contract ID
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Fri, 29 Aug 2014 15:57:03 +0200
+
 ngcp-mediator (1.10.2.0+0~mr3.4.2.0) unstable; urgency=low
 
   * New release.
