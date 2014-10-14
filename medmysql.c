@@ -338,7 +338,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
                     "source_gpp0, source_gpp1, source_gpp2, source_gpp3, source_gpp4, " \
                     "source_gpp5, source_gpp6, source_gpp7, source_gpp8, source_gpp9, " \
                     "destination_gpp0, destination_gpp1, destination_gpp2, destination_gpp3, destination_gpp4, " \
-                    "destination_gpp5, destination_gpp6, destination_gpp7, destination_gpp8, destination_gpp9, " \
+                    "destination_gpp5, destination_gpp6, destination_gpp7, destination_gpp8, destination_gpp9" \
                     ") values ");
 		}
 
