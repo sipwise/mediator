@@ -29,6 +29,7 @@ typedef struct {
 	char source_cli[65];
 	char source_ip[65];
 	u_int8_t source_clir;
+	char source_gpp[10][255];
 	
 	char destination_user_id[37];
 	char destination_provider_id[256];
@@ -41,6 +42,7 @@ typedef struct {
 	char destination_domain_in[256];
 	char destination_dialed[256];
 	u_int64_t destination_lcr_id;
+	char destination_gpp[10][255];
 
 	char call_type[8];
 	char call_status[16];

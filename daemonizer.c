@@ -26,10 +26,10 @@ int daemonize()
 				close(fds);
 		}
 		fds = open("/dev/null", O_RDWR); /* stdin */
-		dup(fds); /* stdout */
-		dup(fds); /* stderr */
+		if(dup(fds) < 0) {}; /* stdout */
+		if(dup(fds) < 0) {}; /* stderr */
 		umask(027);
-		chdir("/");
+		if(chdir("/") < 0) {};
 	}
 
 	return 0;

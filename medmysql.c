@@ -313,6 +313,7 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *batches
 int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_batches *batches)
 {
 	u_int64_t i;
+    int gpp;
 
 	for(i = 0; i < count; ++i)
 	{
@@ -333,7 +334,12 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 					"duration, call_id, " \
 					"source_carrier_cost, source_reseller_cost, source_customer_cost, " \
 					"destination_carrier_cost, destination_reseller_cost, destination_customer_cost, " \
-					"split) values ");
+					"split, " \
+                    "source_gpp0, source_gpp1, source_gpp2, source_gpp3, source_gpp4, " \
+                    "source_gpp5, source_gpp6, source_gpp7, source_gpp8, source_gpp9, " \
+                    "destination_gpp0, destination_gpp1, destination_gpp2, destination_gpp3, destination_gpp4, " \
+                    "destination_gpp5, destination_gpp6, destination_gpp7, destination_gpp8, destination_gpp9, " \
+                    ") values ");
 		}
 
 		cdr_entry_t *e = &(entries[i]);
@@ -438,6 +444,34 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		CDRESCAPE(str_dest_customer_cost);
 		CDRPRINT(",");
 		CDRESCAPE(str_split);
+        for(gpp = 0; gpp < 10; ++gpp)
+        {
+            if(strnlen(e->source_gpp[gpp], sizeof(e->source_gpp[gpp])) > 0)
+            {
+		        CDRPRINT(",'");
+		        CDRESCAPE(e->source_gpp[gpp]);
+		        CDRPRINT("'");
+            }
+            else
+            {
+		        CDRPRINT(",NULL");
+            }
+        }
+        for(gpp = 0; gpp < 10; ++gpp)
+        {
+            if(strnlen(e->destination_gpp[gpp], sizeof(e->destination_gpp[gpp])) > 0)
+            {
+		        CDRPRINT(",'");
+		        CDRESCAPE(e->destination_gpp[gpp]);
+		        CDRPRINT("'");
+            }
+            else
+            {
+		        CDRPRINT(",NULL");
+            }
+        }
+
+
 		CDRPRINT("),");
 
 		if (check_shutdown())
