@@ -595,9 +595,11 @@ void cdr_set_provider(cdr_entry_t *cdr)
 {
 	char *val;
 
+	pthread_rwlock_rdlock(&med_tables_lock);
+
 	if(strncmp("0", cdr->source_user_id, sizeof(cdr->source_user_id)) != 0)
 	{
-		if((val = g_hash_table_lookup(med_uuid_table, cdr->source_user_id)) != NULL)
+		if((val = g_hash_table_lookup(med_tables.uuid, cdr->source_user_id)) != NULL)
 		{
 			g_strlcpy(cdr->source_provider_id, val, sizeof(cdr->source_provider_id));
 		}
@@ -606,11 +608,11 @@ void cdr_set_provider(cdr_entry_t *cdr)
 			g_strlcpy(cdr->source_provider_id, "0", sizeof(cdr->source_provider_id));
 		}
 	}
-	else if((val = g_hash_table_lookup(med_peer_ip_table, cdr->source_domain)) != NULL)
+	else if((val = g_hash_table_lookup(med_tables.peer_ip, cdr->source_domain)) != NULL)
 	{
 		g_strlcpy(cdr->source_provider_id, val, sizeof(cdr->source_provider_id));
 	}
-	else if((val = g_hash_table_lookup(med_peer_host_table, cdr->source_domain)) != NULL)
+	else if((val = g_hash_table_lookup(med_tables.peer_host, cdr->source_domain)) != NULL)
 	{
 		g_strlcpy(cdr->source_provider_id, val, sizeof(cdr->source_provider_id));
 	}
@@ -621,7 +623,7 @@ void cdr_set_provider(cdr_entry_t *cdr)
 
 	if(strncmp("0", cdr->destination_user_id, sizeof(cdr->destination_user_id)) != 0)
 	{
-		if((val = g_hash_table_lookup(med_uuid_table, cdr->destination_user_id)) != NULL)
+		if((val = g_hash_table_lookup(med_tables.uuid, cdr->destination_user_id)) != NULL)
 		{
 			g_strlcpy(cdr->destination_provider_id, val, sizeof(cdr->destination_provider_id));
 		}
@@ -633,14 +635,14 @@ void cdr_set_provider(cdr_entry_t *cdr)
 	else if (cdr->destination_lcr_id) {
 		snprintf(cdr->destination_provider_id, sizeof(cdr->destination_provider_id),
 				"%llu", (unsigned long long) cdr->destination_lcr_id);
-		val = g_hash_table_lookup(med_peer_id_table, cdr->destination_provider_id);
+		val = g_hash_table_lookup(med_tables.peer_id, cdr->destination_provider_id);
 		g_strlcpy(cdr->destination_provider_id, val ? : "0", sizeof(cdr->destination_provider_id));
 	}
-	else if((val = g_hash_table_lookup(med_peer_ip_table, cdr->destination_domain)) != NULL)
+	else if((val = g_hash_table_lookup(med_tables.peer_ip, cdr->destination_domain)) != NULL)
 	{
 		g_strlcpy(cdr->destination_provider_id, val, sizeof(cdr->destination_provider_id));
 	}
-	else if((val = g_hash_table_lookup(med_peer_host_table, cdr->destination_domain)) != NULL)
+	else if((val = g_hash_table_lookup(med_tables.peer_host, cdr->destination_domain)) != NULL)
 	{
 		g_strlcpy(cdr->destination_provider_id, val, sizeof(cdr->destination_provider_id));
 	}
@@ -648,5 +650,7 @@ void cdr_set_provider(cdr_entry_t *cdr)
 	{
 		g_strlcpy(cdr->destination_provider_id, "0", sizeof(cdr->destination_provider_id));
 	}
+
+	pthread_rwlock_unlock(&med_tables_lock);
 }
 

@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <glib.h>
 #include <inttypes.h>
+#include <pthread.h>
 
 
 #define MEDIATOR_DEFAULT_INTERVAL 10
@@ -73,10 +74,15 @@ typedef struct {
 	char value[256];
 } med_callid_t;
 
-extern GHashTable *med_peer_host_table;
-extern GHashTable *med_peer_ip_table;
-extern GHashTable *med_peer_id_table;
-extern GHashTable *med_uuid_table;
+struct med_tables {
+	GHashTable *peer_host;
+	GHashTable *peer_ip;
+	GHashTable *peer_id;
+	GHashTable *uuid;
+};
+
+extern pthread_rwlock_t med_tables_lock;
+extern struct med_tables med_tables;
 
 
 void critical(const char *);

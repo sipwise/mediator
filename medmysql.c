@@ -485,7 +485,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 }
 
 /**********************************************************************/
-int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable *id_table)
+int medmysql_load_maps(struct med_tables *t)
 {
 	MYSQL_RES *res;
 	MYSQL_ROW row;
@@ -513,22 +513,22 @@ int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable 
 			goto out;
 		}
 
-		if(ip_table != NULL)
+		if(t->peer_ip != NULL)
 		{
-			if(g_hash_table_lookup(ip_table, row[0]) != NULL)
+			if(g_hash_table_lookup(t->peer_ip, row[0]) != NULL)
 				syslog(LOG_WARNING, "Skipping duplicate IP '%s'", row[0]);
 			else
-				g_hash_table_insert(ip_table, strdup(row[0]), strdup(row[2]));
+				g_hash_table_insert(t->peer_ip, strdup(row[0]), strdup(row[2]));
 		}
-		if(host_table != NULL && row[1] != NULL) // host column is optional
+		if(t->peer_host != NULL && row[1] != NULL) // host column is optional
 		{
-			if(g_hash_table_lookup(host_table, row[1]) != NULL)
+			if(g_hash_table_lookup(t->peer_host, row[1]) != NULL)
 				syslog(LOG_WARNING, "Skipping duplicate host '%s'", row[1]);
 			else
-				g_hash_table_insert(host_table, strdup(row[1]), strdup(row[2]));
+				g_hash_table_insert(t->peer_host, strdup(row[1]), strdup(row[2]));
 		}
-		if (id_table)
-			g_hash_table_insert(id_table, strdup(row[3]), strdup(row[2]));
+		if (t->peer_id)
+			g_hash_table_insert(t->peer_id, strdup(row[3]), strdup(row[2]));
 	}
 
 out:	

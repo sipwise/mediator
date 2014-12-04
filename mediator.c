@@ -8,6 +8,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <pthread.h>
+#include <glib.h>
 
 
 
@@ -21,23 +23,21 @@ sig_atomic_t mediator_shutdown = 0;
 int mediator_lockfd = -1;
 u_int64_t mediator_count = 0;
 
-GHashTable *med_peer_ip_table = NULL;
-GHashTable *med_peer_host_table = NULL;
-GHashTable *med_peer_id_table = NULL;
-GHashTable *med_uuid_table = NULL;
+pthread_rwlock_t med_tables_lock = PTHREAD_RWLOCK_INITIALIZER;
+struct med_tables med_tables;
 
 
 /**********************************************************************/
-static int mediator_load_maps()
+static int __mediator_load_maps(struct med_tables *t)
 {
-	med_peer_ip_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
-	med_peer_host_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
-	med_peer_id_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
-	med_uuid_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
+	t->peer_ip = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
+	t->peer_host = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
+	t->peer_id = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
+	t->uuid = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
 
-	if(medmysql_load_maps(med_peer_ip_table, med_peer_host_table, med_peer_id_table))
+	if(medmysql_load_maps(t))
 		return -1;
-	if(medmysql_load_uuids(med_uuid_table))
+	if(medmysql_load_uuids(t->uuid))
 		return -1;
 
 	return 0;
@@ -50,34 +50,51 @@ static void mediator_print_mapentry(gpointer key, gpointer value, gpointer d)
 }
 
 /**********************************************************************/
-static void mediator_destroy_maps()
+static void __mediator_destroy_maps(struct med_tables *t)
 {
-	if(med_peer_ip_table)
-		g_hash_table_destroy(med_peer_ip_table);
-	if(med_peer_host_table)
-		g_hash_table_destroy(med_peer_host_table);
-	if(med_peer_id_table)
-		g_hash_table_destroy(med_peer_id_table);
-	if(med_uuid_table)
-		g_hash_table_destroy(med_uuid_table);
+	if(t->peer_ip)
+		g_hash_table_destroy(t->peer_ip);
+	if(t->peer_host)
+		g_hash_table_destroy(t->peer_host);
+	if(t->peer_id)
+		g_hash_table_destroy(t->peer_id);
+	if(t->uuid)
+		g_hash_table_destroy(t->uuid);
 
-	med_peer_ip_table = NULL;
-	med_peer_host_table = NULL;
-	med_peer_id_table = NULL;
-	med_uuid_table = NULL;
+	t->peer_ip = NULL;
+	t->peer_host = NULL;
+	t->peer_id = NULL;
+	t->uuid = NULL;
+}
+
+static int mediator_reload_maps() {
+	struct med_tables tmp_new, tmp_old;
+
+	if (__mediator_load_maps(&tmp_new))
+		return -1;
+
+	pthread_rwlock_wrlock(&med_tables_lock);
+	tmp_old = med_tables;
+	med_tables = tmp_new;
+	pthread_rwlock_wrlock(&med_tables_lock);
+	__mediator_destroy_maps(&tmp_old);
+
+	return 0;
 }
 
 /**********************************************************************/
 static void mediator_print_maps()
 {
+	pthread_rwlock_rdlock(&med_tables_lock);
 	syslog(LOG_DEBUG, "Peer IP map:");
-	g_hash_table_foreach(med_peer_ip_table, mediator_print_mapentry, NULL);
+	g_hash_table_foreach(med_tables.peer_ip, mediator_print_mapentry, NULL);
 	syslog(LOG_DEBUG, "Peer host map:");
-	g_hash_table_foreach(med_peer_host_table, mediator_print_mapentry, NULL);
+	g_hash_table_foreach(med_tables.peer_host, mediator_print_mapentry, NULL);
 	syslog(LOG_DEBUG, "Peer ID map:");
-	g_hash_table_foreach(med_peer_id_table, mediator_print_mapentry, NULL);
+	g_hash_table_foreach(med_tables.peer_id, mediator_print_mapentry, NULL);
 	syslog(LOG_DEBUG, "UUID map:");
-	g_hash_table_foreach(med_uuid_table, mediator_print_mapentry, NULL);
+	g_hash_table_foreach(med_tables.uuid, mediator_print_mapentry, NULL);
+	pthread_rwlock_unlock(&med_tables_lock);
 }
 
 /**********************************************************************/
@@ -159,6 +176,10 @@ int main(int argc, char **argv)
 	u_int64_t runtime;
 #endif	
 
+#if !GLIB_CHECK_VERSION(2,32,0)
+	g_thread_init(NULL);
+#endif
+
 	openlog(MEDIATOR_SYSLOG_NAME, LOG_PID|LOG_NDELAY, LOG_DAEMON);
 	atexit(mediator_exit);
 
@@ -211,8 +232,7 @@ int main(int argc, char **argv)
 	{
 		if(maprefresh == 0)
 		{
-			mediator_destroy_maps();
-			if(mediator_load_maps() != 0)
+			if(mediator_reload_maps() != 0)
 			{
 				break;
 			}
@@ -280,7 +300,7 @@ int main(int argc, char **argv)
 	}
 
 out:
-	mediator_destroy_maps();
+	__mediator_destroy_maps(&med_tables);
 	syslog(LOG_INFO, "Shutting down.");
 
 	medmysql_cleanup();
