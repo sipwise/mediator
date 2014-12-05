@@ -218,6 +218,9 @@ static void signals(void) {
 
 /* thread func */
 static void *map_reloader(void *p) {
+	if (medmysql_init())
+		abort();
+
 	while (!mediator_shutdown) {
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 		usleep(30000000);
