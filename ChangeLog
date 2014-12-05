@@ -1,3 +1,0 @@
-2008-03-18 agranig:
-	- removed force-setting of "anonymous" as caller_cli if caller_clir is
-	active
