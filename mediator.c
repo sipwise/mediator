@@ -284,6 +284,10 @@ static void *callid_fetcher(void *p) {
 		while (process_threads_busy);
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 		pthread_mutex_unlock(&callid_process_lock);
+
+		pthread_mutex_lock(&mediator_count_lock);
+		syslog(LOG_DEBUG, "Overall %"PRIu64" CDRs created so far.", mediator_count);
+		pthread_mutex_unlock(&mediator_count_lock);
 	}
 
 	medmysql_cleanup();
@@ -322,12 +326,6 @@ static void *callid_worker(void *p) {
 		/* if nothing to do right now, flush SQL queues */
 		if (!callid_process_queue.length) {
 			pthread_mutex_unlock(&callid_process_lock);
-
-			/* XXX wrong spot for this log? */
-			pthread_mutex_lock(&mediator_count_lock);
-			syslog(LOG_DEBUG, "Overall %"PRIu64" CDRs created so far.", mediator_count);
-			pthread_mutex_unlock(&mediator_count_lock);
-
 			if (medmysql_batch_end(&batches))
 				abort();
 			if (medmysql_batch_start(&batches))
