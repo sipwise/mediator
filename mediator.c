@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <glib.h>
+#include <sys/resource.h>
 
 
 
@@ -175,6 +176,11 @@ static u_int64_t mediator_calc_runtime(struct timeval *tv_start, struct timeval 
 static void *signal_handler(void *p) {
 	sigset_t ss;
 	int ret, sig;
+	struct rlimit rlim;
+
+	memset(&rlim, 0, sizeof(rlim));
+	rlim.rlim_cur = RLIM_INFINITY;
+	setrlimit(RLIMIT_CORE, &rlim);
 
 	sigemptyset(&ss);
 	sigaddset(&ss, SIGINT);
