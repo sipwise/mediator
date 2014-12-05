@@ -396,8 +396,6 @@ int main(int argc, char **argv)
 	openlog(MEDIATOR_SYSLOG_NAME, LOG_PID|LOG_NDELAY, LOG_DAEMON);
 	atexit(mediator_exit);
 
-	signals();
-
 	if(config_parse_cmdopts(argc, argv) == -1)
 	{
 		return -1;
@@ -423,6 +421,8 @@ int main(int argc, char **argv)
 	{
 		return -1;
 	}
+
+	signals();
 	
 	syslog(LOG_INFO, "ACC acc database host='%s', port='%d', user='%s', name='%s'",
 			config_med_host, config_med_port, config_med_user, config_med_db);
