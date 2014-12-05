@@ -424,17 +424,18 @@ int main(int argc, char **argv)
 	if (pthread_create(&callid_work_thread, NULL, callid_worker, NULL))
 		abort();
 
-	__mediator_destroy_maps(&med_tables);
-	syslog(LOG_INFO, "Shutting down.");
-
-	medmysql_cleanup();
-
 	/* the signal thread terminates when we should shut down */
 	pthread_join(signal_thread, NULL);
+	syslog(LOG_INFO, "Shutting down.");
+
 	pthread_cancel(map_reload_thread);
 	pthread_join(map_reload_thread, NULL);
 	pthread_cancel(callid_fetch_thread);
 	pthread_join(callid_fetch_thread, NULL);
+
+	__mediator_destroy_maps(&med_tables);
+
+	medmysql_cleanup();
 
 	syslog(LOG_INFO, "Successfully shut down.");
 	return 0;
