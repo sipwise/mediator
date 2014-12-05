@@ -279,11 +279,12 @@ static void *callid_fetcher(void *p) {
 		 * polling the same callids. */
 		pthread_cond_broadcast(&callid_process_cond);
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+		pthread_cleanup_push((void *) pthread_mutex_unlock, &callid_process_lock);
 		do
 			pthread_cond_wait(&process_idle_cond, &callid_process_lock);
 		while (process_threads_busy);
+		pthread_cleanup_pop(1);
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-		pthread_mutex_unlock(&callid_process_lock);
 
 		pthread_mutex_lock(&mediator_count_lock);
 		syslog(LOG_DEBUG, "Overall %"PRIu64" CDRs created so far.", mediator_count);
@@ -342,9 +343,11 @@ static void *callid_worker(void *p) {
 #endif
 
 			process_threads_busy--;
-			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 			pthread_cond_signal(&process_idle_cond);
+			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+			pthread_cleanup_push((void *) pthread_mutex_unlock, &callid_process_lock);
 			pthread_cond_wait(&callid_process_cond, &callid_process_lock);
+			pthread_cleanup_pop(0);
 			pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 			process_threads_busy++;
 
