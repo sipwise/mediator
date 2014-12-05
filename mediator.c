@@ -37,6 +37,8 @@ pthread_t signal_thread,
 static GQueue callid_process_queue = G_QUEUE_INIT;
 static pthread_cond_t callid_process_cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t callid_process_lock = PTHREAD_MUTEX_INITIALIZER;
+static int process_threads_busy;
+static pthread_cond_t process_idle_cond = PTHREAD_COND_INITIALIZER;
 
 
 /**********************************************************************/
@@ -252,8 +254,6 @@ static void *callid_fetcher(void *p) {
 		if (medmysql_fetch_callids(&callids))
 			abort();
 
-		/* XXX check length of queue, sleep if too large */
-
 		if (!callids.length) {
 			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 			usleep(config_interval * 1000000);
@@ -270,11 +270,20 @@ static void *callid_fetcher(void *p) {
 			callids.head->prev = callid_process_queue.tail;
 			callid_process_queue.length += callids.length;
 		}
-		/* work to do! */
-		pthread_cond_broadcast(&callid_process_cond);
-		pthread_mutex_unlock(&callid_process_lock);
-
 		/* our queue is now invalid and will be cleared on next iteration */
+
+		/* work to do! */
+
+		/* this wakes up all worker threads. we then wait for them to finish
+		 * before fetching the next batch. this is necessary so we don't keep
+		 * polling the same callids. */
+		pthread_cond_broadcast(&callid_process_cond);
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+		do
+			pthread_cond_wait(&process_idle_cond, &callid_process_lock);
+		while (process_threads_busy);
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+		pthread_mutex_unlock(&callid_process_lock);
 	}
 
 	medmysql_cleanup();
@@ -303,6 +312,10 @@ static void *callid_worker(void *p) {
 	if (medmysql_batch_start(&batches))
 		abort();
 
+	pthread_mutex_lock(&callid_process_lock);
+	process_threads_busy++;
+	pthread_mutex_unlock(&callid_process_lock);
+
 	while (!mediator_shutdown) {
 		pthread_mutex_lock(&callid_process_lock);
 
@@ -330,9 +343,12 @@ static void *callid_worker(void *p) {
 			syslog(LOG_DEBUG, "Runtime for record group was %"PRIu64" ms.", runtime);
 #endif
 
+			process_threads_busy--;
 			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+			pthread_cond_signal(&process_idle_cond);
 			pthread_cond_wait(&callid_process_cond, &callid_process_lock);
 			pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+			process_threads_busy++;
 
 #ifdef WITH_TIME_CALC
 			gettimeofday(&tv_start, NULL);
