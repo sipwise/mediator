@@ -90,7 +90,7 @@ static int mediator_reload_maps() {
 	pthread_rwlock_wrlock(&med_tables_lock);
 	tmp_old = med_tables;
 	med_tables = tmp_new;
-	pthread_rwlock_wrlock(&med_tables_lock);
+	pthread_rwlock_unlock(&med_tables_lock);
 	__mediator_destroy_maps(&tmp_old);
 
 	return 0;
