@@ -1,2 +1,4 @@
 .*.sw[po]
 .ycm_extra_conf.pyc
+*.o
+mediator
