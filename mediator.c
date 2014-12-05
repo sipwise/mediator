@@ -32,7 +32,7 @@ static
 pthread_t signal_thread,
 	  map_reload_thread,
 	  callid_fetch_thread,
-	  callid_work_thread;
+	  callid_work_threads[4];
 
 static GQueue callid_process_queue = G_QUEUE_INIT;
 static pthread_cond_t callid_process_cond = PTHREAD_COND_INITIALIZER;
@@ -389,6 +389,8 @@ static void *callid_worker(void *p) {
 /**********************************************************************/
 int main(int argc, char **argv)
 {
+	int i;
+
 #if !GLIB_CHECK_VERSION(2,32,0)
 	g_thread_init(NULL);
 #endif
@@ -447,8 +449,9 @@ int main(int argc, char **argv)
 		abort();
 	if (pthread_create(&callid_fetch_thread, NULL, callid_fetcher, NULL))
 		abort();
-	if (pthread_create(&callid_work_thread, NULL, callid_worker, NULL))
-		abort();
+	for (i = 0; i < G_N_ELEMENTS(callid_work_threads); i++)
+		if (pthread_create(&callid_work_threads[i], NULL, callid_worker, NULL))
+			abort();
 
 	/* the signal thread terminates when we should shut down */
 	pthread_join(signal_thread, NULL);
@@ -458,8 +461,10 @@ int main(int argc, char **argv)
 	pthread_join(map_reload_thread, NULL);
 	pthread_cancel(callid_fetch_thread);
 	pthread_join(callid_fetch_thread, NULL);
-	pthread_cancel(callid_work_thread);
-	pthread_join(callid_work_thread, NULL);
+	for (i = 0; i < G_N_ELEMENTS(callid_work_threads); i++) {
+		pthread_cancel(callid_work_threads[i]);
+		pthread_join(callid_work_threads[i], NULL);
+	}
 
 	__mediator_destroy_maps(&med_tables);
 
