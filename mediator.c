@@ -458,6 +458,8 @@ int main(int argc, char **argv)
 	pthread_join(map_reload_thread, NULL);
 	pthread_cancel(callid_fetch_thread);
 	pthread_join(callid_fetch_thread, NULL);
+	pthread_cancel(callid_work_thread);
+	pthread_join(callid_work_thread, NULL);
 
 	__mediator_destroy_maps(&med_tables);
 
