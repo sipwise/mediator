@@ -22,20 +22,21 @@
 
 sig_atomic_t mediator_shutdown = 0;
 int mediator_lockfd = -1;
-u_int64_t mediator_count = 0;
-pthread_mutex_t mediator_count_lock = PTHREAD_MUTEX_INITIALIZER;
+static u_int64_t mediator_count = 0;
+static pthread_mutex_t mediator_count_lock = PTHREAD_MUTEX_INITIALIZER;
 
 pthread_rwlock_t med_tables_lock = PTHREAD_RWLOCK_INITIALIZER;
 struct med_tables med_tables;
 
+static
 pthread_t signal_thread,
 	  map_reload_thread,
 	  callid_fetch_thread,
 	  callid_work_thread;
 
-GQueue callid_process_queue = G_QUEUE_INIT;
-pthread_cond_t callid_process_cond = PTHREAD_COND_INITIALIZER;
-pthread_mutex_t callid_process_lock = PTHREAD_MUTEX_INITIALIZER;
+static GQueue callid_process_queue = G_QUEUE_INIT;
+static pthread_cond_t callid_process_cond = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t callid_process_lock = PTHREAD_MUTEX_INITIALIZER;
 
 
 /**********************************************************************/
