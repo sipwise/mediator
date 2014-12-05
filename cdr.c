@@ -77,7 +77,7 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 			e->method = MED_UNRECOGNIZED;
 		}
 
-		if (check_shutdown())
+		if (mediator_shutdown)
 			return -1;
 	}
 				
@@ -488,7 +488,7 @@ int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 			unix_endtime = e->unix_timestamp;
 		}
 
-		if (check_shutdown())
+		if (mediator_shutdown)
 			return -1;
 	}
 
@@ -566,7 +566,7 @@ int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 			}
 		}
 
-		if (check_shutdown())
+		if (mediator_shutdown)
 			return -1;
 	}
 

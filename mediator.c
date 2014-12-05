@@ -1,4 +1,6 @@
-#include <signal.h>
+#include "mediator.h"
+
+#include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
@@ -8,12 +10,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <pthread.h>
 #include <glib.h>
 
 
 
-#include "mediator.h"
 #include "config.h"
 #include "daemonizer.h"
 #include "medmysql.h"
@@ -22,9 +22,19 @@
 sig_atomic_t mediator_shutdown = 0;
 int mediator_lockfd = -1;
 u_int64_t mediator_count = 0;
+pthread_mutex_t mediator_count_lock = PTHREAD_MUTEX_INITIALIZER;
 
 pthread_rwlock_t med_tables_lock = PTHREAD_RWLOCK_INITIALIZER;
 struct med_tables med_tables;
+
+pthread_t signal_thread,
+	  map_reload_thread,
+	  callid_fetch_thread,
+	  callid_work_thread;
+
+GQueue callid_process_queue = G_QUEUE_INIT;
+pthread_cond_t callid_process_cond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t callid_process_lock = PTHREAD_MUTEX_INITIALIZER;
 
 
 /**********************************************************************/
@@ -161,21 +171,198 @@ static u_int64_t mediator_calc_runtime(struct timeval *tv_start, struct timeval 
 #endif
 
 
-/**********************************************************************/
-int main(int argc, char **argv)
-{
-	med_callid_t *callids;
-	med_entry_t *records;
-	u_int64_t id_count, rec_count, i;
-	u_int64_t cdr_count, last_count;
-	int maprefresh;
-	struct medmysql_batches batches;
+/* thread func */
+static void *signal_handler(void *p) {
+	sigset_t ss;
+	int ret, sig;
 
+	sigemptyset(&ss);
+	sigaddset(&ss, SIGINT);
+	sigaddset(&ss, SIGTERM);
+
+	while (!mediator_shutdown) {
+		ret = sigwait(&ss, &sig);
+		if (ret == EAGAIN || ret == EINTR)
+			continue;
+		if (ret)
+			abort();
+
+		mediator_signal(sig);
+	}
+
+	return NULL;
+}
+
+
+static void signals(void) {
+	sigset_t ss;
+
+	sigfillset(&ss);
+	sigdelset(&ss, SIGABRT);
+	sigdelset(&ss, SIGSEGV);
+	sigdelset(&ss, SIGQUIT);
+	sigprocmask(SIG_SETMASK, &ss, NULL);
+	pthread_sigmask(SIG_SETMASK, &ss, NULL);
+
+	if (pthread_create(&signal_thread, NULL, signal_handler, NULL))
+		abort();
+}
+
+
+
+/* thread func */
+static void *map_reloader(void *p) {
+	while (!mediator_shutdown) {
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+		usleep(30000000);
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+		if (mediator_reload_maps())
+			abort();
+		if (0)
+			mediator_print_maps();
+	}
+
+	return NULL;
+}
+
+
+
+/* thread func */
+static void *callid_fetcher(void *p) {
+	GQueue callids;
+
+	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+
+	if (medmysql_init())
+		abort();
+
+	while (!mediator_shutdown) {
+		g_queue_init(&callids);
+
+		if (medmysql_fetch_callids(&callids))
+			abort();
+
+		/* XXX check length of queue, sleep if too large */
+
+		if (!callids.length) {
+			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+			usleep(config_interval * 1000000);
+			pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+			continue;
+		}
+
+		/* append our list to the global queue */
+		pthread_mutex_lock(&callid_process_lock);
+		if (!callid_process_queue.length)
+			callid_process_queue = callids;
+		else {
+			callid_process_queue.tail->next = callids.head;
+			callids.head->prev = callid_process_queue.tail;
+			callid_process_queue.length += callids.length;
+		}
+		/* work to do! */
+		pthread_cond_broadcast(&callid_process_cond);
+		pthread_mutex_unlock(&callid_process_lock);
+
+		/* our queue is now invalid and will be cleared on next iteration */
+	}
+
+	medmysql_cleanup();
+	return NULL;
+}
+
+
+
+
+/* thread func */
+static void *callid_worker(void *p) {
+	char *callid;
+	struct medmysql_batches batches;
+	med_entry_t *records;
+	u_int64_t rec_count, cdr_count;
 #ifdef WITH_TIME_CALC
 	struct timeval tv_start, tv_stop;
 	u_int64_t runtime;
 #endif	
 
+	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+
+	if (medmysql_init())
+		abort();
+
+	if (medmysql_batch_start(&batches))
+		abort();
+
+	while (!mediator_shutdown) {
+		pthread_mutex_lock(&callid_process_lock);
+
+		/* if nothing to do right now, flush SQL queues */
+		if (!callid_process_queue.length) {
+			pthread_mutex_unlock(&callid_process_lock);
+
+			/* XXX wrong spot for this log? */
+			pthread_mutex_lock(&mediator_count_lock);
+			syslog(LOG_DEBUG, "Overall %"PRIu64" CDRs created so far.", mediator_count);
+			pthread_mutex_unlock(&mediator_count_lock);
+
+			if (medmysql_batch_end(&batches))
+				abort();
+			if (medmysql_batch_start(&batches))
+				abort();
+			pthread_mutex_lock(&callid_process_lock);
+		}
+
+		/* if still nothing to do, wait for more */
+		if (!callid_process_queue.length) {
+#ifdef WITH_TIME_CALC
+			gettimeofday(&tv_stop, NULL);
+			runtime = mediator_calc_runtime(&tv_start, &tv_stop);
+			syslog(LOG_DEBUG, "Runtime for record group was %"PRIu64" ms.", runtime);
+#endif
+
+			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+			pthread_cond_wait(&callid_process_cond, &callid_process_lock);
+			pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+
+#ifdef WITH_TIME_CALC
+			gettimeofday(&tv_start, NULL);
+#endif
+		}
+
+		callid = g_queue_pop_head(&callid_process_queue);
+		pthread_mutex_unlock(&callid_process_lock);
+
+		if (!callid)
+			continue;
+
+		/* we got one */
+		records = NULL;
+		rec_count = 0;
+		cdr_count = 0;
+
+		if(medmysql_fetch_records(callid, &records, &rec_count) != 0)
+			abort();
+
+		if(cdr_process_records(records, rec_count, &cdr_count, &batches) != 0)
+			abort();
+
+		/* stats and cleanup */
+		pthread_mutex_lock(&mediator_count_lock);
+		mediator_count += cdr_count;
+		pthread_mutex_unlock(&mediator_count_lock);
+
+		if (records)
+			free(records);
+		free(callid);
+	}
+
+	return NULL;
+}
+
+
+/**********************************************************************/
+int main(int argc, char **argv)
+{
 #if !GLIB_CHECK_VERSION(2,32,0)
 	g_thread_init(NULL);
 #endif
@@ -183,9 +370,7 @@ int main(int argc, char **argv)
 	openlog(MEDIATOR_SYSLOG_NAME, LOG_PID|LOG_NDELAY, LOG_DAEMON);
 	atexit(mediator_exit);
 
-	signal(SIGCHLD, SIG_IGN);
-	signal(SIGTERM, mediator_signal);
-	signal(SIGINT, mediator_signal);
+	signals();
 
 	if(config_parse_cmdopts(argc, argv) == -1)
 	{
@@ -227,83 +412,29 @@ int main(int argc, char **argv)
 	syslog(LOG_INFO, "Up and running, daemonized=%d, pid-path='%s', interval=%d",
 			config_daemonize, config_pid_path, config_interval);
 
-	maprefresh = 0;
-	while(!mediator_shutdown)
-	{
-		if(maprefresh == 0)
-		{
-			if(mediator_reload_maps() != 0)
-			{
-				break;
-			}
-			maprefresh = 10;
-		}
-		--maprefresh;
+	/* initialize */
+	if (mediator_reload_maps())
+		abort();
 
-		if (0)
-			mediator_print_maps();
+	/* start chugging away */
+	if (pthread_create(&map_reload_thread, NULL, map_reloader, NULL))
+		abort();
+	if (pthread_create(&callid_fetch_thread, NULL, callid_fetcher, NULL))
+		abort();
+	if (pthread_create(&callid_work_thread, NULL, callid_worker, NULL))
+		abort();
 
-		id_count = 0, rec_count = 0, cdr_count = 0;
-		last_count = mediator_count;
-
-		if(medmysql_fetch_callids(&callids, &id_count) != 0)
-			break;
-
-		if(id_count > 0)
-		{
-			if (medmysql_batch_start(&batches))
-				break;
-
-			/*syslog(LOG_DEBUG, "Processing %"PRIu64" accounting record group(s).", id_count);*/
-			for(i = 0; i < id_count && !mediator_shutdown; ++i)
-			{
-#ifdef WITH_TIME_CALC				
-				gettimeofday(&tv_start, NULL);
-#endif
-				
-				if(medmysql_fetch_records(&(callids[i]), &records, &rec_count) != 0)
-					goto out;
-
-				if(cdr_process_records(records, rec_count, &cdr_count, &batches) != 0)
-					goto out;
-
-				if(rec_count > 0)
-				{
-					free(records);
-				}
-
-				mediator_count += cdr_count;
-				
-#ifdef WITH_TIME_CALC				
-				gettimeofday(&tv_stop, NULL);
-				runtime = mediator_calc_runtime(&tv_start, &tv_stop);
-				syslog(LOG_DEBUG, "Runtime for record group was %"PRIu64" ms.", runtime);
-#endif				
-			}
-
-			free(callids);
-			if (medmysql_batch_end(&batches))
-				break;
-
-		}
-				
-		if(mediator_count > last_count)
-		{
-			syslog(LOG_DEBUG, "Overall %"PRIu64" CDRs created so far.", mediator_count);
-			sleep(3);
-		}
-		else
-		{
-			/* sleep if no cdrs have been created */
-			sleep(config_interval);
-		}
-	}
-
-out:
 	__mediator_destroy_maps(&med_tables);
 	syslog(LOG_INFO, "Shutting down.");
 
 	medmysql_cleanup();
+
+	/* the signal thread terminates when we should shut down */
+	pthread_join(signal_thread, NULL);
+	pthread_cancel(map_reload_thread);
+	pthread_join(map_reload_thread, NULL);
+	pthread_cancel(callid_fetch_thread);
+	pthread_join(callid_fetch_thread, NULL);
 
 	syslog(LOG_INFO, "Successfully shut down.");
 	return 0;

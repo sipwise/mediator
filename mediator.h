@@ -1,6 +1,7 @@
 #ifndef _MEDIATOR_H
 #define _MEDIATOR_H 
 
+#include <pthread.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -10,7 +11,6 @@
 #include <stdlib.h>
 #include <glib.h>
 #include <inttypes.h>
-#include <pthread.h>
 
 
 #define MEDIATOR_DEFAULT_INTERVAL 10
@@ -70,10 +70,6 @@ typedef struct {
 	char sip_method[32];
 } med_entry_t;
 
-typedef struct {
-	char value[256];
-} med_callid_t;
-
 struct med_tables {
 	GHashTable *peer_host;
 	GHashTable *peer_ip;
@@ -86,14 +82,6 @@ extern struct med_tables med_tables;
 
 
 void critical(const char *);
-
-static inline int check_shutdown(void) {
-	if (mediator_shutdown) {
-		syslog(LOG_INFO, "Shutdown detected, aborting work in progress");
-		return 1;
-	}
-	return 0;
-}
 
 
 #endif /* _MEDIATOR_H */

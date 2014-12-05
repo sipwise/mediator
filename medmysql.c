@@ -1,9 +1,10 @@
+#include "medmysql.h"
+
 #include <my_global.h>
 #include <m_string.h>
 #include <mysql.h>
 #include <mysql/errmsg.h>
 
-#include "medmysql.h"
 #include "config.h"
 
 /*#define MED_CALLID_QUERY "(select a.callid, a.time from acc a, acc b where a.callid = b.callid and a.method = 'INVITE' and b.method = 'BYE' group by callid) union (select callid, time from acc where method = 'INVITE' and sip_code != '200') order by time asc limit 0,200000"*/
@@ -20,9 +21,9 @@
 	"billing.contracts c, billing.contacts ct, billing.resellers r where c.id = vs.contract_id and " \
 	"c.contact_id = ct.id and ct.reseller_id = r.id"
 
-static MYSQL *cdr_handler = NULL;
-static MYSQL *med_handler = NULL;
-static MYSQL *prov_handler = NULL;
+static __thread MYSQL *cdr_handler = NULL;
+static __thread MYSQL *med_handler = NULL;
+static __thread MYSQL *prov_handler = NULL;
 
 static int medmysql_flush_cdr(struct medmysql_batches *);
 static int medmysql_flush_medlist(struct medmysql_str *);
@@ -124,68 +125,33 @@ void medmysql_cleanup()
 }
 
 /**********************************************************************/
-int medmysql_fetch_callids(med_callid_t **callids, u_int64_t *count)
+int medmysql_fetch_callids(GQueue *callids)
 {
 	MYSQL_RES *res;
 	MYSQL_ROW row;
-	char query[1024] = "";
-	size_t callid_size;
-	u_int64_t i = 0;
-	int ret = 0;
 
-	*count = 0;
-
-	g_strlcpy(query, MED_CALLID_QUERY, sizeof(query));
-	
-	/*syslog(LOG_DEBUG, "q='%s'", query);*/
-
-	if(mysql_query_wrapper(med_handler, query, strlen(query)) != 0)
+	if(mysql_query_wrapper(med_handler, MED_CALLID_QUERY, strlen(MED_CALLID_QUERY)) != 0)
 	{
 		syslog(LOG_CRIT, "Error getting acc callids: %s", 
 				mysql_error(med_handler));
 		return -1;
 	}
 
-	res = mysql_store_result(med_handler);
-	*count = mysql_num_rows(res);
-	if(*count == 0)
+	res = mysql_use_result(med_handler);
+
+	while((row = mysql_fetch_row(res)) != NULL && !mediator_shutdown)
 	{
-		goto out;
-	}
-
-	callid_size = sizeof(med_callid_t) * (*count);
-	*callids = (med_callid_t*)malloc(callid_size);
-	memset(*callids, '\0', callid_size);
-	if(*callids == NULL)
-	{
-		syslog(LOG_CRIT, "Error allocating callid memory: %s", strerror(errno));
-		ret = -1;
-		goto out;
-	}
-
-	while((row = mysql_fetch_row(res)) != NULL)
-	{
-		med_callid_t *c = &(*callids)[i++];
-		if(row == NULL || row[0] == NULL)
-		{
-			g_strlcpy(c->value, "0", sizeof(c->value));
-		} else {
-			g_strlcpy(c->value, row[0], sizeof(c->value));
-		}
-
-		/*syslog(LOG_DEBUG, "callid[%"PRIu64"]='%s'", i, c->value);*/
-
-		if (check_shutdown())
-			return -1;
+		if (!row || !row[0])
+			continue;
+		g_queue_push_tail(callids, strdup(row[0])); /* XXX better allocation */
 	}
 			
-out:
 	mysql_free_result(res);
-	return ret;
+	return 0;
 }
 
 /**********************************************************************/
-int medmysql_fetch_records(med_callid_t *callid, 
+int medmysql_fetch_records(char *callid, 
 		med_entry_t **entries, u_int64_t *count)
 {
 	MYSQL_RES *res;
@@ -197,14 +163,14 @@ int medmysql_fetch_records(med_callid_t *callid,
 
 	*count = 0;
 
-	snprintf(query, sizeof(query), MED_FETCH_QUERY, callid->value);
+	snprintf(query, sizeof(query), MED_FETCH_QUERY, callid);
 	
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
 
 	if(mysql_query_wrapper(med_handler, query, strlen(query)) != 0)
 	{
 		syslog(LOG_CRIT, "Error getting acc records for callid '%s': %s", 
-				callid->value, mysql_error(med_handler));
+				callid, mysql_error(med_handler));
 		return -1;
 	}
 
@@ -213,7 +179,7 @@ int medmysql_fetch_records(med_callid_t *callid,
 	if(*count == 0)
 	{
 		syslog(LOG_CRIT, "No records found for callid '%s'!", 
-				callid->value);
+				callid);
 		ret = -1;
 		goto out;
 	}
@@ -243,9 +209,6 @@ int medmysql_fetch_records(med_callid_t *callid,
 		g_strlcpy(e->src_leg, row[6], sizeof(e->src_leg));
 		g_strlcpy(e->dst_leg, row[7], sizeof(e->dst_leg));
 		e->valid = 1;
-
-		if (check_shutdown())
-			return -1;
 	}
 
 out:
@@ -474,7 +437,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 
 		CDRPRINT("),");
 
-		if (check_shutdown())
+		if (mediator_shutdown)
 			return -1;
 	}
 	
@@ -661,13 +624,13 @@ static int medmysql_flush_medlist(struct medmysql_str *str) {
 }
 
 int medmysql_batch_end(struct medmysql_batches *batches) {
-	if (medmysql_flush_cdr(batches) || check_shutdown())
+	if (medmysql_flush_cdr(batches) || mediator_shutdown)
 		return -1;
-	if (medmysql_flush_medlist(&batches->acc_trash) || check_shutdown())
+	if (medmysql_flush_medlist(&batches->acc_trash) || mediator_shutdown)
 		return -1;
-	if (medmysql_flush_medlist(&batches->acc_backup) || check_shutdown())
+	if (medmysql_flush_medlist(&batches->acc_backup) || mediator_shutdown)
 		return -1;
-	if (medmysql_flush_medlist(&batches->to_delete) || check_shutdown())
+	if (medmysql_flush_medlist(&batches->to_delete) || mediator_shutdown)
 		return -1;
 
 	if (mysql_query_wrapper(cdr_handler, "commit", 6))
