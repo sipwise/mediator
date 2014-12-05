@@ -179,7 +179,7 @@ static void *signal_handler(void *p) {
 	struct rlimit rlim;
 
 	memset(&rlim, 0, sizeof(rlim));
-	rlim.rlim_cur = RLIM_INFINITY;
+	rlim.rlim_cur = rlim.rlim_max = RLIM_INFINITY;
 	setrlimit(RLIMIT_CORE, &rlim);
 
 	sigemptyset(&ss);
