@@ -38,6 +38,9 @@
 #define MEDIATOR_DEFAULT_PROVDB   "provisioning"
 #define MEDIATOR_DEFAULT_PROVPORT 0
 
+#define MEDIATOR_DEFAULT_STATSDB     "stats"
+#define MEDIATOR_DEFAULT_STATS_PERIOD MED_STATS_HOUR
+
 #define MED_GW_STRING "gw"
 #define MED_AS_STRING "as"
 #define MED_PEER_STRING "peer"
@@ -89,5 +92,10 @@ static inline int check_shutdown(void) {
 	return 0;
 }
 
+typedef enum {
+	MED_STATS_HOUR  = 1,
+	MED_STATS_DAY   = 2,
+	MED_STATS_MONTH = 3
+} med_stats_period_t;
 
 #endif /* _MEDIATOR_H */
