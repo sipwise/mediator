@@ -26,6 +26,9 @@ extern char *config_prov_user;
 extern char *config_prov_pass;
 extern char *config_prov_db;
 
+extern char *config_stats_db;
+extern med_stats_period_t config_stats_period;
+
 extern unsigned int config_interval;
 extern u_int8_t config_dumpcdr;
 

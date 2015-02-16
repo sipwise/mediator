@@ -18,6 +18,7 @@ struct medmysql_batches {
 	struct medmysql_str acc_backup;
 	struct medmysql_str acc_trash;
 	struct medmysql_str to_delete;
+	struct medmysql_str call_stat_info;
 };
 
 int medmysql_init();
@@ -32,5 +33,6 @@ int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable 
 int medmysql_load_uuids(GHashTable *uuid_table);
 int medmysql_batch_start(struct medmysql_batches *);
 int medmysql_batch_end(struct medmysql_batches *);
+int medmysql_update_call_stat_info(const char *call_code, const double start_time, struct medmysql_batches *batches);
 
 #endif /* _MED_MYSQL_H */

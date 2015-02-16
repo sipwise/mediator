@@ -59,6 +59,8 @@ OPTIONS=""
 [ -z "$PROV_USER" ] || OPTIONS="$OPTIONS -R $PROV_USER"
 [ -z "$PROV_PASS" ] || OPTIONS="$OPTIONS -A $PROV_PASS"
 [ -z "$PROV_DB" ] || OPTIONS="$OPTIONS -N $PROV_DB"
+[ -z "$STATS_DB" ] || OPTIONS="$OPTIONS -X $STATS_DB"
+[ -z "$STATS_PERIOD" ] || OPTIONS="$OPTIONS -x $STATS_PERIOD"
 if test "$FORK" = "yes" ; then
         OPTIONS="$OPTIONS -d"
 fi
