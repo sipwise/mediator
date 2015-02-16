@@ -25,7 +25,7 @@ GHashTable *med_peer_ip_table = NULL;
 GHashTable *med_peer_host_table = NULL;
 GHashTable *med_peer_id_table = NULL;
 GHashTable *med_uuid_table = NULL;
-
+GHashTable *med_call_stat_info_table = NULL;
 
 /**********************************************************************/
 static int mediator_load_maps()
@@ -60,11 +60,14 @@ static void mediator_destroy_maps()
 		g_hash_table_destroy(med_peer_id_table);
 	if(med_uuid_table)
 		g_hash_table_destroy(med_uuid_table);
+	if(med_call_stat_info_table)
+		g_hash_table_destroy(med_call_stat_info_table);
 
 	med_peer_ip_table = NULL;
 	med_peer_host_table = NULL;
 	med_peer_id_table = NULL;
 	med_uuid_table = NULL;
+	med_call_stat_info_table = NULL;
 }
 
 /**********************************************************************/

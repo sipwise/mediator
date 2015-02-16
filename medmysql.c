@@ -26,6 +26,7 @@ static MYSQL *prov_handler = NULL;
 
 static int medmysql_flush_cdr(struct medmysql_batches *);
 static int medmysql_flush_medlist(struct medmysql_str *);
+static int medmysql_flush_call_stat_info();
 
 
 static int mysql_query_wrapper(MYSQL *mysql, const char *stmt_str, unsigned long length) {
@@ -474,6 +475,9 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 
 		CDRPRINT("),");
 
+		// no check for return codes here we should keep on nevertheless
+		medmysql_update_call_stat_info(e->call_code, e->start_time, batches);
+
 		if (check_shutdown())
 			return -1;
 	}
@@ -481,6 +485,49 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
 	
 	
+	return 0;
+}
+
+/**********************************************************************/
+int medmysql_update_call_stat_info(const char *call_code, const double start_time, struct medmysql_batches *batches)
+{
+	if (!med_call_stat_info_table)
+		return -1;
+
+	char period[STAT_PERIOD_SIZE];
+	time_t etime = (time_t)start_time;
+	char period_key[STAT_PERIOD_SIZE+4];
+	struct medmysql_call_stat_info_t * period_t;
+
+	switch (config_stats_period)
+	{
+		case MED_STATS_HOUR:
+			strftime(period, STAT_PERIOD_SIZE, "%Y-%m-%d %H:00:00", localtime(&etime));
+			break;
+		case MED_STATS_DAY:
+			strftime(period, STAT_PERIOD_SIZE, "%Y-%m-%d 00:00:00", localtime(&etime));
+			break;
+		case MED_STATS_MONTH:
+			strftime(period, STAT_PERIOD_SIZE, "%Y-%m-01 00:00:00", localtime(&etime));
+			break;
+		default:
+			syslog(LOG_CRIT, "Undefinied or wrong config_stats_period %d",
+					config_stats_period);
+			return -1;
+	}
+
+	sprintf(period_key, "%s-%s", period, call_code);
+
+	if ((period_t = g_hash_table_lookup(med_call_stat_info_table, &period_key)) == NULL) {
+		period_t = malloc(sizeof(struct medmysql_call_stat_info_t));
+		strcpy(period_t->period, period);
+		strcpy(period_t->call_code, call_code);
+		period_t->amount = 1;
+		g_hash_table_insert(med_call_stat_info_table, strdup(period_key), period_t);
+	} else {
+		period_t->amount += 1;
+	}
+
 	return 0;
 }
 
@@ -591,6 +638,9 @@ int medmysql_batch_start(struct medmysql_batches *batches) {
 	if (mysql_query_wrapper(med_handler, "start transaction", 17))
 		return -1;
 
+	if (!med_call_stat_info_table)
+		med_call_stat_info_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
+
 	batches->cdrs.len = 0;
 	batches->acc_backup.len = 0;
 	batches->acc_trash.len = 0;
@@ -660,6 +710,53 @@ static int medmysql_flush_medlist(struct medmysql_str *str) {
 	return 0;
 }
 
+static int medmysql_flush_call_stat_info() {
+	if (!med_handler)
+		return 0;
+	if (!med_call_stat_info_table)
+		return 0;
+
+	GHashTable * call_stat_info = med_call_stat_info_table;
+	struct medmysql_str query;
+	struct medmysql_call_stat_info_t * period_t;
+
+	GList * keys = g_hash_table_get_keys(call_stat_info);
+	GList * iter;
+	for (iter = keys; iter != NULL; iter = iter->next) {
+		char * period_key = iter->data;
+ 		if ((period_t = g_hash_table_lookup(call_stat_info, period_key)) == NULL) {
+			syslog(LOG_CRIT,
+					"Error dumping call stats info: no data for period_key %s\n",
+					period_key
+				  );
+			return -1;
+		}
+
+		query.len = sprintf(query.str,
+				"insert into %s.call_info set period='%s', sip_code='%s', amount=%" PRIu64 " on duplicate key update period='%s', sip_code='%s', amount=(amount+%" PRIu64 ");",
+				config_stats_db,
+				period_t->period, period_t->call_code, period_t->amount,
+				period_t->period, period_t->call_code, period_t->amount
+			);
+
+		//syslog(LOG_DEBUG, "updating call stats info: %s -- %s", period_t->call_code, period_t->period);
+		//syslog(LOG_DEBUG, "sql: %s", query.str);
+
+		if(mysql_query_wrapper(med_handler, query.str, query.len) != 0)
+		{
+			syslog(LOG_CRIT, "Error executing call info stats query: %s",
+					mysql_error(med_handler));
+			critical("Failed to execute potentially crucial SQL query, check syslog for details");
+			return -1;
+		}
+		period_t->amount = 0; // reset code counter on success
+	}
+	g_list_free(keys);
+	g_list_free(iter);
+
+	return 0;
+}
+
 int medmysql_batch_end(struct medmysql_batches *batches) {
 	if (medmysql_flush_cdr(batches) || check_shutdown())
 		return -1;
@@ -668,6 +765,8 @@ int medmysql_batch_end(struct medmysql_batches *batches) {
 	if (medmysql_flush_medlist(&batches->acc_backup) || check_shutdown())
 		return -1;
 	if (medmysql_flush_medlist(&batches->to_delete) || check_shutdown())
+		return -1;
+	if (medmysql_flush_call_stat_info() || check_shutdown())
 		return -1;
 
 	if (mysql_query_wrapper(cdr_handler, "commit", 6))
