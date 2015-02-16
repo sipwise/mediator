@@ -474,6 +474,9 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 
 		CDRPRINT("),");
 
+		// no check for return codes here we should keep on nevertheless
+		medmysql_update_call_stat_info(e->call_code, e->start_time);
+
 		if (check_shutdown())
 			return -1;
 	}
@@ -481,6 +484,49 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
 	
 	
+	return 0;
+}
+
+/**********************************************************************/
+int medmysql_update_call_stat_info(const char *call_code, const double start_time)
+{
+	char buflen = 30;
+	char period[buflen];
+	time_t etime = (time_t)start_time;
+	struct medmysql_str call_info;
+
+	switch (config_stats_period)
+	{
+		case MED_STATS_HOUR:
+			strftime(period, buflen, "%Y-%m-%d %H:00:00", localtime(&etime));
+			break;
+		case MED_STATS_DAY:
+			strftime(period, buflen, "%Y-%m-%d 00:00:00", localtime(&etime));
+			break;
+		case MED_STATS_MONTH:
+			strftime(period, buflen, "%Y-%m-01 00:00:00", localtime(&etime));
+			break;
+		default:
+			syslog(LOG_CRIT, "Undefinied or wrong config_stats_period %d",
+					config_stats_period);
+			return -1;
+    }
+
+	call_info.len = sprintf(call_info.str,
+		"insert into %s.call_info set sip_code='%s', period='%s', amount=1 on duplicate key update sip_code='%s', period='%s', amount=(amount+1)",
+		config_stats_db, call_code, period, call_code, period
+	);
+
+	//syslog(LOG_INFO, "updating call stats info: %s -- %s", call_code, period);
+	//syslog(LOG_INFO, "sql: %s", call_info.str);
+
+	if(mysql_query_wrapper(med_handler, call_info.str, call_info.len) != 0)
+	{
+		syslog(LOG_CRIT, "Error updating call_info stats: %s",
+				mysql_error(med_handler));
+		return -1;
+	}
+
 	return 0;
 }
 
