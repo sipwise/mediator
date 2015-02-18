@@ -16,6 +16,24 @@
       "revId": "b61441ae333aa43e4822dd3af14fc12e3400ad6e",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a288981_4ec1b3e3",
+        "filename": "medmysql.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 520,
+      "author": {
+        "id": 1000004
+      },
+      "writtenOn": "2015-02-18T15:27:56Z",
+      "side": 1,
+      "message": "Hehe, no pain at all I always appreciate comments/critics :)\n\nAs for the comment, there is only 1 period allowed at a time. If you change it in the config you have to rerun mediator.\nOr am I missing something where we could have 2 periods accumulated at a time per mediator run ?",
+      "parentUuid": "7a288981_4e309356",
+      "revId": "b61441ae333aa43e4822dd3af14fc12e3400ad6e",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
     }
   ]
 }
