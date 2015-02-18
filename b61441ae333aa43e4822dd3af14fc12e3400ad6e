@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a288981_4e309356",
+        "filename": "medmysql.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 520,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2015-02-18T14:16:02Z",
+      "side": 1,
+      "message": "This is going to fail if there\u0027s more than one period being processed during a single batch run. I would suggest to either use a struct as hash key (containing period and call code) or nesting hash tables in two levels (period first and then code, or the other way around)",
+      "revId": "b61441ae333aa43e4822dd3af14fc12e3400ad6e",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
