@@ -17,5 +17,5 @@ PROV_PORT="3306"
 PROV_USER="mediator"
 PROV_PASS='GimmeAllUr$$$'
 PROV_DB="provisioning"
-STATS_DB="stats"
+STATS_DB="sipstats"
 STATS_PERIOD=1
