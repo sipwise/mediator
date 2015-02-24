@@ -23,6 +23,7 @@
 static MYSQL *cdr_handler = NULL;
 static MYSQL *med_handler = NULL;
 static MYSQL *prov_handler = NULL;
+static MYSQL *stats_handler = NULL;
 
 static int medmysql_flush_cdr(struct medmysql_batches *);
 static int medmysql_flush_medlist(struct medmysql_str *);
@@ -97,6 +98,20 @@ int medmysql_init()
 		goto err;
 	}
 
+	stats_handler = mysql_init(NULL);
+	if(!mysql_real_connect(stats_handler,
+				config_stats_host, config_stats_user, config_stats_pass,
+				config_stats_db, config_stats_port, NULL, 0))
+	{
+		syslog(LOG_CRIT, "Error connecting to STATS db: %s", mysql_error(stats_handler));
+		goto err;
+	}
+	if(mysql_options(stats_handler, MYSQL_OPT_RECONNECT, &recon) != 0)
+	{
+		syslog(LOG_CRIT, "Error setting reconnect-option for STATS db: %s", mysql_error(stats_handler));
+		goto err;
+	}
+
 	return 0;
 
 err:
@@ -121,6 +136,11 @@ void medmysql_cleanup()
 	{
 		mysql_close(prov_handler);
 		prov_handler = NULL;
+	}
+	if(stats_handler != NULL)
+	{
+		mysql_close(stats_handler);
+		stats_handler = NULL;
 	}
 }
 
@@ -637,6 +657,8 @@ int medmysql_batch_start(struct medmysql_batches *batches) {
 		return -1;
 	if (mysql_query_wrapper(med_handler, "start transaction", 17))
 		return -1;
+	if (mysql_query_wrapper(stats_handler, "start transaction", 17))
+		return -1;
 
 	if (!med_call_stat_info_table)
 		med_call_stat_info_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
@@ -711,7 +733,7 @@ static int medmysql_flush_medlist(struct medmysql_str *str) {
 }
 
 static int medmysql_flush_call_stat_info() {
-	if (!med_handler)
+	if (!stats_handler)
 		return 0;
 	if (!med_call_stat_info_table)
 		return 0;
@@ -742,10 +764,10 @@ static int medmysql_flush_call_stat_info() {
 		//syslog(LOG_DEBUG, "updating call stats info: %s -- %s", period_t->call_code, period_t->period);
 		//syslog(LOG_DEBUG, "sql: %s", query.str);
 
-		if(mysql_query_wrapper(med_handler, query.str, query.len) != 0)
+		if(mysql_query_wrapper(stats_handler, query.str, query.len) != 0)
 		{
 			syslog(LOG_CRIT, "Error executing call info stats query: %s",
-					mysql_error(med_handler));
+					mysql_error(stats_handler));
 			critical("Failed to execute potentially crucial SQL query, check syslog for details");
 			return -1;
 		}
@@ -772,6 +794,8 @@ int medmysql_batch_end(struct medmysql_batches *batches) {
 	if (mysql_query_wrapper(cdr_handler, "commit", 6))
 		return -1;
 	if (mysql_query_wrapper(med_handler, "commit", 6))
+		return -1;
+	if (mysql_query_wrapper(stats_handler, "commit", 6))
 		return -1;
 
 	return 0;

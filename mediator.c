@@ -199,6 +199,10 @@ int main(int argc, char **argv)
 			config_med_host, config_med_port, config_med_user, config_med_db);
 	syslog(LOG_INFO, "CDR acc database host='%s', port='%d', user='%s', name='%s'",
 			config_cdr_host, config_cdr_port, config_cdr_user, config_cdr_db);
+	syslog(LOG_INFO, "PROV database host='%s', port='%d', user='%s', name='%s'",
+			config_prov_host, config_prov_port, config_prov_user, config_prov_db);
+	syslog(LOG_INFO, "STATS database host='%s', port='%d', user='%s', name='%s'",
+			config_stats_host, config_stats_port, config_stats_user, config_stats_db);
 	
 	syslog(LOG_DEBUG, "Setting up mysql connections.");
 	if(medmysql_init() != 0)

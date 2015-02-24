@@ -26,6 +26,10 @@ extern char *config_prov_user;
 extern char *config_prov_pass;
 extern char *config_prov_db;
 
+extern char *config_stats_host;
+extern unsigned int config_stats_port;
+extern char *config_stats_user;
+extern char *config_stats_pass;
 extern char *config_stats_db;
 extern med_stats_period_t config_stats_period;
 
