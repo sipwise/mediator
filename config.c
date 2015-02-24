@@ -26,8 +26,12 @@ char *config_prov_pass = MEDIATOR_DEFAULT_PROVPASS;
 char *config_prov_db = MEDIATOR_DEFAULT_PROVDB;
 unsigned int config_prov_port = MEDIATOR_DEFAULT_PROVPORT;
 
+char *config_stats_host = MEDIATOR_DEFAULT_STATSHOST;
+char *config_stats_user = MEDIATOR_DEFAULT_STATSUSER;
+char *config_stats_pass = MEDIATOR_DEFAULT_STATSPASS;
 char *config_stats_db = MEDIATOR_DEFAULT_STATSDB;
-med_stats_period_t config_stats_period = MEDIATOR_DEFAULT_STATS_PERIOD;
+unsigned int config_stats_port = MEDIATOR_DEFAULT_STATSPORT;
+med_stats_period_t config_stats_period = MEDIATOR_DEFAULT_STATSPERIOD;
 
 static u_int8_t config_pid_path_free = 0;
 
@@ -46,6 +50,9 @@ static u_int8_t config_prov_user_free = 0;
 static u_int8_t config_prov_pass_free = 0;
 static u_int8_t config_prov_db_free = 0;
 
+static u_int8_t config_stats_host_free = 0;
+static u_int8_t config_stats_user_free = 0;
+static u_int8_t config_stats_pass_free = 0;
 static u_int8_t config_stats_db_free = 0;
 
 static void config_help(const char *self)
@@ -71,6 +78,10 @@ static void config_help(const char *self)
 		"  -R\tThe prov db user (default = '%s').\n" \
 		"  -A\tThe prov db pass (default = '%s').\n" \
 		"  -N\tThe prov db name (default = '%s').\n" \
+		"  -Z\tThe stats db host (default = '%s').\n" \
+		"  -z\tThe stats db port (default = '%d').\n" \
+		"  -W\tThe stats db user (default = '%s').\n" \
+		"  -w\tThe stats db pass (default = '%s').\n" \
 		"  -X\tThe stats db name (default = '%s').\n" \
 		"  -x\tThe stats db period (default = '%d', 1=hour, 2=day, 3=month).\n" \
 		"  -?\tDisplays this message.\n",
@@ -78,14 +89,15 @@ static void config_help(const char *self)
 		config_med_host, config_med_port, config_med_user, config_med_pass, config_med_db,
 		config_cdr_host, config_cdr_port, config_cdr_user, config_cdr_pass, config_cdr_db,
 		config_prov_host, config_prov_port, config_prov_user, config_prov_pass, config_prov_db,
-		config_stats_db, config_stats_period);
+		config_stats_host, config_stats_port, config_stats_user, config_stats_pass, config_stats_db,
+		config_stats_period);
 }
 
 int config_parse_cmdopts(int argc, char **argv)
 {
 	int c;
 
-	while((c = getopt(argc, argv, "D:i:dl?h:u:p:b:o:H:U:P:B:O:S:T:R:A:N:X:x:")) != -1)
+	while((c = getopt(argc, argv, "D:i:dl?h:u:p:b:o:H:U:P:B:O:S:T:R:A:N:Z:z:W:w:X:x:")) != -1)
 	{
 		if(c == '?')
 		{
@@ -181,6 +193,25 @@ int config_parse_cmdopts(int argc, char **argv)
 		{
 			config_prov_port = atoi(optarg);
 		}
+		else if(c == 'Z')
+		{
+			config_stats_host = (char*)strdup(optarg);
+			config_stats_host_free = 1;
+		}
+		else if(c == 'z')
+		{
+			config_stats_port = atoi(optarg);
+		}
+		else if(c == 'W')
+		{
+			config_stats_user = (char*)strdup(optarg);
+			config_stats_user_free = 1;
+		}
+		else if(c == 'w')
+		{
+			config_stats_pass = (char*)strdup(optarg);
+			config_stats_pass_free = 1;
+		}
 		else if(c == 'X')
 		{
 			config_stats_db = (char*)strdup(optarg);
@@ -248,6 +279,18 @@ void config_cleanup()
 	if(config_prov_db_free)
 	{
 		free(config_prov_db);
+	}
+	if(config_stats_host_free)
+	{
+		free(config_stats_host);
+	}
+	if(config_stats_user_free)
+	{
+		free(config_stats_user);
+	}
+	if(config_stats_pass_free)
+	{
+		free(config_stats_pass);
 	}
 	if(config_stats_db_free)
 	{
