@@ -21,5 +21,5 @@ STATS_HOST="localhost"
 STATS_PORT="3306"
 STATS_USER="mediator"
 STATS_PASS='GimmeAllUr$$$'
-STATS_DB="sipstats"
+STATS_DB="stats"
 STATS_PERIOD=1
