@@ -1,3 +1,18 @@
+ngcp-mediator (1.14.1.0+0~mr3.8.1.0) unstable; urgency=low
+
+  [ Kirill Solomko ]
+  * [e348692] MT#11157 - Add call info stats dump
+  * [2e2b422] MT#11157 - changed default db for "call_stats_info" from "stats" to "sipstats"
+  * [d66262c] MT#11157    Add separate mysql handler for the stats db
+  * [df5eb2b] MT#11157 - use "stats" db instead of "sipstats"
+
+  [ Michael Prokop ]
+  * [2fbcdd8] MT#9127 Bump Standards-Version to 3.9.6
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Wed, 18 Mar 2015 14:03:37 +0100
+
 ngcp-mediator (1.14.0.0+0~mr3.8.0.0) unstable; urgency=low
 
   * New release.
