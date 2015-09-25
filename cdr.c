@@ -281,20 +281,26 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp2 = ++tmp1;
 
 	tmp1 = strchr(tmp2, MED_SEP);
-	if(tmp1 == NULL)
+	if(tmp1 != NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated init time, '%s'", cdr->call_id, tmp2);
-		return -1;
+		*tmp1 = '\0';
+		cdr->init_time = g_strtod(tmp2, NULL);
+		tmp2 = ++tmp1;
 	}
-	*tmp1 = '\0';
-	cdr->init_time = g_strtod(tmp2, NULL);
-	tmp2 = ++tmp1;
 
-
-	if(len < tmp2 - srcleg + 1)	
+	if(len < tmp2 - srcleg + 1)
 	{
 		syslog(LOG_WARNING, "Call-Id '%s' has no separated source gpp, skipping those fields", cdr->call_id);
-		return 0;
+		if(tmp1==NULL)
+		{
+			cdr->init_time = g_strtod(tmp2, NULL);
+			return 0;
+		}
+		else
+		{
+			syslog(LOG_WARNING, "Call-Id '%s' has no separated init time, '%s'", cdr->call_id, tmp2);
+			return -1;
+		}
 	}
     else
     {
@@ -425,19 +431,23 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp2 = ++tmp1;
 
 	tmp1 = strchr(tmp2, MED_SEP);
-	if(tmp1 == NULL)
+	if(tmp1 != NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated lcr flags", cdr->call_id);
-		return -1;
+		*tmp1 = '\0';
+		cdr->destination_lcr_id = atoll(tmp2);
+		tmp2 = ++tmp1;
 	}
-	*tmp1 = '\0';
-	cdr->destination_lcr_id = atoll(tmp2);
-	tmp2 = ++tmp1;
-
-	if(len < tmp2 - dstleg + 1)	
+	if(len < tmp2 - dstleg + 1)
 	{
 		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination gpp, skipping those fields", cdr->call_id);
-		return 0;
+		if(tmp1==NULL) {
+			cdr->destination_lcr_id = atoll(tmp2);
+			return 0;
+		}
+		else {
+			syslog(LOG_WARNING, "Call-Id '%s' has no separated lcr flags", cdr->call_id);
+			return -1;
+		}
 	}
     else
     {
