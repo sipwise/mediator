@@ -1,3 +1,12 @@
+ngcp-mediator (1.14.3.3+0~mr3.8.3.3) unstable; urgency=medium
+
+  [ Kirill Solomko ]
+  * [6e8b15e] MT#15397 - stats_handler uses autocommit=1
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Fri, 25 Sep 2015 16:01:29 +0200
+
 ngcp-mediator (1.14.3.2+0~mr3.8.3.2) unstable; urgency=medium
 
   [ Victor Seva ]
