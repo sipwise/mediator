@@ -768,6 +768,7 @@ static int medmysql_flush_call_stat_info() {
 		{
 			syslog(LOG_CRIT, "Error executing call info stats query: %s",
 					mysql_error(stats_handler));
+			syslog(LOG_CRIT, "stats query: %s", query.str);
 			critical("Failed to execute potentially crucial SQL query, check syslog for details");
 			return -1;
 		}
