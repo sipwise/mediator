@@ -111,6 +111,11 @@ int medmysql_init()
 		syslog(LOG_CRIT, "Error setting reconnect-option for STATS db: %s", mysql_error(stats_handler));
 		goto err;
 	}
+	if(mysql_autocommit(stats_handler, 1) != 0)
+	{
+		syslog(LOG_CRIT, "Error setting autocommit=1 for STATS db: %s", mysql_error(stats_handler));
+		goto err;
+	}
 
 	return 0;
 
@@ -657,8 +662,6 @@ int medmysql_batch_start(struct medmysql_batches *batches) {
 		return -1;
 	if (mysql_query_wrapper(med_handler, "start transaction", 17))
 		return -1;
-	if (mysql_query_wrapper(stats_handler, "start transaction", 17))
-		return -1;
 
 	if (!med_call_stat_info_table)
 		med_call_stat_info_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
@@ -795,8 +798,6 @@ int medmysql_batch_end(struct medmysql_batches *batches) {
 	if (mysql_query_wrapper(cdr_handler, "commit", 6))
 		return -1;
 	if (mysql_query_wrapper(med_handler, "commit", 6))
-		return -1;
-	if (mysql_query_wrapper(stats_handler, "commit", 6))
 		return -1;
 
 	return 0;
