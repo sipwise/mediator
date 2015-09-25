@@ -283,35 +283,30 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated init time, '%s'", cdr->call_id, tmp2);
-		return -1;
+
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated source gpp, skipping those fields", cdr->call_id);
+		cdr->init_time = g_strtod(tmp2, NULL);
+		return 0;
+
 	}
 	*tmp1 = '\0';
 	cdr->init_time = g_strtod(tmp2, NULL);
 	tmp2 = ++tmp1;
 
 
-	if(len < tmp2 - srcleg + 1)	
+	int i;
+	for(i = 0; i < 10; ++i)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated source gpp, skipping those fields", cdr->call_id);
-		return 0;
+		tmp1 = strchr(tmp2, MED_SEP);
+		if(tmp1 == NULL)
+		{
+			syslog(LOG_WARNING, "Call-Id '%s' has no separated source gpp %d, '%s'", cdr->call_id, i, tmp2);
+			return -1;
+		}
+		*tmp1 = '\0';
+		g_strlcpy(cdr->source_gpp[i], tmp2, sizeof(cdr->source_gpp[i]));
+		tmp2 = ++tmp1;
 	}
-    else
-    {
-        int i;
-        for(i = 0; i < 10; ++i)
-        {
-	        tmp1 = strchr(tmp2, MED_SEP);
-            if(tmp1 == NULL)
-            {
-                syslog(LOG_WARNING, "Call-Id '%s' has no separated source gpp %d, '%s'", cdr->call_id, i, tmp2);
-                return -1;
-            }
-	        *tmp1 = '\0';
-	        g_strlcpy(cdr->source_gpp[i], tmp2, sizeof(cdr->source_gpp[i]));
-	        tmp2 = ++tmp1;
-        }
-    }
 
 	return 0;
 }
@@ -427,34 +422,27 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated lcr flags", cdr->call_id);
-		return -1;
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination gpp, skipping those fields", cdr->call_id);
+		cdr->destination_lcr_id = atoll(tmp2);
+		return 0;
 	}
 	*tmp1 = '\0';
 	cdr->destination_lcr_id = atoll(tmp2);
 	tmp2 = ++tmp1;
 
-	if(len < tmp2 - dstleg + 1)	
+	int i;
+	for(i = 0; i < 10; ++i)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination gpp, skipping those fields", cdr->call_id);
-		return 0;
+		tmp1 = strchr(tmp2, MED_SEP);
+		if(tmp1 == NULL)
+		{
+			syslog(LOG_WARNING, "Call-Id '%s' has no separated destination gpp %d, '%s'", cdr->call_id, i, tmp2);
+			return -1;
+		}
+		*tmp1 = '\0';
+		g_strlcpy(cdr->destination_gpp[i], tmp2, sizeof(cdr->destination_gpp[i]));
+		tmp2 = ++tmp1;
 	}
-    else
-    {
-        int i;
-        for(i = 0; i < 10; ++i)
-        {
-	        tmp1 = strchr(tmp2, MED_SEP);
-            if(tmp1 == NULL)
-            {
-                syslog(LOG_WARNING, "Call-Id '%s' has no separated destination gpp %d, '%s'", cdr->call_id, i, tmp2);
-                return -1;
-            }
-	        *tmp1 = '\0';
-	        g_strlcpy(cdr->destination_gpp[i], tmp2, sizeof(cdr->destination_gpp[i]));
-	        tmp2 = ++tmp1;
-        }
-    }
 
 	return 0;
 }
