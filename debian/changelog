@@ -1,3 +1,15 @@
+ngcp-mediator (1.15.3.0+0~mr4.0.3.0) unstable; urgency=medium
+
+  [ Victor Seva ]
+  * [2344b6a] MT#15381 fix backwards compatibility for [src|dst]leg fields
+
+  [ Kirill Solomko ]
+  * [cc9be1f] MT#15397 - stats_handler uses autocommit=1
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 16 Nov 2015 14:28:35 +0100
+
 ngcp-mediator (1.15.2.0+0~mr4.0.2.0) unstable; urgency=medium
 
   * New release.
