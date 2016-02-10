@@ -150,12 +150,55 @@ error:
 	return -1;
 }
 
+static inline int hexval(unsigned char c) {
+	if (c >= '0' && c <= '9')
+		return c - '0';
+	if (c >= 'a' && c <= 'f')
+		return 10 + c - 'a';
+	if (c >= 'A' && c <= 'F')
+		return 10 + c - 'A';
+	return -1;
+}
+
+/* un-uri-escape string in place */
+static void uri_unescape(char *str) {
+	unsigned char *s, *d;
+	unsigned int c;
+	int cv;
+
+	s = (unsigned char *) str;
+	d = (unsigned char *) str;
+
+	while (*s) {
+		if (*s != '%') {
+copy:
+			*d = *s;
+			d++;
+			s++;
+			continue;
+		}
+
+		cv = hexval(s[1]);
+		if (cv == -1)
+			goto copy;
+		c = cv << 4;
+		cv = hexval(s[2]);
+		if (cv == -1)
+			goto copy;
+		c |= cv;
+		if (!c) /* disallow null bytes */
+			goto copy;
+
+		*d = c;
+		s += 3;
+		d++;
+	}
+	*d = 0;
+}
+
 static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 {
 	char *tmp1, *tmp2;
-	int len;
-
-	len = strlen(srcleg);
 
 	tmp2 = srcleg;
 		
@@ -208,6 +251,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	}
 	*tmp1 = '\0';
 	g_strlcpy(cdr->source_ext_subscriber_id, tmp2, sizeof(cdr->source_ext_subscriber_id));
+	uri_unescape(cdr->source_ext_subscriber_id);
 	tmp2 = ++tmp1;
 
 	tmp1 = strchr(tmp2, MED_SEP);
@@ -218,6 +262,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	}
 	*tmp1 = '\0';
 	g_strlcpy(cdr->source_ext_contract_id, tmp2, sizeof(cdr->source_ext_contract_id));
+	uri_unescape(cdr->source_ext_contract_id);
 	tmp2 = ++tmp1;
 
 	tmp1 = strchr(tmp2, MED_SEP);
@@ -314,9 +359,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 {
 	char *tmp1, *tmp2;
-	int len;
 		
-	len = strlen(dstleg);
 	tmp2 = dstleg;
 
 	tmp1 = strchr(tmp2, MED_SEP);
@@ -337,6 +380,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	}
 	*tmp1 = '\0';
 	g_strlcpy(cdr->destination_ext_subscriber_id, tmp2, sizeof(cdr->destination_ext_subscriber_id));
+	uri_unescape(cdr->destination_ext_subscriber_id);
 	tmp2 = ++tmp1;
 
 	tmp1 = strchr(tmp2, MED_SEP);
@@ -347,6 +391,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	}
 	*tmp1 = '\0';
 	g_strlcpy(cdr->destination_ext_contract_id, tmp2, sizeof(cdr->destination_ext_contract_id));
+	uri_unescape(cdr->destination_ext_contract_id);
 	tmp2 = ++tmp1;
 
 	tmp1 = strchr(tmp2, MED_SEP);
