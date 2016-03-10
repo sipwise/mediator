@@ -1,0 +1,7 @@
+Verified+1: Jenkins Jenkins <jenkins@sipwise.com>
+Code-Review+2: Kirill Solomko <ksolomko@sipwise.com>
+Submitted-by: Andreas Granig <agranig@sipwise.com>
+Submitted-at: Thu, 10 Mar 2016 13:40:10 +0100
+Reviewed-on: http://gerrit.mgm.sipwise.com/5123
+Project: mediator
+Branch: refs/heads/master
