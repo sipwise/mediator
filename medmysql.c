@@ -498,12 +498,11 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
             }
         }
 
-		CDRPRINT(",");
+		CDRPRINT(",'");
 		CDRESCAPE(e->source_lnp_prefix);
-		CDRPRINT(",");
+		CDRPRINT("','");
 		CDRESCAPE(e->destination_lnp_prefix);
-
-		CDRPRINT("),");
+		CDRPRINT("'),");
 
 		// no check for return codes here we should keep on nevertheless
 		medmysql_update_call_stat_info(e->call_code, e->start_time, batches);
