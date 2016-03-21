@@ -1,3 +1,22 @@
+ngcp-mediator (1.18.1.0+0~mr4.3.1.0) unstable; urgency=medium
+
+  [ Guillem Jover ]
+  * [35b9cae] MT#16473 Convert debian/copyright to machine-readable format
+
+  [ Richard Fuchs ]
+  * [68fdd9a] MT#17645 implement unescaping for sensitive CDR fields
+
+  [ Michael Prokop ]
+  * [e23d446] MT#17699 Bump Standards-Version to 3.9.7
+
+  [ Andreas Granig ]
+  * [13132cc] MT#16777 Process source/destination_lnp_prefix
+  * [c39c055] MT#16777 Fix lnp columns
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 21 Mar 2016 22:18:47 +0100
+
 ngcp-mediator (1.18.0.0+0~mr4.3.0.0) unstable; urgency=medium
 
   * New release.
