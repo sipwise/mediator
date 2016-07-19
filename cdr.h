@@ -70,7 +70,6 @@ typedef struct {
 
 int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *cdr_count, struct medmysql_batches *);
 void cdr_fix_accids(med_entry_t *records, u_int64_t count);
-int cdr_create_cdrs(med_entry_t *records, u_int64_t count, cdr_entry_t **cdrs, u_int64_t *cdr_count, u_int8_t *trash);
 int cdr_fill_record(cdr_entry_t *cdr);
 void cdr_set_provider(cdr_entry_t *cdr);
 

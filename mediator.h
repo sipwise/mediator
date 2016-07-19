@@ -53,13 +53,16 @@
 
 #define MED_SEP '|'
 
+#define PBX_SUFFIX "_pbx-1"
+#define PBX_SUFFIX_LEN strlen(PBX_SUFFIX)
+
 extern int mediator_lockfd;
 extern sig_atomic_t mediator_shutdown;
 
 typedef enum {
 	MED_INVITE = 1,
 	MED_BYE = 2,
-	MED_UNRECOGNIZED = 3
+	MED_UNRECOGNIZED = 3,
 } med_method_t;
 
 
@@ -74,6 +77,7 @@ typedef struct {
 	u_int8_t valid;
 	med_method_t method;
 	char sip_method[32];
+	int is_pbx;
 } med_entry_t;
 
 typedef struct {
@@ -85,6 +89,7 @@ extern GHashTable *med_peer_ip_table;
 extern GHashTable *med_peer_id_table;
 extern GHashTable *med_uuid_table;
 extern GHashTable *med_call_stat_info_table;
+extern GHashTable *med_peer_id_host_table;
 
 
 void critical(const char *);
