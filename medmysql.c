@@ -12,6 +12,9 @@
 #define MED_FETCH_QUERY "select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
 	"src_leg, dst_leg " \
 	"from acc where callid = '%s' order by time_hires asc"
+#define MED_FETCH_QUERY_PBX "select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
+	"src_leg, dst_leg " \
+	"from acc where callid = '%s' or callid = '%s"PBX_SUFFIX"' order by time_hires asc"
 
 #define MED_LOAD_PEER_QUERY "select h.ip, h.host, g.peering_contract_id, h.id " \
 	"from provisioning.voip_peer_hosts h, provisioning.voip_peer_groups g " \
@@ -223,7 +226,10 @@ int medmysql_fetch_records(med_callid_t *callid,
 
 	*count = 0;
 
-	snprintf(query, sizeof(query), MED_FETCH_QUERY, callid->value);
+	if (!config_pbx_stop_records)
+		snprintf(query, sizeof(query), MED_FETCH_QUERY, callid->value);
+	else
+		snprintf(query, sizeof(query), MED_FETCH_QUERY_PBX, callid->value, callid->value);
 	
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
 
@@ -292,6 +298,10 @@ int medmysql_trash_entries(const char *callid, struct medmysql_batches *batches)
 
 	batches->acc_trash.len += sprintf(batches->acc_trash.str + batches->acc_trash.len, "'%s',", callid);
 
+	if (config_pbx_stop_records)
+		batches->acc_trash.len += sprintf(batches->acc_trash.str + batches->acc_trash.len,
+				"'%s"PBX_SUFFIX"',", callid);
+
 	return medmysql_delete_entries(callid, batches);
 }
 
@@ -307,6 +317,10 @@ int medmysql_backup_entries(const char *callid, struct medmysql_batches *batches
 		batches->acc_backup.len = sprintf(batches->acc_backup.str, "insert into acc_backup (method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain) select method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain from acc where callid in (");
 
 	batches->acc_backup.len += sprintf(batches->acc_backup.str + batches->acc_backup.len, "'%s',", callid);
+
+	if (config_pbx_stop_records)
+		batches->acc_backup.len += sprintf(batches->acc_backup.str + batches->acc_backup.len,
+				"'%s"PBX_SUFFIX"',", callid);
 
 	return medmysql_delete_entries(callid, batches);
 }
@@ -328,6 +342,10 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *batches
 		batches->to_delete.len = sprintf(batches->to_delete.str, "delete from acc where callid in (");
 
 	batches->to_delete.len += sprintf(batches->to_delete.str + batches->to_delete.len, "'%s',", callid);
+
+	if (config_pbx_stop_records)
+		batches->to_delete.len += sprintf(batches->to_delete.str + batches->to_delete.len,
+				"'%s"PBX_SUFFIX"',", callid);
 
 	return 0;
 }
@@ -561,7 +579,8 @@ int medmysql_update_call_stat_info(const char *call_code, const double start_tim
 }
 
 /**********************************************************************/
-int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable *id_table)
+int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable *id_table,
+		GHashTable *id_host_table)
 {
 	MYSQL_RES *res;
 	MYSQL_ROW row;
@@ -605,6 +624,12 @@ int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable 
 		}
 		if (id_table)
 			g_hash_table_insert(id_table, strdup(row[3]), strdup(row[2]));
+		if (id_host_table) {
+			if (row[1] && *row[1])
+				g_hash_table_insert(id_host_table, strdup(row[3]), strdup(row[1]));
+			else
+				g_hash_table_insert(id_host_table, strdup(row[3]), strdup(row[0]));
+		}
 	}
 
 out:	
