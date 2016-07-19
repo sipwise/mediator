@@ -53,13 +53,17 @@
 
 #define MED_SEP '|'
 
+#define PBX_SUFFIX "_pbx-1"
+#define PBX_SUFFIX_LEN strlen(PBX_SUFFIX)
+
 extern int mediator_lockfd;
 extern sig_atomic_t mediator_shutdown;
 
 typedef enum {
 	MED_INVITE = 1,
 	MED_BYE = 2,
-	MED_UNRECOGNIZED = 3
+	MED_UNRECOGNIZED = 3,
+	MED_IGNORED,
 } med_method_t;
 
 

@@ -47,6 +47,7 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 	u_int16_t invite_200 = 0;
 
 	char *callid = records[0].callid;
+	int is_pbx, cid_len;
 
 
 	cdr_entry_t *cdrs;
@@ -57,19 +58,42 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 	for(i = 0; i < count; ++i)
 	{
 		med_entry_t *e = &(records[i]);
+
+		is_pbx = 0;
+		if (config_pbx_stop_records) {
+			cid_len = strlen(e->callid);
+			if (cid_len >= PBX_SUFFIX_LEN
+					&& strcmp(e->callid + cid_len - PBX_SUFFIX_LEN, PBX_SUFFIX) == 0)
+			{
+				is_pbx = 1;
+				e->callid[cid_len - PBX_SUFFIX_LEN] = '\0'; /* truncate in place */
+			}
+		}
+
+		/* For pbx records, we ignore everything other than bye records. For regular records,
+		 * we ignore only the stop record. */
+
 		if(strcmp(e->sip_method, MSG_INVITE) == 0)
 		{
-			++msg_invites;
-			e->method = MED_INVITE;
-			if(strncmp("200", e->sip_code, 3) == 0)
-			{
-				++invite_200;
+			if (!is_pbx) {
+				++msg_invites;
+				e->method = MED_INVITE;
+				if(strncmp("200", e->sip_code, 3) == 0)
+				{
+					++invite_200;
+				}
 			}
+			else
+				e->method = MED_IGNORED;
 		}
 		else if(strcmp(e->sip_method, MSG_BYE) == 0)
 		{
-			++msg_byes;
-			e->method = MED_BYE;
+			if (!config_pbx_stop_records || is_pbx) {
+				++msg_byes;
+				e->method = MED_BYE;
+			}
+			else
+				e->method = MED_IGNORED;
 		}
 		else
 		{
