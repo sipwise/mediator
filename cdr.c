@@ -5,7 +5,10 @@
 #include "config.h"
 #include "mediator.h"
 
-static char* cdr_map_status(const char *sip_status)
+static int cdr_create_cdrs(med_entry_t *records, u_int64_t count, 
+		cdr_entry_t **cdrs, u_int64_t *cdr_count, u_int8_t *trash);
+
+static const char* cdr_map_status(const char *sip_status)
 {
 	if(strncmp("200", sip_status, 3) == 0)
 	{
@@ -37,7 +40,7 @@ static char* cdr_map_status(const char *sip_status)
 
 int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_count, struct medmysql_batches *batches)
 {
-	int ret = 0;
+	int ret;
 	u_int8_t trash = 0;
 	u_int64_t i;
 
@@ -47,6 +50,7 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 	u_int16_t invite_200 = 0;
 
 	char *callid = records[0].callid;
+	int cid_len;
 
 
 	cdr_entry_t *cdrs;
@@ -57,19 +61,37 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 	for(i = 0; i < count; ++i)
 	{
 		med_entry_t *e = &(records[i]);
+
+		if (config_pbx_stop_records) {
+			cid_len = strlen(e->callid);
+			if (cid_len >= PBX_SUFFIX_LEN
+					&& strcmp(e->callid + cid_len - PBX_SUFFIX_LEN, PBX_SUFFIX) == 0)
+			{
+				e->is_pbx = 1;
+				e->callid[cid_len - PBX_SUFFIX_LEN] = '\0'; /* truncate in place */
+				e->valid = 0;
+			}
+		}
+
+		/* For pbx records, we ignore everything other than bye records. For regular records,
+		 * we ignore only the stop record. */
+
 		if(strcmp(e->sip_method, MSG_INVITE) == 0)
 		{
-			++msg_invites;
 			e->method = MED_INVITE;
-			if(strncmp("200", e->sip_code, 3) == 0)
-			{
-				++invite_200;
+			if (!e->is_pbx && e->valid) {
+				++msg_invites;
+				if(strncmp("200", e->sip_code, 3) == 0)
+				{
+					++invite_200;
+				}
 			}
 		}
 		else if(strcmp(e->sip_method, MSG_BYE) == 0)
 		{
-			++msg_byes;
 			e->method = MED_BYE;
+			if (!e->is_pbx && e->valid)
+				++msg_byes;
 		}
 		else
 		{
@@ -95,7 +117,14 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 			}
 			else
 			{
-				if(cdr_create_cdrs(records, count, &cdrs, &cdr_count, &trash) != 0)
+				ret = cdr_create_cdrs(records, count, &cdrs, &cdr_count, &trash);
+
+				if (ret == 1) {
+					// insufficient data - don't trash and wait
+					return 0;
+				}
+
+				if(ret != 0)
 					goto error;
 				else
 				{
@@ -143,7 +172,7 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 		if(medmysql_trash_entries(callid, batches) != 0)
 			goto error;
 	}
-	return ret;
+	return 0;
 
 
 error:
@@ -508,7 +537,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 }
 
 
-int cdr_create_cdrs(med_entry_t *records, u_int64_t count, 
+static int cdr_create_cdrs(med_entry_t *records, u_int64_t count, 
 		cdr_entry_t **cdrs, u_int64_t *cdr_count, u_int8_t *trash)
 {
 	u_int64_t i = 0, cdr_index = 0;
@@ -517,7 +546,8 @@ int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 
 	char *endtime = NULL;
 	double unix_endtime = 0, tmp_unix_endtime = 0;
-	char *call_status;
+	const char *call_status;
+	med_entry_t *pbx_record = NULL;
 
 	*cdr_count = 0;
 	
@@ -530,6 +560,8 @@ int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 		{
 			++invites;
 		}
+		else if (e->is_pbx)
+			pbx_record = e;
 		else if(e->method == MED_BYE && endtime == NULL)
 		{
 			endtime = e->timestamp;
@@ -606,6 +638,15 @@ int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 			{
 				*trash = 1;
 				return 0;
+			}
+
+			if (config_pbx_stop_records && !strcmp(cdr->destination_user_id, "0")) {
+				if (!pbx_record) {
+					// insufficient data - wait
+					free(*cdrs);
+					return 1;
+				}
+				cdr->destination_lcr_id = atoll(pbx_record->dst_leg);
 			}
 			
 			if(cdr_fill_record(cdr) != 0)
