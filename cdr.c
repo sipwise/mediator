@@ -723,8 +723,8 @@ void cdr_set_provider(cdr_entry_t *cdr)
 		snprintf(cdr->destination_provider_id, sizeof(cdr->destination_provider_id),
 				"%llu", (unsigned long long) cdr->destination_lcr_id);
 		if (config_pbx_stop_records) {
-			// lcr_id determines the destination domain
-			val = g_hash_table_lookup(med_peer_id_host_table, cdr->destination_provider_id);
+			// lcr_id determines the destination peer host name
+			val = g_hash_table_lookup(med_peer_id_hostname_table, cdr->destination_provider_id);
 			if (val)
 				g_strlcpy(cdr->destination_domain, val, sizeof(cdr->destination_domain));
 		}

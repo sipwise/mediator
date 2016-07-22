@@ -16,7 +16,7 @@
 	"src_leg, dst_leg " \
 	"from acc where callid = '%s' or callid = '%s"PBX_SUFFIX"' order by time_hires asc"
 
-#define MED_LOAD_PEER_QUERY "select h.ip, h.host, g.peering_contract_id, h.id " \
+#define MED_LOAD_PEER_QUERY "select h.ip, h.host, g.peering_contract_id, h.id, h.name " \
 	"from provisioning.voip_peer_hosts h, provisioning.voip_peer_groups g " \
 	"where g.id = h.group_id"
 #define MED_LOAD_UUID_QUERY "select vs.uuid, r.contract_id from billing.voip_subscribers vs, " \
@@ -579,8 +579,7 @@ int medmysql_update_call_stat_info(const char *call_code, const double start_tim
 }
 
 /**********************************************************************/
-int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable *id_table,
-		GHashTable *id_host_table)
+int medmysql_load_maps()
 {
 	MYSQL_RES *res;
 	MYSQL_ROW row;
@@ -608,28 +607,30 @@ int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable 
 			goto out;
 		}
 
-		if(ip_table != NULL)
+		if(med_peer_ip_table != NULL)
 		{
-			if(g_hash_table_lookup(ip_table, row[0]) != NULL)
+			if(g_hash_table_lookup(med_peer_ip_table, row[0]) != NULL)
 				syslog(LOG_WARNING, "Skipping duplicate IP '%s'", row[0]);
 			else
-				g_hash_table_insert(ip_table, strdup(row[0]), strdup(row[2]));
+				g_hash_table_insert(med_peer_ip_table, strdup(row[0]), strdup(row[2]));
 		}
-		if(host_table != NULL && row[1] != NULL) // host column is optional
+		if(med_peer_host_table != NULL && row[1] != NULL) // host column is optional
 		{
-			if(g_hash_table_lookup(host_table, row[1]) != NULL)
+			if(g_hash_table_lookup(med_peer_host_table, row[1]) != NULL)
 				syslog(LOG_WARNING, "Skipping duplicate host '%s'", row[1]);
 			else
-				g_hash_table_insert(host_table, strdup(row[1]), strdup(row[2]));
+				g_hash_table_insert(med_peer_host_table, strdup(row[1]), strdup(row[2]));
 		}
-		if (id_table)
-			g_hash_table_insert(id_table, strdup(row[3]), strdup(row[2]));
-		if (id_host_table) {
+		if (med_peer_id_table)
+			g_hash_table_insert(med_peer_id_table, strdup(row[3]), strdup(row[2]));
+		if (med_peer_id_host_table) {
 			if (row[1] && *row[1])
-				g_hash_table_insert(id_host_table, strdup(row[3]), strdup(row[1]));
+				g_hash_table_insert(med_peer_id_host_table, strdup(row[3]), strdup(row[1]));
 			else
-				g_hash_table_insert(id_host_table, strdup(row[3]), strdup(row[0]));
+				g_hash_table_insert(med_peer_id_host_table, strdup(row[3]), strdup(row[0]));
 		}
+		if (med_peer_id_hostname_table)
+			g_hash_table_insert(med_peer_id_hostname_table, strdup(row[3]), strdup(row[4]));
 	}
 
 out:	
