@@ -65,6 +65,7 @@ OPTIONS=""
 [ -z "$STATS_PASS" ] || OPTIONS="$OPTIONS -w $STATS_PASS"
 [ -z "$STATS_DB" ] || OPTIONS="$OPTIONS -X $STATS_DB"
 [ -z "$STATS_PERIOD" ] || OPTIONS="$OPTIONS -x $STATS_PERIOD"
+[ "$PEER_PBX_STOP_RECORDS" = "0" ] || OPTIONS="$OPTIONS -s"
 if test "$FORK" = "yes" ; then
         OPTIONS="$OPTIONS -d"
 fi
