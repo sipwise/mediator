@@ -1,3 +1,16 @@
+ngcp-mediator (1.20.1.0+0~mr4.5.1.0) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [3e3a6e8] MT#20221 support special treatment of _pbx-1 accounting records
+  * [8bbe5c5] MT#20221 use descriptive name for peer hosts instead of hostname
+
+  [ Andrew Pogrebennyk ]
+  * [10274b2] MT#20221 add option to find destination peer by pbx stop records
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 01 Aug 2016 16:27:30 +0200
+
 ngcp-mediator (1.20.0.0+0~mr4.5.0.0) unstable; urgency=medium
 
   * New release.
