@@ -7,7 +7,6 @@
 extern u_int8_t config_daemonize;
 extern char *config_pid_path;
 extern char *config_hostname;
-extern int config_pbx_stop_records;
 
 extern char *config_med_host;
 extern unsigned int config_med_port;
