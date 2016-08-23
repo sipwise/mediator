@@ -7,14 +7,11 @@
 #include "config.h"
 
 /*#define MED_CALLID_QUERY "(select a.callid, a.time from acc a, acc b where a.callid = b.callid and a.method = 'INVITE' and b.method = 'BYE' group by callid) union (select callid, time from acc where method = 'INVITE' and sip_code != '200') order by time asc limit 0,200000"*/
-#define MED_CALLID_QUERY "select a.callid from acc a left join acc b on a.callid = b.callid and b.method = 'BYE' where a.method = 'INVITE' and (a.sip_code != '200' or b.id is not null) group by a.callid limit 0,200000"
+#define MED_CALLID_QUERY "select distinct(a.callid) from acc a left join acc b on b.callid in (a.callid, concat(a.callid, '"PBX_SUFFIX"')) and b.method = 'BYE' where a.method = 'INVITE' and (a.sip_code != '200' or b.id is not null) limit 0,200000"
 
-#define MED_FETCH_QUERY "select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
-	"src_leg, dst_leg " \
-	"from acc where callid = '%s' order by time_hires asc"
 #define MED_FETCH_QUERY_PBX "select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
 	"src_leg, dst_leg " \
-	"from acc where callid = '%s' or callid = '%s"PBX_SUFFIX"' order by time_hires asc"
+	"from acc where callid in ('%s', '%s"PBX_SUFFIX"') order by time_hires asc"
 
 #define MED_LOAD_PEER_QUERY "select h.ip, h.host, g.peering_contract_id, h.id, h.name " \
 	"from provisioning.voip_peer_hosts h, provisioning.voip_peer_groups g " \
@@ -226,9 +223,11 @@ int medmysql_fetch_records(med_callid_t *callid,
 
 	*count = 0;
 
+#if 0
 	if (!config_pbx_stop_records)
 		snprintf(query, sizeof(query), MED_FETCH_QUERY, callid->value);
 	else
+#endif
 		snprintf(query, sizeof(query), MED_FETCH_QUERY_PBX, callid->value, callid->value);
 	
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
@@ -298,7 +297,9 @@ int medmysql_trash_entries(const char *callid, struct medmysql_batches *batches)
 
 	batches->acc_trash.len += sprintf(batches->acc_trash.str + batches->acc_trash.len, "'%s',", callid);
 
+#if 0
 	if (config_pbx_stop_records)
+#endif    
 		batches->acc_trash.len += sprintf(batches->acc_trash.str + batches->acc_trash.len,
 				"'%s"PBX_SUFFIX"',", callid);
 
@@ -318,7 +319,9 @@ int medmysql_backup_entries(const char *callid, struct medmysql_batches *batches
 
 	batches->acc_backup.len += sprintf(batches->acc_backup.str + batches->acc_backup.len, "'%s',", callid);
 
+#if 0
 	if (config_pbx_stop_records)
+#endif    
 		batches->acc_backup.len += sprintf(batches->acc_backup.str + batches->acc_backup.len,
 				"'%s"PBX_SUFFIX"',", callid);
 
@@ -343,7 +346,9 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *batches
 
 	batches->to_delete.len += sprintf(batches->to_delete.str + batches->to_delete.len, "'%s',", callid);
 
+#if 0
 	if (config_pbx_stop_records)
+#endif    
 		batches->to_delete.len += sprintf(batches->to_delete.str + batches->to_delete.len,
 				"'%s"PBX_SUFFIX"',", callid);
 
