@@ -62,7 +62,8 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 	{
 		med_entry_t *e = &(records[i]);
 
-		if (config_pbx_stop_records) {
+		//if (config_pbx_stop_records) {
+		if (1) {
 			cid_len = strlen(e->callid);
 			if (cid_len >= PBX_SUFFIX_LEN
 					&& strcmp(e->callid + cid_len - PBX_SUFFIX_LEN, PBX_SUFFIX) == 0)
