@@ -62,7 +62,9 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 	{
 		med_entry_t *e = &(records[i]);
 
+#if 0
 		if (config_pbx_stop_records) {
+#endif        
 			cid_len = strlen(e->callid);
 			if (cid_len >= PBX_SUFFIX_LEN
 					&& strcmp(e->callid + cid_len - PBX_SUFFIX_LEN, PBX_SUFFIX) == 0)
@@ -71,7 +73,9 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 				e->callid[cid_len - PBX_SUFFIX_LEN] = '\0'; /* truncate in place */
 				e->valid = 0;
 			}
+#if 0
 		}
+#endif        
 
 		/* For pbx records, we ignore everything other than bye records. For regular records,
 		 * we ignore only the stop record. */
