@@ -62,22 +62,28 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 	{
 		med_entry_t *e = &(records[i]);
 
+#if 0
 		if (config_pbx_stop_records) {
+#endif        
 			cid_len = strlen(e->callid);
 			if (cid_len >= PBX_SUFFIX_LEN
 					&& strcmp(e->callid + cid_len - PBX_SUFFIX_LEN, PBX_SUFFIX) == 0)
 			{
+	            syslog(LOG_DEBUG, "found record with pbx cid %s", e->callid);
 				e->is_pbx = 1;
 				e->callid[cid_len - PBX_SUFFIX_LEN] = '\0'; /* truncate in place */
 				e->valid = 0;
 			}
+#if 0
 		}
+#endif        
 
 		/* For pbx records, we ignore everything other than bye records. For regular records,
 		 * we ignore only the stop record. */
 
 		if(strcmp(e->sip_method, MSG_INVITE) == 0)
 		{
+	        syslog(LOG_DEBUG, "found INVITE with cid %s, pbx=%d, valid=%d", e->callid, e->is_pbx, e->valid);
 			e->method = MED_INVITE;
 			if (!e->is_pbx && e->valid) {
 				++msg_invites;
@@ -90,6 +96,7 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 		else if(strcmp(e->sip_method, MSG_BYE) == 0)
 		{
 			e->method = MED_BYE;
+	        syslog(LOG_DEBUG, "found BYE with cid %s, pbx=%d, valid=%d", e->callid, e->is_pbx, e->valid);
 			if (!e->is_pbx && e->valid)
 				++msg_byes;
 		}
@@ -103,7 +110,7 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 			return -1;
 	}
 				
-	/*syslog(LOG_DEBUG, "%d INVITEs, %d BYEs, %d unrecognized", msg_invites, msg_byes, msg_unknowns);*/
+	syslog(LOG_DEBUG, "%d INVITEs, %d BYEs, %d unrecognized", msg_invites, msg_byes, msg_unknowns);
 			
 	if(msg_invites > 0)
 	{
