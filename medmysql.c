@@ -8,12 +8,21 @@
 
 #define PBXSUFFIX "_pbx-1"
 
-#define MED_CALLID_QUERY "select a.callid from acc a " \
-	"left join acc b on b.callid in (a.callid, concat(a.callid, '"PBXSUFFIX"')) " \
-	"and b.method = 'BYE' " \
-	"where a.method = 'INVITE' " \
-	"and (a.sip_code != '200' or b.id is not null) " \
-	"group by a.callid limit 0,200000"
+#define MED_CALLID_QUERY "select a.callid from acc a" \
+    " where a.method = 'INVITE' " \
+      " and (a.sip_code != '200' " \
+            " OR EXISTS " \
+                " (select b.id from acc b " \
+                  " where b.callid = a.callid " \
+                    " and b.method = 'BYE' " \
+                   " limit 1) " \
+            " OR EXISTS " \
+                " (select b.id from acc b " \
+                  " where b.callid = concat(a.callid, '"PBXSUFFIX"') " \
+                    " and b.method = 'BYE' " \
+                  " limit 1) " \
+          " ) " \
+   " group by a.callid limit 0,200000"
 
 #define MED_FETCH_QUERY "(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
 	"src_leg, dst_leg " \
