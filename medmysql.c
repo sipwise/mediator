@@ -7,6 +7,7 @@
 #include "config.h"
 
 #define PBXSUFFIX "_pbx-1"
+#define XFERSUFFIX "_xfer-1"
 
 #define MED_CALLID_QUERY "select a.callid from acc a" \
     " where a.method = 'INVITE' " \
@@ -21,6 +22,11 @@
                   " where b.callid = concat(a.callid, '"PBXSUFFIX"') " \
                     " and b.method = 'BYE' " \
                   " limit 1) " \
+            " OR EXISTS " \
+                " (select b.id from acc b " \
+                  " where b.callid = concat(a.callid, '"XFERSUFFIX"') " \
+                    " and b.method = 'BYE' " \
+                  " limit 1) " \
           " ) " \
    " group by a.callid limit 0,200000"
 
@@ -31,6 +37,11 @@
 	"(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
 	"src_leg, dst_leg " \
 	"from acc where method = 'BYE' and callid in ('%s', '%s"PBXSUFFIX"') " \
+	"order by length(callid) asc, time_hires asc) " \
+	"union all " \
+	"(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
+	"src_leg, dst_leg " \
+	"from acc where method = 'BYE' and callid in ('%s', '%s"XFERSUFFIX"') " \
 	"order by length(callid) asc, time_hires asc)"
 
 #define MED_LOAD_PEER_QUERY "select h.ip, h.host, g.peering_contract_id, h.id " \
@@ -243,7 +254,10 @@ int medmysql_fetch_records(med_callid_t *callid,
 
 	*count = 0;
 
-	snprintf(query, sizeof(query), MED_FETCH_QUERY, callid->value, callid->value, callid->value);
+	snprintf(query, sizeof(query), MED_FETCH_QUERY,
+        callid->value,
+        callid->value, callid->value,
+        callid->value, callid->value);
 	
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
 
