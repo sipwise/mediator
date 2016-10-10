@@ -7,7 +7,6 @@ unsigned int config_interval = MEDIATOR_DEFAULT_INTERVAL;
 u_int8_t config_dumpcdr = MEDIATOR_DEFAULT_DUMPCDR;
 u_int8_t config_daemonize = MEDIATOR_DEFAULT_DAEMONIZE;
 char *config_pid_path = MEDIATOR_DEFAULT_PIDPATH;
-int config_pbx_stop_records;
 
 char *config_med_host = MEDIATOR_DEFAULT_ACCHOST;
 char *config_med_user = MEDIATOR_DEFAULT_ACCUSER;
@@ -64,7 +63,6 @@ static void config_help(const char *self)
 		"  -d\tEnables daemonization of the process (default = disabled).\n" \
 		"  -l\tEnables dumping of CDRs to syslog (default = disabled).\n" \
 		"  -i\tThe creation interval (default = %d).\n" \
-		"  -s\tExpect additional stop records (default = disabled).\n" \
 		"  -h\tThe ACC db host (default = '%s').\n" \
 		"  -o\tThe ACC db port (default = '%d').\n" \
 		"  -u\tThe ACC db user (default = '%s').\n" \
@@ -99,7 +97,7 @@ int config_parse_cmdopts(int argc, char **argv)
 {
 	int c;
 
-	while((c = getopt(argc, argv, "D:i:dl?sh:u:p:b:o:H:U:P:B:O:S:T:R:A:N:Z:z:W:w:X:x:")) != -1)
+	while((c = getopt(argc, argv, "D:i:dl?h:u:p:b:o:H:U:P:B:O:S:T:R:A:N:Z:z:W:w:X:x:")) != -1)
 	{
 		if(c == '?')
 		{
@@ -114,9 +112,6 @@ int config_parse_cmdopts(int argc, char **argv)
 		{
 			config_dumpcdr = 1;
 		}
-		else if (c == 's')
-			config_pbx_stop_records = 1;
-
 		else if(c == 'D')
 		{
 			config_pid_path = (char*)strdup(optarg);

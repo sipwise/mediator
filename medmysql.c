@@ -6,17 +6,45 @@
 #include "medmysql.h"
 #include "config.h"
 
-/*#define MED_CALLID_QUERY "(select a.callid, a.time from acc a, acc b where a.callid = b.callid and a.method = 'INVITE' and b.method = 'BYE' group by callid) union (select callid, time from acc where method = 'INVITE' and sip_code != '200') order by time asc limit 0,200000"*/
-#define MED_CALLID_QUERY "select a.callid from acc a left join acc b on a.callid = b.callid and b.method = 'BYE' where a.method = 'INVITE' and (a.sip_code != '200' or b.id is not null) group by a.callid limit 0,200000"
+#define PBXSUFFIX "_pbx-1"
+#define XFERSUFFIX "_xfer-1"
 
-#define MED_FETCH_QUERY "select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
-	"src_leg, dst_leg " \
-	"from acc where callid = '%s' order by time_hires asc"
-#define MED_FETCH_QUERY_PBX "select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
-	"src_leg, dst_leg " \
-	"from acc where callid = '%s' or callid = '%s"PBX_SUFFIX"' order by time_hires asc"
+#define MED_CALLID_QUERY "select a.callid from acc a" \
+    " where a.method = 'INVITE' " \
+      " and (a.sip_code != '200' " \
+            " OR EXISTS " \
+                " (select b.id from acc b " \
+                  " where b.callid = a.callid " \
+                    " and b.method = 'BYE' " \
+                   " limit 1) " \
+            " OR EXISTS " \
+                " (select b.id from acc b " \
+                  " where b.callid = concat(a.callid, '"PBXSUFFIX"') " \
+                    " and b.method = 'BYE' " \
+                  " limit 1) " \
+            " OR EXISTS " \
+                " (select b.id from acc b " \
+                  " where b.callid = concat(a.callid, '"XFERSUFFIX"') " \
+                    " and b.method = 'BYE' " \
+                  " limit 1) " \
+          " ) " \
+   " group by a.callid limit 0,200000"
 
-#define MED_LOAD_PEER_QUERY "select h.ip, h.host, g.peering_contract_id, h.id, h.name " \
+#define MED_FETCH_QUERY "(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
+	"src_leg, dst_leg " \
+	"from acc where method = 'INVITE' and callid = '%s' order by time_hires asc) " \
+	"union all " \
+	"(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
+	"src_leg, dst_leg " \
+	"from acc where method = 'BYE' and callid in ('%s', '%s"PBXSUFFIX"') " \
+	"order by length(callid) asc, time_hires asc) " \
+	"union all " \
+	"(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
+	"src_leg, dst_leg " \
+	"from acc where method = 'BYE' and callid in ('%s', '%s"XFERSUFFIX"') " \
+	"order by length(callid) asc, time_hires asc)"
+
+#define MED_LOAD_PEER_QUERY "select h.ip, h.host, g.peering_contract_id, h.id " \
 	"from provisioning.voip_peer_hosts h, provisioning.voip_peer_groups g " \
 	"where g.id = h.group_id"
 #define MED_LOAD_UUID_QUERY "select vs.uuid, r.contract_id from billing.voip_subscribers vs, " \
@@ -226,10 +254,10 @@ int medmysql_fetch_records(med_callid_t *callid,
 
 	*count = 0;
 
-	if (!config_pbx_stop_records)
-		snprintf(query, sizeof(query), MED_FETCH_QUERY, callid->value);
-	else
-		snprintf(query, sizeof(query), MED_FETCH_QUERY_PBX, callid->value, callid->value);
+	snprintf(query, sizeof(query), MED_FETCH_QUERY,
+        callid->value,
+        callid->value, callid->value,
+        callid->value, callid->value);
 	
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
 
@@ -298,10 +326,6 @@ int medmysql_trash_entries(const char *callid, struct medmysql_batches *batches)
 
 	batches->acc_trash.len += sprintf(batches->acc_trash.str + batches->acc_trash.len, "'%s',", callid);
 
-	if (config_pbx_stop_records)
-		batches->acc_trash.len += sprintf(batches->acc_trash.str + batches->acc_trash.len,
-				"'%s"PBX_SUFFIX"',", callid);
-
 	return medmysql_delete_entries(callid, batches);
 }
 
@@ -317,10 +341,6 @@ int medmysql_backup_entries(const char *callid, struct medmysql_batches *batches
 		batches->acc_backup.len = sprintf(batches->acc_backup.str, "insert into acc_backup (method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain) select method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain from acc where callid in (");
 
 	batches->acc_backup.len += sprintf(batches->acc_backup.str + batches->acc_backup.len, "'%s',", callid);
-
-	if (config_pbx_stop_records)
-		batches->acc_backup.len += sprintf(batches->acc_backup.str + batches->acc_backup.len,
-				"'%s"PBX_SUFFIX"',", callid);
 
 	return medmysql_delete_entries(callid, batches);
 }
@@ -342,10 +362,6 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *batches
 		batches->to_delete.len = sprintf(batches->to_delete.str, "delete from acc where callid in (");
 
 	batches->to_delete.len += sprintf(batches->to_delete.str + batches->to_delete.len, "'%s',", callid);
-
-	if (config_pbx_stop_records)
-		batches->to_delete.len += sprintf(batches->to_delete.str + batches->to_delete.len,
-				"'%s"PBX_SUFFIX"',", callid);
 
 	return 0;
 }
@@ -383,7 +399,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
                     "source_gpp5, source_gpp6, source_gpp7, source_gpp8, source_gpp9, " \
                     "destination_gpp0, destination_gpp1, destination_gpp2, destination_gpp3, destination_gpp4, " \
                     "destination_gpp5, destination_gpp6, destination_gpp7, destination_gpp8, destination_gpp9, " \
-                    "source_lnp_prefix, destination_lnp_prefix" \
+					"source_lnp_prefix, destination_lnp_prefix" \
                     ") values ");
 		}
 
@@ -579,7 +595,7 @@ int medmysql_update_call_stat_info(const char *call_code, const double start_tim
 }
 
 /**********************************************************************/
-int medmysql_load_maps()
+int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable *id_table)
 {
 	MYSQL_RES *res;
 	MYSQL_ROW row;
@@ -607,30 +623,22 @@ int medmysql_load_maps()
 			goto out;
 		}
 
-		if(med_peer_ip_table != NULL)
+		if(ip_table != NULL)
 		{
-			if(g_hash_table_lookup(med_peer_ip_table, row[0]) != NULL)
+			if(g_hash_table_lookup(ip_table, row[0]) != NULL)
 				syslog(LOG_WARNING, "Skipping duplicate IP '%s'", row[0]);
 			else
-				g_hash_table_insert(med_peer_ip_table, strdup(row[0]), strdup(row[2]));
+				g_hash_table_insert(ip_table, strdup(row[0]), strdup(row[2]));
 		}
-		if(med_peer_host_table != NULL && row[1] != NULL) // host column is optional
+		if(host_table != NULL && row[1] != NULL) // host column is optional
 		{
-			if(g_hash_table_lookup(med_peer_host_table, row[1]) != NULL)
+			if(g_hash_table_lookup(host_table, row[1]) != NULL)
 				syslog(LOG_WARNING, "Skipping duplicate host '%s'", row[1]);
 			else
-				g_hash_table_insert(med_peer_host_table, strdup(row[1]), strdup(row[2]));
+				g_hash_table_insert(host_table, strdup(row[1]), strdup(row[2]));
 		}
-		if (med_peer_id_table)
-			g_hash_table_insert(med_peer_id_table, strdup(row[3]), strdup(row[2]));
-		if (med_peer_id_host_table) {
-			if (row[1] && *row[1])
-				g_hash_table_insert(med_peer_id_host_table, strdup(row[3]), strdup(row[1]));
-			else
-				g_hash_table_insert(med_peer_id_host_table, strdup(row[3]), strdup(row[0]));
-		}
-		if (med_peer_id_hostname_table)
-			g_hash_table_insert(med_peer_id_hostname_table, strdup(row[3]), strdup(row[4]));
+		if (id_table)
+			g_hash_table_insert(id_table, strdup(row[3]), strdup(row[2]));
 	}
 
 out:	
