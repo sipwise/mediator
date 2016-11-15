@@ -4,7 +4,7 @@ Priority: extra
 Maintainer: Sipwise Development Team <support@sipwise.com>
 Build-Depends: debhelper (>= 5),
                libglib2.0-dev,
-               libmysqlclient15-dev
+               default-libmysqlclient-dev | libmysqlclient15-dev,
 Standards-Version: 3.9.7
 Homepage: http://sipwise.com/
 
