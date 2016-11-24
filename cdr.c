@@ -647,6 +647,10 @@ static int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 					return 1;
 				}
 				cdr->destination_lcr_id = atoll(pbx_record->dst_leg);
+			} else if(config_pbx_stop_records && !strncmp(cdr->destination_user_id, "-1", 2)) {
+				// -1 is a marker for calls which are rejected by the proxy already,
+				// so don't wait for a pbx record and close the cdr by processing it normally
+				strncpy(cdr->destination_user_id, "0", 1);
 			}
 			
 			if(cdr_fill_record(cdr) != 0)
