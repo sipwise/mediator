@@ -230,7 +230,7 @@ int medmysql_fetch_callids(med_callid_t **callids, u_int64_t *count)
 			g_strlcpy(c->value, row[0], sizeof(c->value));
 		}
 
-		/*syslog(LOG_DEBUG, "callid[%"PRIu64"]='%s'", i, c->value);*/
+		syslog(LOG_DEBUG, "fetched callid[%"PRIu64"]='%s'", i, c->value);
 
 		if (check_shutdown())
 			return -1;
@@ -303,6 +303,8 @@ int medmysql_fetch_records(med_callid_t *callid,
 		g_strlcpy(e->src_leg, row[6], sizeof(e->src_leg));
 		g_strlcpy(e->dst_leg, row[7], sizeof(e->dst_leg));
 		e->valid = 1;
+
+		syslog(LOG_DEBUG, "fetched record with callid '%s', method='%s'", e->callid, e->sip_method);
 
 		if (check_shutdown())
 			return -1;
