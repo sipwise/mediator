@@ -3,11 +3,11 @@ Section: utils
 Priority: extra
 Maintainer: Sipwise Development Team <support@sipwise.com>
 Build-Depends:
- debhelper (>= 5),
+ debhelper (>= 9),
  default-libmysqlclient-dev | libmysqlclient15-dev,
  libglib2.0-dev,
-Standards-Version: 3.9.7
-Homepage: http://sipwise.com/
+Standards-Version: 3.9.8
+Homepage: https://www.sipwise.com/
 
 Package: ngcp-mediator
 Architecture: any
@@ -15,5 +15,5 @@ Depends:
  lsb-base,
  ${misc:Depends},
  ${shlibs:Depends},
-Description: CDR creation tool for NGCP platforms.
- This tool generates CDR entries from accounting information in a NGCP platform.
+Description: CDR creation tool for NGCP
+ This tool generates CDR entries from accounting information in a NGCP system.
