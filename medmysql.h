@@ -23,14 +23,14 @@ struct medmysql_batches {
 };
 
 struct medmysql_call_stat_info_t {
-    char period[STAT_PERIOD_SIZE];
+	char period[STAT_PERIOD_SIZE];
 	char call_code[4];
 	u_int64_t amount;
 };
 
 int medmysql_init();
 void medmysql_cleanup();
-int medmysql_fetch_callids(med_callid_t **callids, u_int64_t *count);
+med_callid_t *medmysql_fetch_callids(u_int64_t *count);
 int medmysql_fetch_records(med_callid_t *callid, med_entry_t **entries, u_int64_t *count);
 int medmysql_trash_entries(const char *callid, struct medmysql_batches *);
 int medmysql_backup_entries(const char *callid, struct medmysql_batches *);
