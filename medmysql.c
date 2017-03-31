@@ -584,7 +584,8 @@ int medmysql_update_call_stat_info(const char *call_code, const double start_tim
 	if ((period_t = g_hash_table_lookup(med_call_stat_info_table, &period_key)) == NULL) {
 		period_t = malloc(sizeof(struct medmysql_call_stat_info_t));
 		strcpy(period_t->period, period);
-		strcpy(period_t->call_code, call_code);
+        memset(period_t->call_code, '\0', sizeof(period_t->call_code));
+		strncpy(period_t->call_code, call_code, 3);
 		period_t->amount = 1;
 		g_hash_table_insert(med_call_stat_info_table, strdup(period_key), period_t);
 	} else {

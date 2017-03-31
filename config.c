@@ -114,6 +114,8 @@ int config_parse_cmdopts(int argc, char **argv)
 		}
 		else if(c == 'D')
 		{
+            if(config_pid_path_free)
+                free(config_pid_path);
 			config_pid_path = (char*)strdup(optarg);
 			config_pid_path_free = 1;
 		}
@@ -123,21 +125,29 @@ int config_parse_cmdopts(int argc, char **argv)
 		}
 		else if(c == 'h')
 		{
+            if(config_med_host_free)
+                free(config_med_host);
 			config_med_host = (char*)strdup(optarg);
 			config_med_host_free = 1;
 		}
 		else if(c == 'u')
 		{
+            if(config_med_user_free)
+                free(config_med_user);
 			config_med_user = (char*)strdup(optarg);
 			config_med_user_free = 1;
 		}
 		else if(c == 'p')
 		{
+            if(config_med_pass_free)
+                free(config_med_pass);
 			config_med_pass = (char*)strdup(optarg);
 			config_med_pass_free = 1;
 		}
 		else if(c == 'b')
 		{
+            if(config_med_db_free)
+                free(config_med_db);
 			config_med_db = (char*)strdup(optarg);
 			config_med_db_free = 1;
 		}
@@ -147,21 +157,29 @@ int config_parse_cmdopts(int argc, char **argv)
 		}
 		else if(c == 'H')
 		{
+            if(config_cdr_host_free)
+                free(config_cdr_host);
 			config_cdr_host = (char*)strdup(optarg);
 			config_cdr_host_free = 1;
 		}
 		else if(c == 'U')
 		{
+            if(config_cdr_user_free)
+                free(config_cdr_user);
 			config_cdr_user = (char*)strdup(optarg);
 			config_cdr_user_free = 1;
 		}
 		else if(c == 'P')
 		{
+            if(config_cdr_pass_free)
+                free(config_cdr_pass);
 			config_cdr_pass = (char*)strdup(optarg);
 			config_cdr_pass_free = 1;
 		}
 		else if(c == 'B')
 		{
+            if(config_cdr_db_free)
+                free(config_cdr_db);
 			config_cdr_db = (char*)strdup(optarg);
 			config_cdr_db_free = 1;
 		}
@@ -171,21 +189,29 @@ int config_parse_cmdopts(int argc, char **argv)
 		}
 		else if(c == 'S')
 		{
+            if(config_prov_host_free)
+                free(config_prov_host);
 			config_prov_host = (char*)strdup(optarg);
 			config_prov_host_free = 1;
 		}
 		else if(c == 'R')
 		{
+            if(config_prov_user_free)
+                free(config_prov_user);
 			config_prov_user = (char*)strdup(optarg);
 			config_prov_user_free = 1;
 		}
 		else if(c == 'A')
 		{
+            if(config_prov_pass_free)
+                free(config_prov_pass);
 			config_prov_pass = (char*)strdup(optarg);
 			config_prov_pass_free = 1;
 		}
 		else if(c == 'N')
 		{
+            if(config_prov_db_free)
+                free(config_prov_db);
 			config_prov_db = (char*)strdup(optarg);
 			config_prov_db_free = 1;
 		}
@@ -195,6 +221,8 @@ int config_parse_cmdopts(int argc, char **argv)
 		}
 		else if(c == 'Z')
 		{
+            if(config_stats_host_free)
+                free(config_stats_host);
 			config_stats_host = (char*)strdup(optarg);
 			config_stats_host_free = 1;
 		}
@@ -204,16 +232,22 @@ int config_parse_cmdopts(int argc, char **argv)
 		}
 		else if(c == 'W')
 		{
+            if(config_stats_user_free)
+                free(config_stats_user);
 			config_stats_user = (char*)strdup(optarg);
 			config_stats_user_free = 1;
 		}
 		else if(c == 'w')
 		{
+            if(config_stats_pass_free)
+                free(config_stats_pass);
 			config_stats_pass = (char*)strdup(optarg);
 			config_stats_pass_free = 1;
 		}
 		else if(c == 'X')
 		{
+            if(config_stats_db_free)
+                free(config_stats_db);
 			config_stats_db = (char*)strdup(optarg);
 			config_stats_db_free = 1;
 		}
