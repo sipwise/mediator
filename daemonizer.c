@@ -26,6 +26,11 @@ int daemonize()
 				close(fds);
 		}
 		fds = open("/dev/null", O_RDWR); /* stdin */
+		if(fds < 0)
+		{
+			syslog(LOG_CRIT, "Error opening /dev/null: %s", strerror(errno));
+			return -1;
+		}
 		if(dup(fds) < 0) {}; /* stdout */
 		if(dup(fds) < 0) {}; /* stderr */
 		umask(027);
