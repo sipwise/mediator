@@ -23,7 +23,7 @@ struct medmysql_batches {
 };
 
 struct medmysql_call_stat_info_t {
-    char period[STAT_PERIOD_SIZE];
+	char period[STAT_PERIOD_SIZE];
 	char call_code[4];
 	u_int64_t amount;
 };
