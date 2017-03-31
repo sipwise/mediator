@@ -233,47 +233,44 @@ int main(int argc, char **argv)
 		id_count = 0, rec_count = 0, cdr_count = 0;
 		last_count = mediator_count;
 
-		if(medmysql_fetch_callids(&callids, &id_count) != 0)
+		callids = medmysql_fetch_callids(&id_count);
+		if(!callids)
 			break;
 
-		if(id_count > 0)
+		if (medmysql_batch_start(&batches))
+			break;
+
+		/*syslog(LOG_DEBUG, "Processing %"PRIu64" accounting record group(s).", id_count);*/
+		for(i = 0; i < id_count && !mediator_shutdown; ++i)
 		{
-			if (medmysql_batch_start(&batches))
-				break;
-
-			/*syslog(LOG_DEBUG, "Processing %"PRIu64" accounting record group(s).", id_count);*/
-			for(i = 0; i < id_count && !mediator_shutdown; ++i)
-			{
 #ifdef WITH_TIME_CALC				
-				gettimeofday(&tv_start, NULL);
+			gettimeofday(&tv_start, NULL);
 #endif
-				
-				if(medmysql_fetch_records(&(callids[i]), &records, &rec_count) != 0)
-					goto out;
 
-				if(cdr_process_records(records, rec_count, &cdr_count, &batches) != 0)
-					goto out;
+			if(medmysql_fetch_records(&(callids[i]), &records, &rec_count) != 0)
+				goto out;
 
-				if(rec_count > 0)
-				{
-					free(records);
-				}
+			if(cdr_process_records(records, rec_count, &cdr_count, &batches) != 0)
+				goto out;
 
-				mediator_count += cdr_count;
-				
-#ifdef WITH_TIME_CALC				
-				gettimeofday(&tv_stop, NULL);
-				runtime = mediator_calc_runtime(&tv_start, &tv_stop);
-				syslog(LOG_DEBUG, "Runtime for record group was %"PRIu64" ms.", runtime);
-#endif				
+			if(rec_count > 0)
+			{
+				free(records);
 			}
 
-			free(callids);
-			if (medmysql_batch_end(&batches))
-				break;
+			mediator_count += cdr_count;
 
+#ifdef WITH_TIME_CALC
+			gettimeofday(&tv_stop, NULL);
+			runtime = mediator_calc_runtime(&tv_start, &tv_stop);
+			syslog(LOG_DEBUG, "Runtime for record group was %"PRIu64" ms.", runtime);
+#endif
 		}
-				
+
+		free(callids);
+		if (medmysql_batch_end(&batches))
+			break;
+
 		if(mediator_count > last_count)
 		{
 			syslog(LOG_DEBUG, "Overall %"PRIu64" CDRs created so far.", mediator_count);

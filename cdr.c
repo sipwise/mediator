@@ -52,7 +52,7 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 	char *callid = records[0].callid;
 
 
-	cdr_entry_t *cdrs;
+	cdr_entry_t *cdrs = NULL;
 	u_int64_t cdr_count;
 
 	*ext_count = 0;
@@ -124,6 +124,7 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 						/* TODO: no CDRs created? */
 					}
 					free(cdrs);
+					cdrs = NULL;
 				}
 			}
 		}
@@ -150,6 +151,8 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 
 
 error:
+	if(cdrs)
+		free(cdrs);
 	return -1;
 }
 

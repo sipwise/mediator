@@ -10,24 +10,24 @@
 #define XFERSUFFIX "_xfer-1"
 
 #define MED_CALLID_QUERY "select a.callid from acc a" \
-    " where a.method = 'INVITE' " \
-      " and (a.sip_code != '200' " \
-            " OR EXISTS " \
-                " (select b.id from acc b " \
-                  " where b.callid = a.callid " \
-                    " and b.method = 'BYE' " \
-                   " limit 1) " \
-            " OR EXISTS " \
-                " (select b.id from acc b " \
-                  " where b.callid = concat(a.callid, '"PBXSUFFIX"') " \
-                    " and b.method = 'BYE' " \
-                  " limit 1) " \
-            " OR EXISTS " \
-                " (select b.id from acc b " \
-                  " where b.callid = concat(a.callid, '"XFERSUFFIX"') " \
-                    " and b.method = 'BYE' " \
-                  " limit 1) " \
-          " ) " \
+	" where a.method = 'INVITE' " \
+	  " and (a.sip_code != '200' " \
+			" OR EXISTS " \
+				" (select b.id from acc b " \
+				  " where b.callid = a.callid " \
+					" and b.method = 'BYE' " \
+				   " limit 1) " \
+			" OR EXISTS " \
+				" (select b.id from acc b " \
+				  " where b.callid = concat(a.callid, '"PBXSUFFIX"') " \
+					" and b.method = 'BYE' " \
+				  " limit 1) " \
+			" OR EXISTS " \
+				" (select b.id from acc b " \
+				  " where b.callid = concat(a.callid, '"XFERSUFFIX"') " \
+					" and b.method = 'BYE' " \
+				  " limit 1) " \
+		  " ) " \
    " group by a.callid limit 0,200000"
 
 #define MED_FETCH_QUERY "(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
@@ -181,14 +181,14 @@ void medmysql_cleanup()
 }
 
 /**********************************************************************/
-int medmysql_fetch_callids(med_callid_t **callids, u_int64_t *count)
+med_callid_t *medmysql_fetch_callids(u_int64_t *count)
 {
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 	char query[1024] = "";
 	size_t callid_size;
 	u_int64_t i = 0;
-	int ret = 0;
+	med_callid_t *callids = NULL;
 
 	*count = 0;
 
@@ -200,7 +200,7 @@ int medmysql_fetch_callids(med_callid_t **callids, u_int64_t *count)
 	{
 		syslog(LOG_CRIT, "Error getting acc callids: %s", 
 				mysql_error(med_handler));
-		return -1;
+		return NULL;
 	}
 
 	res = mysql_store_result(med_handler);
@@ -211,18 +211,20 @@ int medmysql_fetch_callids(med_callid_t **callids, u_int64_t *count)
 	}
 
 	callid_size = sizeof(med_callid_t) * (*count);
-	*callids = (med_callid_t*)malloc(callid_size);
-	memset(*callids, '\0', callid_size);
-	if(*callids == NULL)
+	callids = malloc(callid_size);
+	if(callids == NULL)
 	{
 		syslog(LOG_CRIT, "Error allocating callid memory: %s", strerror(errno));
-		ret = -1;
+		free(callids);
+		callids = NULL;
 		goto out;
 	}
 
+	memset(callids, '\0', callid_size);
+
 	while((row = mysql_fetch_row(res)) != NULL)
 	{
-		med_callid_t *c = &(*callids)[i++];
+		med_callid_t *c = &callids[i++];
 		if(row == NULL || row[0] == NULL)
 		{
 			g_strlcpy(c->value, "0", sizeof(c->value));
@@ -232,13 +234,15 @@ int medmysql_fetch_callids(med_callid_t **callids, u_int64_t *count)
 
 		/*syslog(LOG_DEBUG, "callid[%"PRIu64"]='%s'", i, c->value);*/
 
-		if (check_shutdown())
-			return -1;
+		if (check_shutdown()) {
+			free(callids);
+			return NULL;
+		}
 	}
 			
 out:
 	mysql_free_result(res);
-	return ret;
+	return callids;
 }
 
 /**********************************************************************/
@@ -255,9 +259,9 @@ int medmysql_fetch_records(med_callid_t *callid,
 	*count = 0;
 
 	snprintf(query, sizeof(query), MED_FETCH_QUERY,
-        callid->value,
-        callid->value, callid->value,
-        callid->value, callid->value);
+		callid->value,
+		callid->value, callid->value,
+		callid->value, callid->value);
 	
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
 
@@ -373,7 +377,7 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *batches
 int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_batches *batches)
 {
 	u_int64_t i;
-    int gpp;
+	int gpp;
 
 	for(i = 0; i < count; ++i)
 	{
@@ -395,12 +399,12 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 					"source_carrier_cost, source_reseller_cost, source_customer_cost, " \
 					"destination_carrier_cost, destination_reseller_cost, destination_customer_cost, " \
 					"split, " \
-                    "source_gpp0, source_gpp1, source_gpp2, source_gpp3, source_gpp4, " \
-                    "source_gpp5, source_gpp6, source_gpp7, source_gpp8, source_gpp9, " \
-                    "destination_gpp0, destination_gpp1, destination_gpp2, destination_gpp3, destination_gpp4, " \
-                    "destination_gpp5, destination_gpp6, destination_gpp7, destination_gpp8, destination_gpp9, " \
+					"source_gpp0, source_gpp1, source_gpp2, source_gpp3, source_gpp4, " \
+					"source_gpp5, source_gpp6, source_gpp7, source_gpp8, source_gpp9, " \
+					"destination_gpp0, destination_gpp1, destination_gpp2, destination_gpp3, destination_gpp4, " \
+					"destination_gpp5, destination_gpp6, destination_gpp7, destination_gpp8, destination_gpp9, " \
 					"source_lnp_prefix, destination_lnp_prefix" \
-                    ") values ");
+					") values ");
 		}
 
 		cdr_entry_t *e = &(entries[i]);
@@ -505,32 +509,32 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		CDRESCAPE(str_dest_customer_cost);
 		CDRPRINT(",");
 		CDRESCAPE(str_split);
-        for(gpp = 0; gpp < 10; ++gpp)
-        {
-            if(strnlen(e->source_gpp[gpp], sizeof(e->source_gpp[gpp])) > 0)
-            {
-		        CDRPRINT(",'");
-		        CDRESCAPE(e->source_gpp[gpp]);
-		        CDRPRINT("'");
-            }
-            else
-            {
-		        CDRPRINT(",NULL");
-            }
-        }
-        for(gpp = 0; gpp < 10; ++gpp)
-        {
-            if(strnlen(e->destination_gpp[gpp], sizeof(e->destination_gpp[gpp])) > 0)
-            {
-		        CDRPRINT(",'");
-		        CDRESCAPE(e->destination_gpp[gpp]);
-		        CDRPRINT("'");
-            }
-            else
-            {
-		        CDRPRINT(",NULL");
-            }
-        }
+		for(gpp = 0; gpp < 10; ++gpp)
+		{
+			if(strnlen(e->source_gpp[gpp], sizeof(e->source_gpp[gpp])) > 0)
+			{
+				CDRPRINT(",'");
+				CDRESCAPE(e->source_gpp[gpp]);
+				CDRPRINT("'");
+			}
+			else
+			{
+				CDRPRINT(",NULL");
+			}
+		}
+		for(gpp = 0; gpp < 10; ++gpp)
+		{
+			if(strnlen(e->destination_gpp[gpp], sizeof(e->destination_gpp[gpp])) > 0)
+			{
+				CDRPRINT(",'");
+				CDRESCAPE(e->destination_gpp[gpp]);
+				CDRPRINT("'");
+			}
+			else
+			{
+				CDRPRINT(",NULL");
+			}
+		}
 
 		CDRPRINT(",'");
 		CDRESCAPE(e->source_lnp_prefix);
@@ -584,7 +588,8 @@ int medmysql_update_call_stat_info(const char *call_code, const double start_tim
 	if ((period_t = g_hash_table_lookup(med_call_stat_info_table, &period_key)) == NULL) {
 		period_t = malloc(sizeof(struct medmysql_call_stat_info_t));
 		strcpy(period_t->period, period);
-		strcpy(period_t->call_code, call_code);
+		memset(period_t->call_code, '\0', sizeof(period_t->call_code));
+		strncpy(period_t->call_code, call_code, 3);
 		period_t->amount = 1;
 		g_hash_table_insert(med_call_stat_info_table, strdup(period_key), period_t);
 	} else {
