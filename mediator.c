@@ -234,8 +234,12 @@ int main(int argc, char **argv)
 		last_count = mediator_count;
 
 		callids = medmysql_fetch_callids(&id_count);
-		if(!callids)
-			break;
+		if(!callids) {
+			if (id_count) /* error */
+				break;
+			/* nothing to do */
+			goto idle;
+		}
 
 		if (medmysql_batch_start(&batches))
 			break;
@@ -271,6 +275,7 @@ int main(int argc, char **argv)
 		if (medmysql_batch_end(&batches))
 			break;
 
+idle:
 		if(mediator_count > last_count)
 		{
 			syslog(LOG_DEBUG, "Overall %"PRIu64" CDRs created so far.", mediator_count);

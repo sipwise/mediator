@@ -190,7 +190,7 @@ med_callid_t *medmysql_fetch_callids(u_int64_t *count)
 	u_int64_t i = 0;
 	med_callid_t *callids = NULL;
 
-	*count = 0;
+	*count = -1; /* non-zero count and return of NULL == error */
 
 	g_strlcpy(query, MED_CALLID_QUERY, sizeof(query));
 	
