@@ -190,15 +190,15 @@ med_callid_t *medmysql_fetch_callids(u_int64_t *count)
 	u_int64_t i = 0;
 	med_callid_t *callids = NULL;
 
-	*count = 0;
+	*count = (u_int64_t) -1; /* non-zero count and return of NULL == error */
 
 	g_strlcpy(query, MED_CALLID_QUERY, sizeof(query));
-	
+
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
 
 	if(mysql_query_wrapper(med_handler, query, strlen(query)) != 0)
 	{
-		syslog(LOG_CRIT, "Error getting acc callids: %s", 
+		syslog(LOG_CRIT, "Error getting acc callids: %s",
 				mysql_error(med_handler));
 		return NULL;
 	}
