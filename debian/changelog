@@ -1,3 +1,15 @@
+ngcp-mediator (5.2.2.0+0~mr5.2.2.0) unstable; urgency=medium
+
+  [ Alexander Lutay ]
+  * [cef4418] TT#13401 Add lsb-base as a dependencies for ngcp-mediator (lintian warning fix)
+
+  [ Andreas Granig ]
+  * [67c3962] TT#3990 Undo stop-rec processing but use pbx/xfer
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 03 Apr 2017 14:29:19 +0200
+
 ngcp-mediator (5.2.1.0+0~mr5.2.1.0) unstable; urgency=medium
 
   * New release.
