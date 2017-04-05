@@ -251,21 +251,24 @@ int medmysql_fetch_records(med_callid_t *callid,
 {
 	MYSQL_RES *res;
 	MYSQL_ROW row;
-	char query[1024] = "";
+	char query[strlen(MED_FETCH_QUERY) + sizeof(callid->value) * 5 + 1];
 	size_t entry_size;
 	u_int64_t i = 0;
 	int ret = 0;
 
 	*count = 0;
 
-	snprintf(query, sizeof(query), MED_FETCH_QUERY,
+	ret = snprintf(query, sizeof(query), MED_FETCH_QUERY,
 		callid->value,
 		callid->value, callid->value,
 		callid->value, callid->value);
+
+	if (ret >= sizeof(query)) /* truncated - internal bug */
+		abort();
 	
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
 
-	if(mysql_query_wrapper(med_handler, query, strlen(query)) != 0)
+	if(mysql_query_wrapper(med_handler, query, ret) != 0)
 	{
 		syslog(LOG_CRIT, "Error getting acc records for callid '%s': %s", 
 				callid->value, mysql_error(med_handler));
@@ -604,12 +607,12 @@ int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable 
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 	int ret = 0;
-	char query[1024] = "";
+	/* char query[1024] = ""; */
 
-	snprintf(query, sizeof(query), MED_LOAD_PEER_QUERY);
+	/* snprintf(query, sizeof(query), MED_LOAD_PEER_QUERY); */
 
 	/* syslog(LOG_DEBUG, "q='%s'", query); */
-	if(mysql_query_wrapper(prov_handler, query, strlen(query)) != 0)
+	if(mysql_query_wrapper(prov_handler, MED_LOAD_PEER_QUERY, strlen(MED_LOAD_PEER_QUERY)) != 0)
 	{
 		syslog(LOG_CRIT, "Error loading peer hosts: %s", 
 				mysql_error(prov_handler));
@@ -656,14 +659,14 @@ int medmysql_load_uuids(GHashTable *uuid_table)
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 	int ret = 0;
-	char query[1024] = "";
+	/* char query[1024] = ""; */
 	gpointer key;
 	char *provider_id;
 
-	snprintf(query, sizeof(query), MED_LOAD_UUID_QUERY);
+	/* snprintf(query, sizeof(query), MED_LOAD_UUID_QUERY); */
 
 	/* syslog(LOG_DEBUG, "q='%s'", query); */
-	if(mysql_query_wrapper(prov_handler, query, strlen(query)) != 0)
+	if(mysql_query_wrapper(prov_handler, MED_LOAD_UUID_QUERY, strlen(MED_LOAD_UUID_QUERY)) != 0)
 	{
 		syslog(LOG_CRIT, "Error loading uuids: %s", 
 				mysql_error(prov_handler));
