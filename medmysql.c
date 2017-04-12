@@ -72,7 +72,7 @@ static int mysql_query_wrapper(MYSQL *mysql, const char *stmt_str, unsigned long
 		if (!ret)
 			return ret;
 		err = mysql_errno(mysql);
-		if (err == CR_SERVER_GONE_ERROR || err == CR_SERVER_LOST || err == CR_CONN_HOST_ERROR || err == CR_CONNECTION_ERROR || err == CR_SERVER_LOST) {
+		if (err == CR_SERVER_GONE_ERROR || err == CR_SERVER_LOST || err == CR_CONN_HOST_ERROR || err == CR_CONNECTION_ERROR) {
 			syslog(LOG_WARNING, "Lost connection to SQL server during query, retrying...");
 			sleep(10);
 			continue;
