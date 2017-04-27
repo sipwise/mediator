@@ -83,16 +83,16 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 		if (check_shutdown())
 			return -1;
 	}
-				
+
 	/*syslog(LOG_DEBUG, "%d INVITEs, %d BYEs, %d unrecognized", msg_invites, msg_byes, msg_unknowns);*/
-			
+
 	if(msg_invites > 0)
 	{
 		if(msg_byes > 0 || invite_200 == 0)
 		{
 			if(/*msg_byes > 2*/ 0)
 			{
-				syslog(LOG_WARNING, "Multiple (%d) BYE messages for callid '%s' found, trashing...", 
+				syslog(LOG_WARNING, "Multiple (%d) BYE messages for callid '%s' found, trashing...",
 						msg_byes, callid);
 				trash = 1;
 			}
@@ -117,7 +117,7 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 							if(medmysql_backup_entries(callid, batches) != 0)
 								goto error;
 						}
-						
+
 					}
 					else
 					{
@@ -131,7 +131,7 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 		else
 		{
 			/*
-			syslog(LOG_DEBUG, "No BYE message for callid '%s' found, skipping...", 
+			syslog(LOG_DEBUG, "No BYE message for callid '%s' found, skipping...",
 					callid);
 			*/
 		}
@@ -207,7 +207,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	char *tmp1, *tmp2;
 
 	tmp2 = srcleg;
-		
+
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
@@ -227,7 +227,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	*tmp1 = '\0';
 	g_strlcpy(cdr->source_user, tmp2, sizeof(cdr->source_user));
 	tmp2 = ++tmp1;
-	
+
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
@@ -237,7 +237,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	*tmp1 = '\0';
 	g_strlcpy(cdr->source_domain, tmp2, sizeof(cdr->source_domain));
 	tmp2 = ++tmp1;
-	
+
 
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
@@ -354,6 +354,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 		g_strlcpy(cdr->source_gpp[i], tmp2, sizeof(cdr->source_gpp[i]));
 		tmp2 = ++tmp1;
 	}
+
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
@@ -364,13 +365,23 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	g_strlcpy(cdr->source_lnp_prefix, tmp2, sizeof(cdr->source_lnp_prefix));
 	tmp2 = ++tmp1;
 
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
+	{
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated source user out, '%s'", cdr->call_id, tmp2);
+		return -1;
+	}
+	*tmp1 = '\0';
+	g_strlcpy(cdr->source_user_out, tmp2, sizeof(cdr->source_user_out));
+	tmp2 = ++tmp1;
+
 	return 0;
 }
 
 static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 {
 	char *tmp1, *tmp2;
-		
+
 	tmp2 = dstleg;
 
 	tmp1 = strchr(tmp2, MED_SEP);
@@ -424,7 +435,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	*tmp1 = '\0';
 	g_strlcpy(cdr->destination_dialed, tmp2, sizeof(cdr->destination_dialed));
 	tmp2 = ++tmp1;
-	
+
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
@@ -434,7 +445,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	*tmp1 = '\0';
 	g_strlcpy(cdr->destination_user_id, tmp2, sizeof(cdr->destination_user_id));
 	tmp2 = ++tmp1;
-	
+
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
@@ -509,6 +520,16 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	g_strlcpy(cdr->destination_lnp_prefix, tmp2, sizeof(cdr->destination_lnp_prefix));
 	tmp2 = ++tmp1;
 
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
+	{
+		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination user out, '%s'", cdr->call_id, tmp2);
+		return -1;
+	}
+	*tmp1 = '\0';
+	g_strlcpy(cdr->destination_user_out, tmp2, sizeof(cdr->destination_user_out));
+	tmp2 = ++tmp1;
+
 	return 0;
 }
 
@@ -525,7 +546,7 @@ static int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 	const char *call_status;
 
 	*cdr_count = 0;
-	
+
 
 	/* get end time from BYE's timestamp */
 	for(i = 0; i < count; ++i)
@@ -547,7 +568,7 @@ static int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 
 	if(invites == 0)
 	{
-		syslog(LOG_CRIT, "No valid INVITEs for creating a cdr, internal error, callid='%s'", 
+		syslog(LOG_CRIT, "No valid INVITEs for creating a cdr, internal error, callid='%s'",
 				records[0].callid);
 		return -1;
 	}
@@ -585,7 +606,7 @@ static int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 			{
 				tmp_unix_endtime = unix_endtime;
 			}
-	
+
 			g_strlcpy(cdr->call_id, e->callid, sizeof(cdr->call_id));
 			/* g_strlcpy(cdr->start_time, e->timestamp, sizeof(cdr->start_time)); */
 			cdr->start_time = e->unix_timestamp;
@@ -606,13 +627,13 @@ static int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
 				*trash = 1;
 				return 0;
 			}
-			
+
 			if(cdr_parse_dstleg(e->dst_leg, cdr) < 0)
 			{
 				*trash = 1;
 				return 0;
 			}
-			
+
 			if(cdr_fill_record(cdr) != 0)
 			{
 				// TODO: error handling
@@ -640,7 +661,7 @@ int cdr_fill_record(cdr_entry_t *cdr)
 		strcpy(cdr->source_cli, "anonymous");
 	}
 	*/
-		
+
 	return 0;
 }
 
@@ -702,4 +723,3 @@ void cdr_set_provider(cdr_entry_t *cdr)
 		g_strlcpy(cdr->destination_provider_id, "0", sizeof(cdr->destination_provider_id));
 	}
 }
-
