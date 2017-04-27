@@ -88,7 +88,7 @@ int medmysql_init()
 	my_bool recon = 1;
 
 	cdr_handler = mysql_init(NULL);
-	if(!mysql_real_connect(cdr_handler, 
+	if(!mysql_real_connect(cdr_handler,
 				config_cdr_host, config_cdr_user, config_cdr_pass,
 				config_cdr_db, config_cdr_port, NULL, 0))
 	{
@@ -103,7 +103,7 @@ int medmysql_init()
 
 
 	med_handler = mysql_init(NULL);
-	if(!mysql_real_connect(med_handler, 
+	if(!mysql_real_connect(med_handler,
 				config_med_host, config_med_user, config_med_pass,
 				config_med_db, config_med_port, NULL, 0))
 	{
@@ -115,9 +115,9 @@ int medmysql_init()
 		syslog(LOG_CRIT, "Error setting reconnect-option for ACC db: %s", mysql_error(med_handler));
 		goto err;
 	}
-	
+
 	prov_handler = mysql_init(NULL);
-	if(!mysql_real_connect(prov_handler, 
+	if(!mysql_real_connect(prov_handler,
 				config_prov_host, config_prov_user, config_prov_pass,
 				config_prov_db, config_prov_port, NULL, 0))
 	{
@@ -152,7 +152,7 @@ int medmysql_init()
 	return 0;
 
 err:
-	medmysql_cleanup();	
+	medmysql_cleanup();
 	return -1;
 }
 
@@ -240,14 +240,14 @@ med_callid_t *medmysql_fetch_callids(u_int64_t *count)
 			return NULL;
 		}
 	}
-			
+
 out:
 	mysql_free_result(res);
 	return callids;
 }
 
 /**********************************************************************/
-int medmysql_fetch_records(med_callid_t *callid, 
+int medmysql_fetch_records(med_callid_t *callid,
 		med_entry_t **entries, u_int64_t *count)
 {
 	MYSQL_RES *res;
@@ -266,12 +266,12 @@ int medmysql_fetch_records(med_callid_t *callid,
 		callid->value, callid->value);
 
 	assert(len < sizeof(query)); /* truncated - internal bug */
-	
+
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
 
 	if(mysql_query_wrapper(med_handler, query, len) != 0)
 	{
-		syslog(LOG_CRIT, "Error getting acc records for callid '%s': %s", 
+		syslog(LOG_CRIT, "Error getting acc records for callid '%s': %s",
 				callid->value, mysql_error(med_handler));
 		return -1;
 	}
@@ -280,7 +280,7 @@ int medmysql_fetch_records(med_callid_t *callid,
 	*count = mysql_num_rows(res);
 	if(*count == 0)
 	{
-		syslog(LOG_CRIT, "No records found for callid '%s'!", 
+		syslog(LOG_CRIT, "No records found for callid '%s'!",
 				callid->value);
 		ret = -1;
 		goto out;
@@ -407,7 +407,8 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 					"source_gpp5, source_gpp6, source_gpp7, source_gpp8, source_gpp9, " \
 					"destination_gpp0, destination_gpp1, destination_gpp2, destination_gpp3, destination_gpp4, " \
 					"destination_gpp5, destination_gpp6, destination_gpp7, destination_gpp8, destination_gpp9, " \
-					"source_lnp_prefix, destination_lnp_prefix" \
+					"source_lnp_prefix, destination_lnp_prefix, " \
+					"source_user_out, destination_user_out" \
 					") values ");
 		}
 
@@ -544,6 +545,10 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		CDRESCAPE(e->source_lnp_prefix);
 		CDRPRINT("','");
 		CDRESCAPE(e->destination_lnp_prefix);
+		CDRPRINT("','");
+		CDRESCAPE(e->source_user_out);
+		CDRPRINT("','");
+		CDRESCAPE(e->destination_user_out);
 		CDRPRINT("'),");
 
 		// no check for return codes here we should keep on nevertheless
@@ -552,10 +557,10 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		if (check_shutdown())
 			return -1;
 	}
-	
+
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
-	
-	
+
+
 	return 0;
 }
 
@@ -615,7 +620,7 @@ int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable 
 	/* syslog(LOG_DEBUG, "q='%s'", query); */
 	if(mysql_query_wrapper(prov_handler, MED_LOAD_PEER_QUERY, strlen(MED_LOAD_PEER_QUERY)) != 0)
 	{
-		syslog(LOG_CRIT, "Error loading peer hosts: %s", 
+		syslog(LOG_CRIT, "Error loading peer hosts: %s",
 				mysql_error(prov_handler));
 		return -1;
 	}
@@ -649,7 +654,7 @@ int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable 
 			g_hash_table_insert(id_table, strdup(row[3]), strdup(row[2]));
 	}
 
-out:	
+out:
 	mysql_free_result(res);
 	return ret;
 }
@@ -669,7 +674,7 @@ int medmysql_load_uuids(GHashTable *uuid_table)
 	/* syslog(LOG_DEBUG, "q='%s'", query); */
 	if(mysql_query_wrapper(prov_handler, MED_LOAD_UUID_QUERY, strlen(MED_LOAD_UUID_QUERY)) != 0)
 	{
-		syslog(LOG_CRIT, "Error loading uuids: %s", 
+		syslog(LOG_CRIT, "Error loading uuids: %s",
 				mysql_error(prov_handler));
 		return -1;
 	}
@@ -692,12 +697,12 @@ int medmysql_load_uuids(GHashTable *uuid_table)
 			ret = -1;
 			goto out;
 		}
-		
+
 		key = (gpointer)g_strdup(row[0]);
 		g_hash_table_insert(uuid_table, key, provider_id);
 	}
 
-out:	
+out:
 	mysql_free_result(res);
 	return ret;
 }
@@ -722,7 +727,7 @@ int medmysql_batch_start(struct medmysql_batches *batches) {
 
 
 static int medmysql_flush_cdr(struct medmysql_batches *batches) {
-	/* FILE *qlog; */
+	 FILE *qlog;
 
 	if (batches->cdrs.len == 0)
 		return 0;
@@ -735,9 +740,9 @@ static int medmysql_flush_cdr(struct medmysql_batches *batches) {
 	if(mysql_query_wrapper(cdr_handler, batches->cdrs.str, batches->cdrs.len) != 0)
 	{
 		batches->cdrs.len = 0;
-		syslog(LOG_CRIT, "Error inserting cdrs: %s", 
+		syslog(LOG_CRIT, "Error inserting cdrs: %s",
 				mysql_error(cdr_handler));
-		/* 
+
 		// agranig: tmp. way to log failed query, since it's too big
 		// for syslog. Make this configurable (path, enable) via
 		// cmd line switches
@@ -752,7 +757,7 @@ static int medmysql_flush_cdr(struct medmysql_batches *batches) {
 			syslog(LOG_CRIT, "Failed to write to cdr query log file '/var/log/ngcp/cdr-query.log': %s", strerror(errno));
 		}
 		fclose(qlog);
-		*/
+
 		return -1;
 	}
 
@@ -771,7 +776,7 @@ static int medmysql_flush_medlist(struct medmysql_str *str) {
 	if(mysql_query_wrapper(med_handler, str->str, str->len) != 0)
 	{
 		str->len = 0;
-		syslog(LOG_CRIT, "Error executing query: %s", 
+		syslog(LOG_CRIT, "Error executing query: %s",
 				mysql_error(med_handler));
 		critical("Failed to execute potentially crucial SQL query, check syslog for details");
 		return -1;
