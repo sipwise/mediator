@@ -31,7 +31,8 @@ typedef struct {
 	u_int8_t source_clir;
 	char source_gpp[10][255];
 	char source_lnp_prefix[256];
-	
+	char source_user_out[256];
+
 	char destination_user_id[37];
 	char destination_provider_id[256];
 	char destination_ext_subscriber_id[256];
@@ -45,11 +46,12 @@ typedef struct {
 	u_int64_t destination_lcr_id;
 	char destination_gpp[10][255];
 	char destination_lnp_prefix[256];
+	char destination_user_out[256];
 
 	char call_type[8];
 	char call_status[16];
 	char call_code[4];
-	
+
 	char peer_auth_user[256];
 	char peer_auth_realm[256];
 
