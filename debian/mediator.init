@@ -16,15 +16,10 @@ NAME=mediator
 DESC="ACC mediator"
 RUN_MEDIATOR=no
 
-case $(dirname $0) in
-        /*) FULLPATH=$(dirname $0);;
-        *)  FULLPATH=$(pwd)/$(dirname $0);;
-esac
-
-DAEMON=`which mediator`
+DAEMON=$(which mediator)
 DEFAULTS=/etc/default/mediator
 
-test -f $DAEMON || exit 0
+test -f "$DAEMON" || exit 0
 
 # Load startup options if available
 if [ -f $DEFAULTS ]; then
@@ -87,15 +82,16 @@ case "$1" in
       fi
       set -e
 
-      echo -n "Starting $DESC: $NAME"
-      start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE \
-              --exec $DAEMON -- $OPTIONS || echo -n " already running"
-       log_end_msg $?
+      log_daemon_msg "Starting $DESC: $NAME"
+      # shellcheck disable=SC2086
+      start-stop-daemon --start --quiet --oknodo --pidfile "$PIDFILE" \
+              --exec "$DAEMON" -- $OPTIONS || log_progress_msg " already running"
+      log_end_msg $?
       ;;
   stop)
-      echo -n "Stopping $DESC: $NAME"
-      start-stop-daemon --oknodo --stop --quiet --pidfile $PIDFILE \
-              --exec $DAEMON
+      log_daemon_msg "Stopping $DESC: $NAME"
+      start-stop-daemon --oknodo --stop --quiet --pidfile "$PIDFILE" \
+              --exec "$DAEMON"
       if [ "$?" -ne 0 ]; then
           return $?
       fi
@@ -103,13 +99,13 @@ case "$1" in
       log_end_msg $?
       ;;
   restart|force-reload)
-      echo -n "Restarting $DESC: $NAME"
+      log_daemon_msg "Restarting $DESC: $NAME"
       start-stop-daemon --oknodo --stop --quiet --pidfile \
-              $PIDFILE --exec $DAEMON
+             "$PIDFILE" --exec "$DAEMON"
       if [ "$?" -ne 0 ]; then
           return $?
       fi
-      rm -f $PIDFILE
+      rm -f "$PIDFILE"
       sleep 1
 
       if [ -x "/usr/sbin/ngcp-check_active" ]; then
@@ -126,8 +122,9 @@ case "$1" in
         esac
       fi
       set -e
+      # shellcheck disable=SC2086
       start-stop-daemon --start --quiet --pidfile \
-              $PIDFILE --exec $DAEMON  -- $OPTIONS
+              "$PIDFILE" --exec "$DAEMON"  -- $OPTIONS
       log_end_msg $?
       ;;
   status)
