@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a166590_9ac67948",
+        "filename": "debian/mediator.init",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2017-05-05T13:51:56Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we just hardcode here the expected pathname?",
+      "revId": "ebeecf3ba95e7b252b7760f18d3929b761b72299",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
