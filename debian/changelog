@@ -1,3 +1,29 @@
+ngcp-mediator (5.3.1.0+0~mr5.3.1.0) unstable; urgency=medium
+
+  [ Alexander Lutay ]
+  * [cf6ce37] TT#13401 Add lsb-base as a dependencies for ngcp-mediator (lintian warning fix)
+  * [19394a4] TT#15855 Fix shellcheck/bashism warnings for mediator init script
+
+  [ Andreas Granig ]
+  * [e00771b] TT#3990 Undo stop-rec processing but use pbx/xfer
+  * [8a7d055] TT#14053 Add LICENSE file
+  * [4f20a8a] TT#14053 Fix code issues reported by coverity
+
+  [ Guillem Jover ]
+  * [2a74548] TT#5420 Update packaging
+  * [6e3a0f6] TT#14010 Remove duplicate expression in conditional
+
+  [ Richard Fuchs ]
+  * [0133956] TT#14005 fix mediator shutting down prematurely
+  * [bd2ac84] TT#14211 fix sql queries getting truncated on long call-ids
+
+  [ Rene Krenn ]
+  * [682dc47] TT#8162 process source/destination_user_out
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 16 May 2017 21:37:31 +0200
+
 ngcp-mediator (5.3.0.0+0~mr5.3.0.0) unstable; urgency=medium
 
   * New release.
