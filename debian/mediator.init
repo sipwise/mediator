@@ -60,6 +60,7 @@ OPTIONS=""
 [ -z "$STATS_PASS" ] || OPTIONS="$OPTIONS -w $STATS_PASS"
 [ -z "$STATS_DB" ] || OPTIONS="$OPTIONS -X $STATS_DB"
 [ -z "$STATS_PERIOD" ] || OPTIONS="$OPTIONS -x $STATS_PERIOD"
+[ "$MAINTENANCE" = yes ] && OPTIONS="$OPTIONS -m"
 if test "$FORK" = "yes" ; then
         OPTIONS="$OPTIONS -d"
 fi

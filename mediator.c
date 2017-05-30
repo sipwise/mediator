@@ -194,6 +194,13 @@ int main(int argc, char **argv)
 	{
 		return -1;
 	}
+
+	if (config_maintenance) {
+		syslog(LOG_INFO, "Maintenance mode active, going to sleep");
+		while (!mediator_shutdown)
+			sleep(1);
+		exit(0);
+	}
 	
 	syslog(LOG_INFO, "ACC acc database host='%s', port='%d', user='%s', name='%s'",
 			config_med_host, config_med_port, config_med_user, config_med_db);

@@ -33,6 +33,8 @@ char *config_stats_db = MEDIATOR_DEFAULT_STATSDB;
 unsigned int config_stats_port = MEDIATOR_DEFAULT_STATSPORT;
 med_stats_period_t config_stats_period = MEDIATOR_DEFAULT_STATSPERIOD;
 
+int config_maintenance = 0;
+
 static u_int8_t config_pid_path_free = 0;
 
 static u_int8_t config_med_host_free = 0;
@@ -84,6 +86,7 @@ static void config_help(const char *self)
 		"  -w\tThe stats db pass (default = '%s').\n" \
 		"  -X\tThe stats db name (default = '%s').\n" \
 		"  -x\tThe stats db period (default = '%d', 1=hour, 2=day, 3=month).\n" \
+		"  -m\tMaintenance mode (do nothing, just sleep).\n" \
 		"  -?\tDisplays this message.\n",
 		self, config_pid_path, config_interval,
 		config_med_host, config_med_port, config_med_user, config_med_pass, config_med_db,
@@ -97,7 +100,7 @@ int config_parse_cmdopts(int argc, char **argv)
 {
 	int c;
 
-	while((c = getopt(argc, argv, "D:i:dl?h:u:p:b:o:H:U:P:B:O:S:T:R:A:N:Z:z:W:w:X:x:")) != -1)
+	while((c = getopt(argc, argv, "D:i:dl?h:u:p:b:o:H:U:P:B:O:S:T:R:A:N:Z:z:W:w:X:x:m")) != -1)
 	{
 		if(c == '?')
 		{
@@ -254,6 +257,10 @@ int config_parse_cmdopts(int argc, char **argv)
 		else if(c == 'x')
 		{
 			config_stats_period = (med_stats_period_t)atoi(optarg);
+		}
+		else if(c == 'm')
+		{
+			config_maintenance = 1;
 		}
 	}
 
