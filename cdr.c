@@ -358,8 +358,15 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated source lnp prefix, '%s'", cdr->call_id, tmp2);
-		return -1;
+		if (strict_leg_tokens) {
+			syslog(LOG_WARNING, "Call-Id '%s' has no separated source lnp prefix, '%s'", cdr->call_id, tmp2);
+			return -1;
+		} else {
+			cdr->source_lnp_prefix[0] = '\0';
+			cdr->source_user_out[0] = '\0';
+			syslog(LOG_WARNING, "Call-Id '%s' src leg has missing tokens (using empty lnp prefix, user out) '%s'", cdr->call_id, tmp2);
+			return 0;
+		}
 	}
 	*tmp1 = '\0';
 	g_strlcpy(cdr->source_lnp_prefix, tmp2, sizeof(cdr->source_lnp_prefix));
@@ -368,8 +375,14 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated source user out, '%s'", cdr->call_id, tmp2);
-		return -1;
+		if (strict_leg_tokens) {
+			syslog(LOG_WARNING, "Call-Id '%s' has no separated source user out, '%s'", cdr->call_id, tmp2);
+			return -1;
+		} else {
+			cdr->source_user_out[0] = '\0';
+			syslog(LOG_WARNING, "Call-Id '%s' src leg has missing tokens (using empty user out) '%s'", cdr->call_id, tmp2);
+			return 0;
+		}
 	}
 	*tmp1 = '\0';
 	g_strlcpy(cdr->source_user_out, tmp2, sizeof(cdr->source_user_out));
@@ -513,8 +526,15 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination lnp prefix, '%s'", cdr->call_id, tmp2);
-		return -1;
+		if (strict_leg_tokens) {
+			syslog(LOG_WARNING, "Call-Id '%s' has no separated destination lnp prefix, '%s'", cdr->call_id, tmp2);
+			return -1;
+		} else {
+			cdr->destination_lnp_prefix[0] = '\0';
+			cdr->destination_user_out[0] = '\0';
+			syslog(LOG_WARNING, "Call-Id '%s' dst leg has missing tokens (using empty lnp prefix, user out) '%s'", cdr->call_id, tmp2);
+			return 0;
+		}
 	}
 	*tmp1 = '\0';
 	g_strlcpy(cdr->destination_lnp_prefix, tmp2, sizeof(cdr->destination_lnp_prefix));
@@ -523,8 +543,14 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination user out, '%s'", cdr->call_id, tmp2);
-		return -1;
+		if (strict_leg_tokens) {
+			syslog(LOG_WARNING, "Call-Id '%s' has no separated destination user out, '%s'", cdr->call_id, tmp2);
+			return -1;
+		} else {
+			cdr->destination_user_out[0] = '\0';
+			syslog(LOG_WARNING, "Call-Id '%s' dst leg has missing tokens (using empty user out) '%s'", cdr->call_id, tmp2);
+			return 0;
+		}
 	}
 	*tmp1 = '\0';
 	g_strlcpy(cdr->destination_user_out, tmp2, sizeof(cdr->destination_user_out));
