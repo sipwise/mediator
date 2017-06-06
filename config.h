@@ -37,6 +37,7 @@ extern unsigned int config_interval;
 extern u_int8_t config_dumpcdr;
 
 extern int config_maintenance;
+extern int strict_leg_tokens;
 
 int config_parse_cmdopts(int argc, char **argv);
 void config_cleanup();
