@@ -1,3 +1,15 @@
+ngcp-mediator (5.5.0.0+0~mr5.5.0.0) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [ae963f4] TT#16753 implement do-nothing maintenance mode
+
+  [ Rene Krenn ]
+  * [fa5db15] TT#14298 default values for missing leg tokens
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 17 Jul 2017 22:44:09 +0200
+
 ngcp-mediator (5.4.0.0+0~mr5.4.0.0) unstable; urgency=medium
 
   [ Alexander Lutay ]
