@@ -102,7 +102,7 @@ int config_parse_cmdopts(int argc, char **argv)
 {
 	int c;
 
-	while((c = getopt(argc, argv, "D:i:dl?h:u:p:b:o:H:U:P:B:O:S:T:R:A:N:Z:z:W:w:X:x:m:s")) != -1)
+	while((c = getopt(argc, argv, "D:i:dl?h:u:p:b:o:H:U:P:B:O:S:T:R:A:N:Z:z:W:w:X:x:ms")) != -1)
 	{
 		if(c == '?')
 		{
