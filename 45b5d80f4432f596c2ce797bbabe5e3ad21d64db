@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7adec928_8ae728e4",
+        "filename": "config.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1000013
+      },
+      "writtenOn": "2017-07-20T16:07:58Z",
+      "side": 1,
+      "message": "what the issue with s alone?",
+      "range": {
+        "startLine": 105,
+        "startChar": 81,
+        "endLine": 105,
+        "endChar": 83
+      },
+      "revId": "45b5d80f4432f596c2ce797bbabe5e3ad21d64db",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
