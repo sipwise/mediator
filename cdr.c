@@ -388,6 +388,16 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	g_strlcpy(cdr->source_user_out, tmp2, sizeof(cdr->source_user_out));
 	tmp2 = ++tmp1;
 
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
+	{
+        syslog(LOG_WARNING, "Call-Id '%s' has no separated source lnp type, '%s'", cdr->call_id, tmp2);
+        return -1;
+	}
+	*tmp1 = '\0';
+	g_strlcpy(cdr->source_lnp_type, tmp2, sizeof(cdr->source_lnp_type));
+	tmp2 = ++tmp1;
+
 	return 0;
 }
 
@@ -554,6 +564,16 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	}
 	*tmp1 = '\0';
 	g_strlcpy(cdr->destination_user_out, tmp2, sizeof(cdr->destination_user_out));
+	tmp2 = ++tmp1;
+
+	tmp1 = strchr(tmp2, MED_SEP);
+	if(tmp1 == NULL)
+	{
+        syslog(LOG_WARNING, "Call-Id '%s' has no separated destination lnp type, '%s'", cdr->call_id, tmp2);
+        return -1;
+	}
+	*tmp1 = '\0';
+	g_strlcpy(cdr->destination_lnp_type, tmp2, sizeof(cdr->destination_lnp_type));
 	tmp2 = ++tmp1;
 
 	return 0;
