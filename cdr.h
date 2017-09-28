@@ -32,6 +32,7 @@ typedef struct {
 	char source_gpp[10][255];
 	char source_lnp_prefix[256];
 	char source_user_out[256];
+	char source_lnp_type[256];
 
 	char destination_user_id[37];
 	char destination_provider_id[256];
@@ -47,6 +48,7 @@ typedef struct {
 	char destination_gpp[10][255];
 	char destination_lnp_prefix[256];
 	char destination_user_out[256];
+	char destination_lnp_type[256];
 
 	char call_type[8];
 	char call_status[16];

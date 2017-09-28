@@ -408,7 +408,8 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 					"destination_gpp0, destination_gpp1, destination_gpp2, destination_gpp3, destination_gpp4, " \
 					"destination_gpp5, destination_gpp6, destination_gpp7, destination_gpp8, destination_gpp9, " \
 					"source_lnp_prefix, destination_lnp_prefix, " \
-					"source_user_out, destination_user_out" \
+					"source_user_out, destination_user_out, " \
+					"source_lnp_type, destination_lnp_type" \
 					") values ");
 		}
 
@@ -549,6 +550,10 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 		CDRESCAPE(e->source_user_out);
 		CDRPRINT("','");
 		CDRESCAPE(e->destination_user_out);
+		CDRPRINT("','");
+		CDRESCAPE(e->source_lnp_type);
+		CDRPRINT("','");
+		CDRESCAPE(e->destination_lnp_type);
 		CDRPRINT("'),");
 
 		// no check for return codes here we should keep on nevertheless
