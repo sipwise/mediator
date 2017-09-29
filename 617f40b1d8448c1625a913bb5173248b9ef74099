@@ -16,6 +16,24 @@
       "revId": "617f40b1d8448c1625a913bb5173248b9ef74099",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dab895d6_02f22b9a",
+        "filename": "medmysql.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 1000004
+      },
+      "writtenOn": "2017-09-29T13:45:21Z",
+      "side": 1,
+      "message": "Fixed, thank you for paying attention! :)",
+      "parentUuid": "dab895d6_c2d033fa",
+      "revId": "617f40b1d8448c1625a913bb5173248b9ef74099",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
     }
   ]
 }
