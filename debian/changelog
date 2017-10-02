@@ -1,3 +1,15 @@
+ngcp-mediator (5.5.1.0+0~mr5.5.1.0) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [16757c9] TT#19063 fix maintenance mode switch
+
+  [ Kirill Solomko ]
+  * [2722082] TT#22470 introduce source_lnp_type, destination_lnp_type
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 02 Oct 2017 23:40:18 +0200
+
 ngcp-mediator (5.5.0.0+0~mr5.5.0.0) unstable; urgency=medium
 
   [ Richard Fuchs ]
