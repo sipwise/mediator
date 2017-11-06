@@ -52,26 +52,33 @@
 	"billing.contracts c, billing.contacts ct, billing.resellers r where c.id = vs.contract_id and " \
 	"c.contact_id = ct.id and ct.reseller_id = r.id"
 
-static MYSQL *cdr_handler = NULL;
-static MYSQL *med_handler = NULL;
-static MYSQL *prov_handler = NULL;
-static MYSQL *stats_handler = NULL;
+typedef struct _medmysql_handler {
+	const char *name;
+	MYSQL *m;
+	int is_transaction;
+} medmysql_handler;
+
+static medmysql_handler *cdr_handler;
+static medmysql_handler *med_handler;
+static medmysql_handler *prov_handler;
+static medmysql_handler *stats_handler;
 
 static int medmysql_flush_cdr(struct medmysql_batches *);
 static int medmysql_flush_medlist(struct medmysql_str *);
 static int medmysql_flush_call_stat_info();
+static void medmysql_handler_close(medmysql_handler **h);
 
 
-static int mysql_query_wrapper(MYSQL *mysql, const char *stmt_str, unsigned long length) {
+static int medmysql_query_wrapper(medmysql_handler *mysql, const char *stmt_str, unsigned long length) {
 	int ret;
 	int i;
 	unsigned int err;
 
 	for (i = 0; i < 10; i++) {
-		ret = mysql_real_query(mysql, stmt_str, length);
+		ret = mysql_real_query(mysql->m, stmt_str, length);
 		if (!ret)
 			return ret;
-		err = mysql_errno(mysql);
+		err = mysql_errno(mysql->m);
 		if (err == CR_SERVER_GONE_ERROR || err == CR_SERVER_LOST || err == CR_CONN_HOST_ERROR || err == CR_CONNECTION_ERROR) {
 			syslog(LOG_WARNING, "Lost connection to SQL server during query, retrying...");
 			sleep(10);
@@ -82,72 +89,78 @@ static int mysql_query_wrapper(MYSQL *mysql, const char *stmt_str, unsigned long
 	return ret;
 }
 
+static medmysql_handler *medmysql_handler_init(const char *name, const char *host, const char *user,
+		const char *pass, const char *db, unsigned int port)
+{
+	medmysql_handler *ret;
+	my_bool recon = 1;
+
+	ret = malloc(sizeof(*ret));
+	if (!ret) {
+		syslog(LOG_CRIT, "Out of memory (malloc in medmysql_handler_init)");
+		return NULL;
+	}
+	memset(ret, 0, sizeof(*ret));
+	ret->name = name;
+	ret->m = mysql_init(NULL);
+	if (!ret->m) {
+		syslog(LOG_CRIT, "Out of memory (mysql_init)");
+		goto err;
+	}
+
+	if(!mysql_real_connect(ret->m,
+				host, user, pass,
+				db, port, NULL, 0))
+	{
+		syslog(LOG_CRIT, "Error connecting to %s db: %s", name, mysql_error(ret->m));
+		goto err;
+	}
+	if(mysql_options(ret->m, MYSQL_OPT_RECONNECT, &recon) != 0)
+	{
+		syslog(LOG_CRIT, "Error setting reconnect-option for %s db: %s", name, mysql_error(ret->m));
+		goto err;
+	}
+	if(mysql_autocommit(ret->m, 1) != 0)
+	{
+		syslog(LOG_CRIT, "Error setting autocommit=1 for %s db: %s", name,
+				mysql_error(ret->m));
+		goto err;
+	}
+
+	return ret;
+
+err:
+	medmysql_handler_close(&ret);
+	return NULL;
+}
+
 /**********************************************************************/
 int medmysql_init()
 {
-	my_bool recon = 1;
-
-	cdr_handler = mysql_init(NULL);
-	if(!mysql_real_connect(cdr_handler,
+	cdr_handler = medmysql_handler_init("CDR",
 				config_cdr_host, config_cdr_user, config_cdr_pass,
-				config_cdr_db, config_cdr_port, NULL, 0))
-	{
-		syslog(LOG_CRIT, "Error connecting to CDR db: %s", mysql_error(cdr_handler));
+				config_cdr_db, config_cdr_port);
+	if (!cdr_handler)
 		goto err;
-	}
-	if(mysql_options(cdr_handler, MYSQL_OPT_RECONNECT, &recon) != 0)
-	{
-		syslog(LOG_CRIT, "Error setting reconnect-option for CDR db: %s", mysql_error(cdr_handler));
-		goto err;
-	}
 
 
-	med_handler = mysql_init(NULL);
-	if(!mysql_real_connect(med_handler,
+	med_handler = medmysql_handler_init("ACC",
 				config_med_host, config_med_user, config_med_pass,
-				config_med_db, config_med_port, NULL, 0))
-	{
-		syslog(LOG_CRIT, "Error connecting to ACC db: %s", mysql_error(med_handler));
+				config_med_db, config_med_port);
+	if (!med_handler)
 		goto err;
-	}
-	if(mysql_options(med_handler, MYSQL_OPT_RECONNECT, &recon) != 0)
-	{
-		syslog(LOG_CRIT, "Error setting reconnect-option for ACC db: %s", mysql_error(med_handler));
-		goto err;
-	}
 
-	prov_handler = mysql_init(NULL);
-	if(!mysql_real_connect(prov_handler,
+	prov_handler = medmysql_handler_init("provisioning",
 				config_prov_host, config_prov_user, config_prov_pass,
-				config_prov_db, config_prov_port, NULL, 0))
-	{
-		syslog(LOG_CRIT, "Error connecting to provisioning db: %s", mysql_error(prov_handler));
+				config_prov_db, config_prov_port);
+	if (!prov_handler)
 		goto err;
-	}
-	if(mysql_options(prov_handler, MYSQL_OPT_RECONNECT, &recon) != 0)
-	{
-		syslog(LOG_CRIT, "Error setting reconnect-option for provisioning db: %s", mysql_error(prov_handler));
-		goto err;
-	}
 
-	stats_handler = mysql_init(NULL);
-	if(!mysql_real_connect(stats_handler,
+	stats_handler = medmysql_handler_init("STATS",
 				config_stats_host, config_stats_user, config_stats_pass,
-				config_stats_db, config_stats_port, NULL, 0))
-	{
-		syslog(LOG_CRIT, "Error connecting to STATS db: %s", mysql_error(stats_handler));
+				config_stats_db, config_stats_port);
+	if (!stats_handler)
 		goto err;
-	}
-	if(mysql_options(stats_handler, MYSQL_OPT_RECONNECT, &recon) != 0)
-	{
-		syslog(LOG_CRIT, "Error setting reconnect-option for STATS db: %s", mysql_error(stats_handler));
-		goto err;
-	}
-	if(mysql_autocommit(stats_handler, 1) != 0)
-	{
-		syslog(LOG_CRIT, "Error setting autocommit=1 for STATS db: %s", mysql_error(stats_handler));
-		goto err;
-	}
 
 	return 0;
 
@@ -157,28 +170,23 @@ err:
 }
 
 /**********************************************************************/
+static void medmysql_handler_close(medmysql_handler **h) {
+	if (!*h)
+		return;
+
+	if ((*h)->m)
+		mysql_close((*h)->m);
+
+	free(h);
+	*h = NULL;
+}
+
 void medmysql_cleanup()
 {
-	if(cdr_handler != NULL)
-	{
-		mysql_close(cdr_handler);
-		cdr_handler = NULL;
-	}
-	if(med_handler != NULL)
-	{
-		mysql_close(med_handler);
-		med_handler = NULL;
-	}
-	if(prov_handler != NULL)
-	{
-		mysql_close(prov_handler);
-		prov_handler = NULL;
-	}
-	if(stats_handler != NULL)
-	{
-		mysql_close(stats_handler);
-		stats_handler = NULL;
-	}
+	medmysql_handler_close(&cdr_handler);
+	medmysql_handler_close(&med_handler);
+	medmysql_handler_close(&prov_handler);
+	medmysql_handler_close(&stats_handler);
 }
 
 /**********************************************************************/
@@ -197,14 +205,14 @@ med_callid_t *medmysql_fetch_callids(u_int64_t *count)
 
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
 
-	if(mysql_query_wrapper(med_handler, MED_CALLID_QUERY, strlen(MED_CALLID_QUERY)) != 0)
+	if(medmysql_query_wrapper(med_handler, MED_CALLID_QUERY, strlen(MED_CALLID_QUERY)) != 0)
 	{
 		syslog(LOG_CRIT, "Error getting acc callids: %s",
-				mysql_error(med_handler));
+				mysql_error(med_handler->m));
 		return NULL;
 	}
 
-	res = mysql_store_result(med_handler);
+	res = mysql_store_result(med_handler->m);
 	*count = mysql_num_rows(res);
 	if(*count == 0)
 	{
@@ -269,14 +277,14 @@ int medmysql_fetch_records(med_callid_t *callid,
 
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
 
-	if(mysql_query_wrapper(med_handler, query, len) != 0)
+	if(medmysql_query_wrapper(med_handler, query, len) != 0)
 	{
 		syslog(LOG_CRIT, "Error getting acc records for callid '%s': %s",
-				callid->value, mysql_error(med_handler));
+				callid->value, mysql_error(med_handler->m));
 		return -1;
 	}
 
-	res = mysql_store_result(med_handler);
+	res = mysql_store_result(med_handler->m);
 	*count = mysql_num_rows(res);
 	if(*count == 0)
 	{
@@ -375,7 +383,7 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *batches
 }
 
 #define CDRPRINT(x)	batches->cdrs.len += sprintf(batches->cdrs.str + batches->cdrs.len, x)
-#define CDRESCAPE(x)	batches->cdrs.len += mysql_real_escape_string(med_handler, batches->cdrs.str + batches->cdrs.len, x, strlen(x))
+#define CDRESCAPE(x)	batches->cdrs.len += mysql_real_escape_string(med_handler->m, batches->cdrs.str + batches->cdrs.len, x, strlen(x))
 
 /**********************************************************************/
 int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_batches *batches)
@@ -643,14 +651,14 @@ int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable 
 	/* snprintf(query, sizeof(query), MED_LOAD_PEER_QUERY); */
 
 	/* syslog(LOG_DEBUG, "q='%s'", query); */
-	if(mysql_query_wrapper(prov_handler, MED_LOAD_PEER_QUERY, strlen(MED_LOAD_PEER_QUERY)) != 0)
+	if(medmysql_query_wrapper(prov_handler, MED_LOAD_PEER_QUERY, strlen(MED_LOAD_PEER_QUERY)) != 0)
 	{
 		syslog(LOG_CRIT, "Error loading peer hosts: %s",
-				mysql_error(prov_handler));
+				mysql_error(prov_handler->m));
 		return -1;
 	}
 
-	res = mysql_store_result(prov_handler);
+	res = mysql_store_result(prov_handler->m);
 
 	while((row = mysql_fetch_row(res)) != NULL)
 	{
@@ -697,14 +705,14 @@ int medmysql_load_uuids(GHashTable *uuid_table)
 	/* snprintf(query, sizeof(query), MED_LOAD_UUID_QUERY); */
 
 	/* syslog(LOG_DEBUG, "q='%s'", query); */
-	if(mysql_query_wrapper(prov_handler, MED_LOAD_UUID_QUERY, strlen(MED_LOAD_UUID_QUERY)) != 0)
+	if(medmysql_query_wrapper(prov_handler, MED_LOAD_UUID_QUERY, strlen(MED_LOAD_UUID_QUERY)) != 0)
 	{
 		syslog(LOG_CRIT, "Error loading uuids: %s",
-				mysql_error(prov_handler));
+				mysql_error(prov_handler->m));
 		return -1;
 	}
 
-	res = mysql_store_result(prov_handler);
+	res = mysql_store_result(prov_handler->m);
 
 	while((row = mysql_fetch_row(res)) != NULL)
 	{
@@ -733,10 +741,29 @@ out:
 }
 
 
-int medmysql_batch_start(struct medmysql_batches *batches) {
-	if (mysql_query_wrapper(cdr_handler, "start transaction", 17))
+static int medmysql_handler_transaction(medmysql_handler *h) {
+	if (h->is_transaction)
+		return 0;
+	if (medmysql_query_wrapper(h, "start transaction", 17))
 		return -1;
-	if (mysql_query_wrapper(med_handler, "start transaction", 17))
+	h->is_transaction = 1;
+	return 0;
+}
+
+static int medmysql_handler_commit(medmysql_handler *h) {
+	if (!h->is_transaction)
+		return 0;
+	if (medmysql_query_wrapper(h, "commit", 6))
+		return -1;
+	h->is_transaction = 0;
+	return 0;
+}
+
+
+int medmysql_batch_start(struct medmysql_batches *batches) {
+	if (medmysql_handler_transaction(cdr_handler))
+		return -1;
+	if (medmysql_handler_transaction(med_handler))
 		return -1;
 
 	if (!med_call_stat_info_table)
@@ -762,11 +789,11 @@ static int medmysql_flush_cdr(struct medmysql_batches *batches) {
 	batches->cdrs.len--;
 	batches->cdrs.str[batches->cdrs.len] = '\0';
 
-	if(mysql_query_wrapper(cdr_handler, batches->cdrs.str, batches->cdrs.len) != 0)
+	if(medmysql_query_wrapper(cdr_handler, batches->cdrs.str, batches->cdrs.len) != 0)
 	{
 		batches->cdrs.len = 0;
 		syslog(LOG_CRIT, "Error inserting cdrs: %s",
-				mysql_error(cdr_handler));
+				mysql_error(cdr_handler->m));
 
 		// agranig: tmp. way to log failed query, since it's too big
 		// for syslog. Make this configurable (path, enable) via
@@ -798,11 +825,11 @@ static int medmysql_flush_medlist(struct medmysql_str *str) {
 
 	str->str[str->len - 1] = ')';
 
-	if(mysql_query_wrapper(med_handler, str->str, str->len) != 0)
+	if(medmysql_query_wrapper(med_handler, str->str, str->len) != 0)
 	{
 		str->len = 0;
 		syslog(LOG_CRIT, "Error executing query: %s",
-				mysql_error(med_handler));
+				mysql_error(med_handler->m));
 		critical("Failed to execute potentially crucial SQL query, check syslog for details");
 		return -1;
 	}
@@ -843,10 +870,10 @@ static int medmysql_flush_call_stat_info() {
 		//syslog(LOG_DEBUG, "updating call stats info: %s -- %s", period_t->call_code, period_t->period);
 		//syslog(LOG_DEBUG, "sql: %s", query.str);
 
-		if(mysql_query_wrapper(stats_handler, query.str, query.len) != 0)
+		if(medmysql_query_wrapper(stats_handler, query.str, query.len) != 0)
 		{
 			syslog(LOG_CRIT, "Error executing call info stats query: %s",
-					mysql_error(stats_handler));
+					mysql_error(stats_handler->m));
 			syslog(LOG_CRIT, "stats query: %s", query.str);
 			critical("Failed to execute potentially crucial SQL query, check syslog for details");
 			return -1;
@@ -871,9 +898,9 @@ int medmysql_batch_end(struct medmysql_batches *batches) {
 	if (medmysql_flush_call_stat_info() || check_shutdown())
 		return -1;
 
-	if (mysql_query_wrapper(cdr_handler, "commit", 6))
+	if (medmysql_handler_commit(cdr_handler))
 		return -1;
-	if (mysql_query_wrapper(med_handler, "commit", 6))
+	if (medmysql_handler_commit(med_handler))
 		return -1;
 
 	return 0;
