@@ -6,57 +6,35 @@
 unsigned int config_interval = MEDIATOR_DEFAULT_INTERVAL;
 u_int8_t config_dumpcdr = MEDIATOR_DEFAULT_DUMPCDR;
 u_int8_t config_daemonize = MEDIATOR_DEFAULT_DAEMONIZE;
-char *config_pid_path = MEDIATOR_DEFAULT_PIDPATH;
+char *config_pid_path;
 
-char *config_med_host = MEDIATOR_DEFAULT_ACCHOST;
-char *config_med_user = MEDIATOR_DEFAULT_ACCUSER;
-char *config_med_pass = MEDIATOR_DEFAULT_ACCPASS;
-char *config_med_db = MEDIATOR_DEFAULT_ACCDB;
+char *config_med_host;
+char *config_med_user;
+char *config_med_pass;
+char *config_med_db;
 unsigned int config_med_port = MEDIATOR_DEFAULT_ACCPORT;
 
-char *config_cdr_host = MEDIATOR_DEFAULT_CDRHOST;
-char *config_cdr_user = MEDIATOR_DEFAULT_CDRUSER;
-char *config_cdr_pass = MEDIATOR_DEFAULT_CDRPASS;
-char *config_cdr_db = MEDIATOR_DEFAULT_CDRDB;
+char *config_cdr_host;
+char *config_cdr_user;
+char *config_cdr_pass;
+char *config_cdr_db;
 unsigned int config_cdr_port = MEDIATOR_DEFAULT_CDRPORT;
 
-char *config_prov_host = MEDIATOR_DEFAULT_PROVHOST;
-char *config_prov_user = MEDIATOR_DEFAULT_PROVUSER;
-char *config_prov_pass = MEDIATOR_DEFAULT_PROVPASS;
-char *config_prov_db = MEDIATOR_DEFAULT_PROVDB;
+char *config_prov_host;
+char *config_prov_user;
+char *config_prov_pass;
+char *config_prov_db;
 unsigned int config_prov_port = MEDIATOR_DEFAULT_PROVPORT;
 
-char *config_stats_host = MEDIATOR_DEFAULT_STATSHOST;
-char *config_stats_user = MEDIATOR_DEFAULT_STATSUSER;
-char *config_stats_pass = MEDIATOR_DEFAULT_STATSPASS;
-char *config_stats_db = MEDIATOR_DEFAULT_STATSDB;
+char *config_stats_host;
+char *config_stats_user;
+char *config_stats_pass;
+char *config_stats_db;
 unsigned int config_stats_port = MEDIATOR_DEFAULT_STATSPORT;
 med_stats_period_t config_stats_period = MEDIATOR_DEFAULT_STATSPERIOD;
 
 int config_maintenance = 0;
 int strict_leg_tokens = 0;
-
-static u_int8_t config_pid_path_free = 0;
-
-static u_int8_t config_med_host_free = 0;
-static u_int8_t config_med_user_free = 0;
-static u_int8_t config_med_pass_free = 0;
-static u_int8_t config_med_db_free = 0;
-
-static u_int8_t config_cdr_host_free = 0;
-static u_int8_t config_cdr_user_free = 0;
-static u_int8_t config_cdr_pass_free = 0;
-static u_int8_t config_cdr_db_free = 0;
-
-static u_int8_t config_prov_host_free = 0;
-static u_int8_t config_prov_user_free = 0;
-static u_int8_t config_prov_pass_free = 0;
-static u_int8_t config_prov_db_free = 0;
-
-static u_int8_t config_stats_host_free = 0;
-static u_int8_t config_stats_user_free = 0;
-static u_int8_t config_stats_pass_free = 0;
-static u_int8_t config_stats_db_free = 0;
 
 static void config_help(const char *self, int rc)
 {
@@ -107,6 +85,18 @@ static void config_help(const char *self, int rc)
 	exit(rc);
 }
 
+static void config_set_string_option(char **str, char *opt)
+{
+	free(*str);
+	*str = strdup(opt);
+}
+
+static void config_set_string_default(char **str, char *def)
+{
+	if (*str == NULL)
+		*str = strdup(def);
+}
+
 int config_parse_cmdopts(int argc, char **argv)
 {
 	int c;
@@ -116,237 +106,100 @@ int config_parse_cmdopts(int argc, char **argv)
 		if(c == '?' || c == ':')
 			config_help(argv[0], 0);
 		else if(c == 'd')
-		{
 			config_daemonize = 1;
-		}
 		else if(c == 'l')
-		{
 			config_dumpcdr = 1;
-		}
 		else if(c == 'D')
-		{
-			if(config_pid_path_free)
-				free(config_pid_path);
-			config_pid_path = (char*)strdup(optarg);
-			config_pid_path_free = 1;
-		}
+			config_set_string_option(&config_pid_path, optarg);
 		else if(c == 'i')
-		{
 			config_interval = atoi(optarg);
-		}
 		else if(c == 'h')
-		{
-			if(config_med_host_free)
-				free(config_med_host);
-			config_med_host = (char*)strdup(optarg);
-			config_med_host_free = 1;
-		}
+			config_set_string_option(&config_med_host, optarg);
 		else if(c == 'u')
-		{
-			if(config_med_user_free)
-				free(config_med_user);
-			config_med_user = (char*)strdup(optarg);
-			config_med_user_free = 1;
-		}
+			config_set_string_option(&config_med_user, optarg);
 		else if(c == 'p')
-		{
-			if(config_med_pass_free)
-				free(config_med_pass);
-			config_med_pass = (char*)strdup(optarg);
-			config_med_pass_free = 1;
-		}
+			config_set_string_option(&config_med_pass, optarg);
 		else if(c == 'b')
-		{
-			if(config_med_db_free)
-				free(config_med_db);
-			config_med_db = (char*)strdup(optarg);
-			config_med_db_free = 1;
-		}
+			config_set_string_option(&config_med_db, optarg);
 		else if(c == 'o')
-		{
 			config_med_port = atoi(optarg);
-		}
 		else if(c == 'H')
-		{
-			if(config_cdr_host_free)
-				free(config_cdr_host);
-			config_cdr_host = (char*)strdup(optarg);
-			config_cdr_host_free = 1;
-		}
+			config_set_string_option(&config_cdr_host, optarg);
 		else if(c == 'U')
-		{
-			if(config_cdr_user_free)
-				free(config_cdr_user);
-			config_cdr_user = (char*)strdup(optarg);
-			config_cdr_user_free = 1;
-		}
+			config_set_string_option(&config_cdr_user, optarg);
 		else if(c == 'P')
-		{
-			if(config_cdr_pass_free)
-				free(config_cdr_pass);
-			config_cdr_pass = (char*)strdup(optarg);
-			config_cdr_pass_free = 1;
-		}
+			config_set_string_option(&config_cdr_pass, optarg);
 		else if(c == 'B')
-		{
-			if(config_cdr_db_free)
-				free(config_cdr_db);
-			config_cdr_db = (char*)strdup(optarg);
-			config_cdr_db_free = 1;
-		}
+			config_set_string_option(&config_cdr_db, optarg);
 		else if(c == 'O')
-		{
 			config_cdr_port = atoi(optarg);
-		}
 		else if(c == 'S')
-		{
-			if(config_prov_host_free)
-				free(config_prov_host);
-			config_prov_host = (char*)strdup(optarg);
-			config_prov_host_free = 1;
-		}
+			config_set_string_option(&config_prov_host, optarg);
 		else if(c == 'R')
-		{
-			if(config_prov_user_free)
-				free(config_prov_user);
-			config_prov_user = (char*)strdup(optarg);
-			config_prov_user_free = 1;
-		}
+			config_set_string_option(&config_prov_user, optarg);
 		else if(c == 'A')
-		{
-			if(config_prov_pass_free)
-				free(config_prov_pass);
-			config_prov_pass = (char*)strdup(optarg);
-			config_prov_pass_free = 1;
-		}
+			config_set_string_option(&config_prov_pass, optarg);
 		else if(c == 'N')
-		{
-			if(config_prov_db_free)
-				free(config_prov_db);
-			config_prov_db = (char*)strdup(optarg);
-			config_prov_db_free = 1;
-		}
+			config_set_string_option(&config_prov_db, optarg);
 		else if(c == 'T')
-		{
 			config_prov_port = atoi(optarg);
-		}
 		else if(c == 'Z')
-		{
-			if(config_stats_host_free)
-				free(config_stats_host);
-			config_stats_host = (char*)strdup(optarg);
-			config_stats_host_free = 1;
-		}
+			config_set_string_option(&config_stats_host, optarg);
 		else if(c == 'z')
-		{
 			config_stats_port = atoi(optarg);
-		}
 		else if(c == 'W')
-		{
-			if(config_stats_user_free)
-				free(config_stats_user);
-			config_stats_user = (char*)strdup(optarg);
-			config_stats_user_free = 1;
-		}
+			config_set_string_option(&config_stats_user, optarg);
 		else if(c == 'w')
-		{
-			if(config_stats_pass_free)
-				free(config_stats_pass);
-			config_stats_pass = (char*)strdup(optarg);
-			config_stats_pass_free = 1;
-		}
+			config_set_string_option(&config_stats_pass, optarg);
 		else if(c == 'X')
-		{
-			if(config_stats_db_free)
-				free(config_stats_db);
-			config_stats_db = (char*)strdup(optarg);
-			config_stats_db_free = 1;
-		}
+			config_set_string_option(&config_stats_db, optarg);
 		else if(c == 'x')
-		{
 			config_stats_period = (med_stats_period_t)atoi(optarg);
-		}
 		else if(c == 'm')
-		{
 			config_maintenance = 1;
-		}
 		else if(c == 's')
-		{
 			strict_leg_tokens = 1;
-		}
 	}
+
+	/* Set defaults for string values. */
+	config_set_string_default(&config_pid_path, MEDIATOR_DEFAULT_PIDPATH);
+	config_set_string_default(&config_med_host, MEDIATOR_DEFAULT_ACCHOST);
+	config_set_string_default(&config_med_user, MEDIATOR_DEFAULT_ACCUSER);
+	config_set_string_default(&config_med_pass, MEDIATOR_DEFAULT_ACCPASS);
+	config_set_string_default(&config_med_db, MEDIATOR_DEFAULT_ACCDB);
+	config_set_string_default(&config_cdr_host, MEDIATOR_DEFAULT_CDRHOST);
+	config_set_string_default(&config_cdr_user, MEDIATOR_DEFAULT_CDRUSER);
+	config_set_string_default(&config_cdr_pass, MEDIATOR_DEFAULT_CDRPASS);
+	config_set_string_default(&config_cdr_db, MEDIATOR_DEFAULT_CDRDB);
+	config_set_string_default(&config_prov_host, MEDIATOR_DEFAULT_PROVHOST);
+	config_set_string_default(&config_prov_user, MEDIATOR_DEFAULT_PROVUSER);
+	config_set_string_default(&config_prov_pass, MEDIATOR_DEFAULT_PROVPASS);
+	config_set_string_default(&config_prov_db, MEDIATOR_DEFAULT_PROVDB);
+	config_set_string_default(&config_stats_host, MEDIATOR_DEFAULT_STATSHOST);
+	config_set_string_default(&config_stats_user, MEDIATOR_DEFAULT_STATSUSER);
+	config_set_string_default(&config_stats_pass, MEDIATOR_DEFAULT_STATSPASS);
+	config_set_string_default(&config_stats_db, MEDIATOR_DEFAULT_STATSDB);
 
 	return 0;
 }
 
 void config_cleanup()
 {
-	if(config_pid_path_free)
-	{
-		free(config_pid_path);
-	}
-	if(config_cdr_host_free)
-	{
-		free(config_cdr_host);
-	}
-	if(config_cdr_user_free)
-	{
-		free(config_cdr_user);
-	}
-	if(config_cdr_pass_free)
-	{
-		free(config_cdr_pass);
-	}
-	if(config_cdr_db_free)
-	{
-		free(config_cdr_db);
-	}
-	if(config_med_host_free)
-	{
-		free(config_med_host);
-	}
-	if(config_med_user_free)
-	{
-		free(config_med_user);
-	}
-	if(config_med_pass_free)
-	{
-		free(config_med_pass);
-	}
-	if(config_med_db_free)
-	{
-		free(config_med_db);
-	}
-	if(config_prov_host_free)
-	{
-		free(config_prov_host);
-	}
-	if(config_prov_user_free)
-	{
-		free(config_prov_user);
-	}
-	if(config_prov_pass_free)
-	{
-		free(config_prov_pass);
-	}
-	if(config_prov_db_free)
-	{
-		free(config_prov_db);
-	}
-	if(config_stats_host_free)
-	{
-		free(config_stats_host);
-	}
-	if(config_stats_user_free)
-	{
-		free(config_stats_user);
-	}
-	if(config_stats_pass_free)
-	{
-		free(config_stats_pass);
-	}
-	if(config_stats_db_free)
-	{
-		free(config_stats_db);
-	}
+	free(config_pid_path);
+	free(config_cdr_host);
+	free(config_cdr_user);
+	free(config_cdr_pass);
+	free(config_cdr_db);
+	free(config_med_host);
+	free(config_med_user);
+	free(config_med_pass);
+	free(config_med_db);
+	free(config_prov_host);
+	free(config_prov_user);
+	free(config_prov_pass);
+	free(config_prov_db);
+	free(config_stats_host);
+	free(config_stats_user);
+	free(config_stats_pass);
+	free(config_stats_db);
 }
