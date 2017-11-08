@@ -90,12 +90,19 @@ static void config_help(const char *self)
 		"  -m\tMaintenance mode (do nothing, just sleep).\n" \
 		"  -s\tStrict acc fields (move to trash otherwise).\n" \
 		"  -?\tDisplays this message.\n",
-		self, config_pid_path, config_interval,
-		config_med_host, config_med_port, config_med_user, config_med_pass, config_med_db,
-		config_cdr_host, config_cdr_port, config_cdr_user, config_cdr_pass, config_cdr_db,
-		config_prov_host, config_prov_port, config_prov_user, config_prov_pass, config_prov_db,
-		config_stats_host, config_stats_port, config_stats_user, config_stats_pass, config_stats_db,
-		config_stats_period);
+		self, MEDIATOR_DEFAULT_PIDPATH, MEDIATOR_DEFAULT_INTERVAL,
+		MEDIATOR_DEFAULT_ACCHOST, MEDIATOR_DEFAULT_ACCPORT,
+		MEDIATOR_DEFAULT_ACCUSER, MEDIATOR_DEFAULT_ACCPASS,
+		MEDIATOR_DEFAULT_ACCDB,
+		MEDIATOR_DEFAULT_CDRHOST, MEDIATOR_DEFAULT_CDRPORT,
+		MEDIATOR_DEFAULT_CDRUSER, MEDIATOR_DEFAULT_CDRPASS,
+		MEDIATOR_DEFAULT_CDRDB,
+		MEDIATOR_DEFAULT_PROVHOST, MEDIATOR_DEFAULT_PROVPORT,
+		MEDIATOR_DEFAULT_PROVUSER, MEDIATOR_DEFAULT_PROVPASS,
+		MEDIATOR_DEFAULT_PROVDB,
+		MEDIATOR_DEFAULT_STATSHOST, MEDIATOR_DEFAULT_STATSPORT,
+		MEDIATOR_DEFAULT_STATSUSER, MEDIATOR_DEFAULT_STATSPASS,
+		MEDIATOR_DEFAULT_STATSDB, MEDIATOR_DEFAULT_STATSPERIOD);
 }
 
 int config_parse_cmdopts(int argc, char **argv)
