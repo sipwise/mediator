@@ -45,6 +45,30 @@
       "revId": "eb2a749527e68dc9acab968955f63a4a9593a6d4",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dab895d6_f2f32508",
+        "filename": "medmysql.c",
+        "patchSetId": 4
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2017-11-08T17:41:26Z",
+      "side": 1,
+      "message": "meh, I hate calloc :P",
+      "parentUuid": "dab895d6_97bc9b6e",
+      "range": {
+        "startLine": 98,
+        "startChar": 7,
+        "endLine": 98,
+        "endChar": 13
+      },
+      "revId": "eb2a749527e68dc9acab968955f63a4a9593a6d4",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
     }
   ]
 }
