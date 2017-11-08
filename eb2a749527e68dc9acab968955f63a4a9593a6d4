@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dab895d6_7790e7ec",
+        "filename": "medmysql.c",
+        "patchSetId": 4
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2017-11-08T15:37:59Z",
+      "side": 1,
+      "message": "Hmm perhaps namespace is in a similar way as the other medmysql_* to avoid any potential future collision?",
+      "range": {
+        "startLine": 59,
+        "startChar": 2,
+        "endLine": 59,
+        "endChar": 15
+      },
+      "revId": "eb2a749527e68dc9acab968955f63a4a9593a6d4",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dab895d6_97bc9b6e",
+        "filename": "medmysql.c",
+        "patchSetId": 4
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2017-11-08T15:37:59Z",
+      "side": 1,
+      "message": "calloc?",
+      "range": {
+        "startLine": 98,
+        "startChar": 7,
+        "endLine": 98,
+        "endChar": 13
+      },
+      "revId": "eb2a749527e68dc9acab968955f63a4a9593a6d4",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
