@@ -8,6 +8,8 @@
 #include "medmysql.h"
 #include "config.h"
 
+#define _TEST_SIMULATE_SQL_ERRORS 0
+
 #define PBXSUFFIX "_pbx-1"
 #define XFERSUFFIX "_xfer-1"
 
@@ -88,16 +90,29 @@ static void __g_queue_clear_full(GQueue *q, GDestroyNotify free_func) {
 }
 
 
+static unsigned int medmysql_real_query_errno(MYSQL *m, const char *s, unsigned long len) {
+#if _TEST_SIMULATE_SQL_ERRORS
+	if (rand() % 10 == 0) {
+		syslog(LOG_INFO, "Simulating SQL error - statement '%.*s'",
+				(int) len, s);
+		return CR_SERVER_LOST;
+	}
+#endif
+	int ret = mysql_real_query(m, s, len);
+	if (!ret)
+		return 0;
+	return mysql_errno(m);
+}
+
+
 static int medmysql_query_wrapper(medmysql_handler *mysql, const char *stmt_str, unsigned long length) {
-	int ret;
 	int i;
 	unsigned int err;
 
 	for (i = 0; i < 10; i++) {
-		ret = mysql_real_query(mysql->m, stmt_str, length);
-		if (!ret)
+		err = medmysql_real_query_errno(mysql->m, stmt_str, length);
+		if (!err)
 			break;
-		err = mysql_errno(mysql->m);
 		if (err == CR_SERVER_GONE_ERROR || err == CR_SERVER_LOST || err == CR_CONN_HOST_ERROR
 				|| err == CR_CONNECTION_ERROR)
 		{
@@ -107,12 +122,11 @@ static int medmysql_query_wrapper(medmysql_handler *mysql, const char *stmt_str,
 		}
 		break;
 	}
-	return ret;
+	return !!err;
 }
 
 
 static int medmysql_query_wrapper_tx(medmysql_handler *mysql, const char *stmt_str, unsigned long length) {
-	int ret;
 	int i;
 	unsigned int err;
 
@@ -122,10 +136,9 @@ static int medmysql_query_wrapper_tx(medmysql_handler *mysql, const char *stmt_s
 	}
 
 	for (i = 0; i < 10; i++) {
-		ret = mysql_real_query(mysql->m, stmt_str, length);
-		if (!ret)
+		err = medmysql_real_query_errno(mysql->m, stmt_str, length);
+		if (!err)
 			break;
-		err = mysql_errno(mysql->m);
 		if (err == CR_SERVER_GONE_ERROR || err == CR_SERVER_LOST || err == CR_CONN_HOST_ERROR
 				|| err == CR_CONNECTION_ERROR || err == ER_LOCK_WAIT_TIMEOUT
 				|| err == ER_LOCK_DEADLOCK)
@@ -134,8 +147,8 @@ static int medmysql_query_wrapper_tx(medmysql_handler *mysql, const char *stmt_s
 			// and then try again
 			syslog(LOG_WARNING, "Got error %u from SQL server during transaction, retrying...",
 					err);
-			ret = mysql_real_query(mysql->m, "rollback", 8);
-			if (ret) {
+			err = medmysql_real_query_errno(mysql->m, "rollback", 8);
+			if (err) {
 				syslog(LOG_CRIT, "Got error %u from SQL during rollback",
 						mysql_errno(mysql->m));
 				return -1;
@@ -164,7 +177,7 @@ static int medmysql_query_wrapper_tx(medmysql_handler *mysql, const char *stmt_s
 		}
 		break;
 	}
-	if (!ret) {
+	if (!err) {
 		// append statement to queue for possible replaying
 		statement_str *stm = malloc(sizeof(*stm));
 		if (!stm) {
@@ -181,7 +194,7 @@ static int medmysql_query_wrapper_tx(medmysql_handler *mysql, const char *stmt_s
 		stm->len = length;
 		g_queue_push_tail(&mysql->transaction_statements, stm);
 	}
-	return ret;
+	return !!err;
 }
 
 static medmysql_handler *medmysql_handler_init(const char *name, const char *host, const char *user,
