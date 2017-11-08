@@ -58,7 +58,7 @@ static u_int8_t config_stats_user_free = 0;
 static u_int8_t config_stats_pass_free = 0;
 static u_int8_t config_stats_db_free = 0;
 
-static void config_help(const char *self)
+static void config_help(const char *self, int rc)
 {
 	printf("mediator 1.2.0 - Creates call detail records from OpenSER accounting.\n" \
 		"Usage: %s [-?] [-d] [-D pidpath]\n" \
@@ -103,6 +103,8 @@ static void config_help(const char *self)
 		MEDIATOR_DEFAULT_STATSHOST, MEDIATOR_DEFAULT_STATSPORT,
 		MEDIATOR_DEFAULT_STATSUSER, MEDIATOR_DEFAULT_STATSPASS,
 		MEDIATOR_DEFAULT_STATSDB, MEDIATOR_DEFAULT_STATSPERIOD);
+
+	exit(rc);
 }
 
 int config_parse_cmdopts(int argc, char **argv)
@@ -112,10 +114,7 @@ int config_parse_cmdopts(int argc, char **argv)
 	while((c = getopt(argc, argv, "D:i:dl?h:u:p:b:o:H:U:P:B:O:S:T:R:A:N:Z:z:W:w:X:x:ms")) != -1)
 	{
 		if(c == '?' || c == ':')
-		{
-			config_help(argv[0]);
-			exit(0);
-		}
+			config_help(argv[0], 0);
 		else if(c == 'd')
 		{
 			config_daemonize = 1;
