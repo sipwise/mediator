@@ -14,8 +14,6 @@
 #define CDR_STATUS_TIMEOUT  "timeout"
 #define CDR_STATUS_UNKNOWN  "other"
 
-struct medmysql_batches;
-
 typedef struct {
 	char call_id[128];
 
@@ -72,7 +70,7 @@ typedef struct {
 
 } cdr_entry_t;
 
-int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *cdr_count, struct medmysql_batches *);
+int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *cdr_count);
 void cdr_fix_accids(med_entry_t *records, u_int64_t count);
 int cdr_fill_record(cdr_entry_t *cdr);
 void cdr_set_provider(cdr_entry_t *cdr);
