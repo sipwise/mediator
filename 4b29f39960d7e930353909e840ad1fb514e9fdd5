@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dab895d6_92c5895d",
+        "filename": "medmysql.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2017-11-08T18:20:18Z",
+      "side": 1,
+      "message": "Namespace collision :)",
+      "range": {
+        "startLine": 84,
+        "startChar": 12,
+        "endLine": 84,
+        "endChar": 30
+      },
+      "revId": "4b29f39960d7e930353909e840ad1fb514e9fdd5",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dab895d6_f2ab2587",
+        "filename": "medmysql.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2017-11-08T18:20:18Z",
+      "side": 1,
+      "message": "Isn\u0027t this going to be pretty slow? Wouldn\u0027t it be better to implement here something like an exponential backoff instead?",
+      "range": {
+        "startLine": 145,
+        "startChar": 3,
+        "endLine": 145,
+        "endChar": 13
+      },
+      "revId": "4b29f39960d7e930353909e840ad1fb514e9fdd5",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dab895d6_12b179f8",
+        "filename": "medmysql.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2017-11-08T18:20:18Z",
+      "side": 1,
+      "message": "malloc errors not checked.",
+      "range": {
+        "startLine": 169,
+        "startChar": 23,
+        "endLine": 169,
+        "endChar": 29
+      },
+      "revId": "4b29f39960d7e930353909e840ad1fb514e9fdd5",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
