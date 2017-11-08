@@ -2,11 +2,11 @@ BIN=mediator
 
 CC := gcc
 
-GLIB_CFLAGS := `pkg-config glib-2.0 --cflags`
+GLIB_CFLAGS := $(shell pkg-config glib-2.0 --cflags)
 CFLAGS := -I/usr/include/mysql $(GLIB_CFLAGS) -g -Wall -O2
 #CFLAGS += -DWITH_TIME_CALC
 
-GLIB_LDFLAGS := `pkg-config glib-2.0 --libs`
+GLIB_LDFLAGS := $(shell pkg-config glib-2.0 --libs)
 LDFLAGS := -lmysqlclient -g
 
 CFILES := $(wildcard *.c)
