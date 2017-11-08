@@ -3,11 +3,13 @@ BIN=mediator
 CC := gcc
 
 GLIB_CFLAGS := $(shell pkg-config glib-2.0 --cflags)
-CFLAGS := -I/usr/include/mysql $(GLIB_CFLAGS) -g -Wall -O2
+MARIADB_CFLAGS := $(shell mariadb_config --cflags)
+CFLAGS := $(GLIB_CFLAGS) $(MARIADB_CFLAGS) -g -Wall -O2
 #CFLAGS += -DWITH_TIME_CALC
 
 GLIB_LDFLAGS := $(shell pkg-config glib-2.0 --libs)
-LDFLAGS := -lmysqlclient
+MARIADB_LDFLAGS := $(shell mariadb_config --libs)
+LDFLAGS := $(GLIB_LDFLAGS) $(MARIADB_LDFLAGS)
 
 CFILES := $(wildcard *.c)
 OFILES := $(CFILES:.c=.o)
