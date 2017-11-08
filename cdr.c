@@ -38,7 +38,7 @@ static const char* cdr_map_status(const char *sip_status)
 	return CDR_STATUS_UNKNOWN;
 }
 
-int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_count, struct medmysql_batches *batches)
+int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_count)
 {
 	int ret = 0;
 	u_int8_t trash = 0;
@@ -110,11 +110,11 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 							/* cdr_log_records(cdrs, cdr_count); */
 						}
 
-						if(medmysql_insert_cdrs(cdrs, cdr_count, batches) != 0)
+						if(medmysql_insert_cdrs(cdrs, cdr_count) != 0)
 							goto error;
 						else
 						{
-							if(medmysql_backup_entries(callid, batches) != 0)
+							if(medmysql_backup_entries(callid) != 0)
 								goto error;
 						}
 
@@ -144,7 +144,7 @@ int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_co
 
 	if(trash)
 	{
-		if(medmysql_trash_entries(callid, batches) != 0)
+		if(medmysql_trash_entries(callid) != 0)
 			goto error;
 	}
 	return ret;

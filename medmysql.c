@@ -71,8 +71,6 @@ static mysql_handler *med_handler;
 static mysql_handler *prov_handler;
 static mysql_handler *stats_handler;
 
-static int medmysql_flush_cdr(struct medmysql_batches *);
-static int medmysql_flush_medlist(struct medmysql_str *);
 static int medmysql_flush_call_stat_info();
 static void mysql_handler_close(mysql_handler **h);
 static int mysql_handler_transaction(mysql_handler *h);
@@ -434,97 +432,93 @@ out:
 	return ret;
 }
 
+
+#define CDRPRINT(x)	stm_len += sprintf(statement + stm_len, x)
+#define CDRESCAPE(x)	stm_len += mysql_real_escape_string(med_handler->m, statement + stm_len, \
+		x, strlen(x))
+
 /**********************************************************************/
-int medmysql_trash_entries(const char *callid, struct medmysql_batches *batches)
+int medmysql_trash_entries(const char *callid)
 {
-	if (batches->acc_trash.len > (PACKET_SIZE - 1024)) {
-		if (medmysql_flush_medlist(&batches->acc_trash))
-			return -1;
-	}
+	char statement[1024];
+	int stm_len;
 
-	if (batches->acc_trash.len == 0)
-		batches->acc_trash.len = sprintf(batches->acc_trash.str, "insert into acc_trash (method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain) select method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain from acc where callid in (");
+	stm_len = sprintf(statement, "insert into acc_trash (method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain) select method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain from acc where callid = '");
 
-	batches->acc_trash.len += sprintf(batches->acc_trash.str + batches->acc_trash.len, "'%s',", callid);
+	CDRESCAPE(callid);
+	CDRPRINT("')");
 
-	return medmysql_delete_entries(callid, batches);
+	if (mysql_query_wrapper_tx(med_handler, statement, stm_len))
+		return -1;
+
+	return medmysql_delete_entries(callid);
 }
 
 /**********************************************************************/
-int medmysql_backup_entries(const char *callid, struct medmysql_batches *batches)
+int medmysql_backup_entries(const char *callid)
 {
-	if (batches->acc_backup.len > (PACKET_SIZE - 1024)) {
-		if (medmysql_flush_medlist(&batches->acc_backup))
-			return -1;
-	}
+	char statement[1024];
+	int stm_len;
 
-	if (batches->acc_backup.len == 0)
-		batches->acc_backup.len = sprintf(batches->acc_backup.str, "insert into acc_backup (method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain) select method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain from acc where callid in (");
+	stm_len = sprintf(statement, "insert into acc_backup (method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain) select method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain from acc where callid = '");
 
-	batches->acc_backup.len += sprintf(batches->acc_backup.str + batches->acc_backup.len, "'%s',", callid);
+	CDRESCAPE(callid);
+	CDRPRINT("')");
 
-	return medmysql_delete_entries(callid, batches);
+	if (mysql_query_wrapper_tx(med_handler, statement, stm_len))
+		return -1;
+
+	return medmysql_delete_entries(callid);
 }
 
 
 /**********************************************************************/
-int medmysql_delete_entries(const char *callid, struct medmysql_batches *batches)
+int medmysql_delete_entries(const char *callid)
 {
-	if (batches->to_delete.len > (PACKET_SIZE - 1024)) {
-		if (medmysql_flush_medlist(&batches->acc_backup))
-			return -1;
-		if (medmysql_flush_medlist(&batches->acc_trash))
-			return -1;
-		if (medmysql_flush_medlist(&batches->to_delete))
-			return -1;
-	}
+	char statement[1024];
+	int stm_len;
 
-	if (batches->to_delete.len == 0)
-		batches->to_delete.len = sprintf(batches->to_delete.str, "delete from acc where callid in (");
+	stm_len = sprintf(statement, "delete from acc where callid = '");
+	CDRESCAPE(callid);
+	CDRPRINT("')");
 
-	batches->to_delete.len += sprintf(batches->to_delete.str + batches->to_delete.len, "'%s',", callid);
+	if (mysql_query_wrapper_tx(med_handler, statement, stm_len))
+		return -1;
 
 	return 0;
 }
 
-#define CDRPRINT(x)	batches->cdrs.len += sprintf(batches->cdrs.str + batches->cdrs.len, x)
-#define CDRESCAPE(x)	batches->cdrs.len += mysql_real_escape_string(med_handler->m, batches->cdrs.str + batches->cdrs.len, x, strlen(x))
-
 /**********************************************************************/
-int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_batches *batches)
+int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count)
 {
 	u_int64_t i;
 	int gpp;
+	char statement[sizeof(cdr_entry_t) * 8];
+	int stm_len;
 
 	for(i = 0; i < count; ++i)
 	{
-		if (batches->cdrs.len > (PACKET_SIZE - 6000)) {
-			if (medmysql_flush_cdr(batches))
-				return -1;
-		}
-
-		if (batches->cdrs.len == 0) {
-			batches->cdrs.len = sprintf(batches->cdrs.str, "insert into cdr (id, update_time, " \
-					"source_user_id, source_provider_id, source_external_subscriber_id, "\
-					"source_external_contract_id, source_account_id, source_user, source_domain, " \
-					"source_cli, source_clir, source_ip, "\
-					"destination_user_id, destination_provider_id, destination_external_subscriber_id, "\
-					"destination_external_contract_id, destination_account_id, destination_user, destination_domain, " \
-					"destination_user_in, destination_domain_in, destination_user_dialed, " \
-					"peer_auth_user, peer_auth_realm, call_type, call_status, call_code, init_time, start_time, "\
-					"duration, call_id, " \
-					"source_carrier_cost, source_reseller_cost, source_customer_cost, " \
-					"destination_carrier_cost, destination_reseller_cost, destination_customer_cost, " \
-					"split, " \
-					"source_gpp0, source_gpp1, source_gpp2, source_gpp3, source_gpp4, " \
-					"source_gpp5, source_gpp6, source_gpp7, source_gpp8, source_gpp9, " \
-					"destination_gpp0, destination_gpp1, destination_gpp2, destination_gpp3, destination_gpp4, " \
-					"destination_gpp5, destination_gpp6, destination_gpp7, destination_gpp8, destination_gpp9, " \
-					"source_lnp_prefix, destination_lnp_prefix, " \
-					"source_user_out, destination_user_out, " \
-					"source_lnp_type, destination_lnp_type" \
-					") values ");
-		}
+		stm_len = 0;
+		stm_len += sprintf(statement, "insert into cdr (id, update_time, " \
+				"source_user_id, source_provider_id, source_external_subscriber_id, "\
+				"source_external_contract_id, source_account_id, source_user, source_domain, " \
+				"source_cli, source_clir, source_ip, "\
+				"destination_user_id, destination_provider_id, destination_external_subscriber_id, "\
+				"destination_external_contract_id, destination_account_id, destination_user, destination_domain, " \
+				"destination_user_in, destination_domain_in, destination_user_dialed, " \
+				"peer_auth_user, peer_auth_realm, call_type, call_status, call_code, init_time, start_time, "\
+				"duration, call_id, " \
+				"source_carrier_cost, source_reseller_cost, source_customer_cost, " \
+				"destination_carrier_cost, destination_reseller_cost, destination_customer_cost, " \
+				"split, " \
+				"source_gpp0, source_gpp1, source_gpp2, source_gpp3, source_gpp4, " \
+				"source_gpp5, source_gpp6, source_gpp7, source_gpp8, source_gpp9, " \
+				"destination_gpp0, destination_gpp1, destination_gpp2, destination_gpp3, destination_gpp4, " \
+				"destination_gpp5, destination_gpp6, destination_gpp7, destination_gpp8, destination_gpp9, " \
+				"source_lnp_prefix, destination_lnp_prefix, " \
+				"source_user_out, destination_user_out, " \
+				"source_lnp_type, destination_lnp_type" \
+				") values ");
 
 		cdr_entry_t *e = &(entries[i]);
 		char str_source_clir[2] = "";
@@ -687,10 +681,21 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 			CDRPRINT(",NULL");
 		}
 
-		CDRPRINT("),");
+		CDRPRINT(")");
+
+		// final "should never happen" sanity check
+		if (stm_len >= sizeof(statement))
+			abort();
+
+		if(mysql_query_wrapper_tx(cdr_handler, statement, stm_len) != 0)
+		{
+			syslog(LOG_CRIT, "Error inserting cdrs: %s",
+				mysql_error(cdr_handler->m));
+			return -1;
+		}
 
 		// no check for return codes here we should keep on nevertheless
-		medmysql_update_call_stat_info(e->call_code, e->start_time, batches);
+		medmysql_update_call_stat_info(e->call_code, e->start_time);
 
 		if (check_shutdown())
 			return -1;
@@ -703,7 +708,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_
 }
 
 /**********************************************************************/
-int medmysql_update_call_stat_info(const char *call_code, const double start_time, struct medmysql_batches *batches)
+int medmysql_update_call_stat_info(const char *call_code, const double start_time)
 {
 	if (!med_call_stat_info_table)
 		return -1;
@@ -866,7 +871,7 @@ static int mysql_handler_commit(mysql_handler *h) {
 }
 
 
-int medmysql_batch_start(struct medmysql_batches *batches) {
+int medmysql_batch_start() {
 	if (mysql_handler_transaction(cdr_handler))
 		return -1;
 	if (mysql_handler_transaction(med_handler))
@@ -875,83 +880,20 @@ int medmysql_batch_start(struct medmysql_batches *batches) {
 	if (!med_call_stat_info_table)
 		med_call_stat_info_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
 
-	batches->cdrs.len = 0;
-	batches->acc_backup.len = 0;
-	batches->acc_trash.len = 0;
-	batches->to_delete.len = 0;
-
 	return 0;
 }
 
-
-static int medmysql_flush_cdr(struct medmysql_batches *batches) {
-	//FILE *qlog;
-
-	if (batches->cdrs.len == 0)
-		return 0;
-	if (batches->cdrs.str[batches->cdrs.len - 1] != ',')
-		return 0;
-
-	batches->cdrs.len--;
-	batches->cdrs.str[batches->cdrs.len] = '\0';
-
-	if(mysql_query_wrapper_tx(cdr_handler, batches->cdrs.str, batches->cdrs.len) != 0)
-	{
-		batches->cdrs.len = 0;
-		syslog(LOG_CRIT, "Error inserting cdrs: %s",
-				mysql_error(cdr_handler->m));
-
-		// agranig: tmp. way to log failed query, since it's too big
-		// for syslog. Make this configurable (path, enable) via
-		// cmd line switches
-		//qlog = fopen("/var/log/ngcp/cdr-query.log", "a");
-		//if(qlog == NULL)
-		//{
-		//	syslog(LOG_CRIT, "Failed to open cdr query log file '/var/log/ngcp/cdr-query.log': %s", strerror(errno));
-		//	return -1;
-		//}
-		//if(fputs(batches->cdrs.str, qlog) == EOF)
-		//{
-		//	syslog(LOG_CRIT, "Failed to write to cdr query log file '/var/log/ngcp/cdr-query.log': %s", strerror(errno));
-		//}
-		//fclose(qlog);
-
-		return -1;
-	}
-
-	batches->cdrs.len = 0;
-	return 0;
-}
-
-static int medmysql_flush_medlist(struct medmysql_str *str) {
-	if (str->len == 0)
-		return 0;
-	if (str->str[str->len - 1] != ',')
-		return 0;
-
-	str->str[str->len - 1] = ')';
-
-	if(mysql_query_wrapper_tx(med_handler, str->str, str->len) != 0)
-	{
-		str->len = 0;
-		syslog(LOG_CRIT, "Error executing query: %s",
-				mysql_error(med_handler->m));
-		critical("Failed to execute potentially crucial SQL query, check syslog for details");
-		return -1;
-	}
-
-	str->len = 0;
-	return 0;
-}
 
 static int medmysql_flush_call_stat_info() {
+	char statement[1024];
+	int stm_len;
+
 	if (!stats_handler)
 		return 0;
 	if (!med_call_stat_info_table)
 		return 0;
 
 	GHashTable * call_stat_info = med_call_stat_info_table;
-	struct medmysql_str query;
 	struct medmysql_call_stat_info_t * period_t;
 
 	GList * keys = g_hash_table_get_keys(call_stat_info);
@@ -966,7 +908,7 @@ static int medmysql_flush_call_stat_info() {
 			return -1;
 		}
 
-		query.len = sprintf(query.str,
+		stm_len = sprintf(statement,
 				"insert into %s.call_info set period='%s', sip_code='%s', amount=%" PRIu64 " on duplicate key update period='%s', sip_code='%s', amount=(amount+%" PRIu64 ");",
 				config_stats_db,
 				period_t->period, period_t->call_code, period_t->amount,
@@ -976,11 +918,11 @@ static int medmysql_flush_call_stat_info() {
 		//syslog(LOG_DEBUG, "updating call stats info: %s -- %s", period_t->call_code, period_t->period);
 		//syslog(LOG_DEBUG, "sql: %s", query.str);
 
-		if(mysql_query_wrapper(stats_handler, query.str, query.len) != 0)
+		if(mysql_query_wrapper(stats_handler, statement, stm_len) != 0)
 		{
 			syslog(LOG_CRIT, "Error executing call info stats query: %s",
 					mysql_error(stats_handler->m));
-			syslog(LOG_CRIT, "stats query: %s", query.str);
+			syslog(LOG_CRIT, "stats query: %s", statement);
 			critical("Failed to execute potentially crucial SQL query, check syslog for details");
 			return -1;
 		}
@@ -992,15 +934,7 @@ static int medmysql_flush_call_stat_info() {
 	return 0;
 }
 
-int medmysql_batch_end(struct medmysql_batches *batches) {
-	if (medmysql_flush_cdr(batches) || check_shutdown())
-		return -1;
-	if (medmysql_flush_medlist(&batches->acc_trash) || check_shutdown())
-		return -1;
-	if (medmysql_flush_medlist(&batches->acc_backup) || check_shutdown())
-		return -1;
-	if (medmysql_flush_medlist(&batches->to_delete) || check_shutdown())
-		return -1;
+int medmysql_batch_end() {
 	if (medmysql_flush_call_stat_info() || check_shutdown())
 		return -1;
 

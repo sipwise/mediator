@@ -155,7 +155,6 @@ int main(int argc, char **argv)
 	u_int64_t id_count, rec_count, i;
 	u_int64_t cdr_count, last_count;
 	int maprefresh;
-	struct medmysql_batches batches;
 
 #ifdef WITH_TIME_CALC
 	struct timeval tv_start, tv_stop;
@@ -248,7 +247,7 @@ int main(int argc, char **argv)
 			goto idle;
 		}
 
-		if (medmysql_batch_start(&batches))
+		if (medmysql_batch_start())
 			break;
 
 		/*syslog(LOG_DEBUG, "Processing %"PRIu64" accounting record group(s).", id_count);*/
@@ -261,7 +260,7 @@ int main(int argc, char **argv)
 			if(medmysql_fetch_records(&(callids[i]), &records, &rec_count) != 0)
 				goto out;
 
-			if(cdr_process_records(records, rec_count, &cdr_count, &batches) != 0)
+			if(cdr_process_records(records, rec_count, &cdr_count) != 0)
 				goto out;
 
 			if(rec_count > 0)
@@ -279,7 +278,7 @@ int main(int argc, char **argv)
 		}
 
 		free(callids);
-		if (medmysql_batch_end(&batches))
+		if (medmysql_batch_end())
 			break;
 
 idle:
