@@ -7,7 +7,7 @@ CFLAGS := -I/usr/include/mysql $(GLIB_CFLAGS) -g -Wall -O2
 #CFLAGS += -DWITH_TIME_CALC
 
 GLIB_LDFLAGS := $(shell pkg-config glib-2.0 --libs)
-LDFLAGS := -lmysqlclient -g
+LDFLAGS := -lmysqlclient
 
 CFILES := $(wildcard *.c)
 OFILES := $(CFILES:.c=.o)
@@ -17,10 +17,10 @@ OFILES := $(CFILES:.c=.o)
 all: $(BIN)
 
 $(BIN): $(OFILES)
-	$(CC) -o $@ $^ $(LDFLAGS) $(GLIB_LDFLAGS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 clean:
 	rm -f *.o
