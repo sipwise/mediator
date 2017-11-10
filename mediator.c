@@ -39,6 +39,8 @@ static int mediator_load_maps()
 		return -1;
 	if(medmysql_load_uuids(med_uuid_table))
 		return -1;
+	if (medmysql_load_db_ids())
+		return -1;
 
 	return 0;
 }

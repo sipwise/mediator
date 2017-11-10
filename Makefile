@@ -8,7 +8,7 @@ CPPFLAGS := -DMEDIATOR_VERSION="\"$(VERSION)\""
 
 GLIB_CFLAGS := $(shell pkg-config glib-2.0 --cflags)
 MARIADB_CFLAGS := $(shell mariadb_config --cflags)
-CFLAGS := $(GLIB_CFLAGS) $(MARIADB_CFLAGS) -g -Wall -O2
+CFLAGS := $(GLIB_CFLAGS) $(MARIADB_CFLAGS) -g -Wall -O2 -D_GNU_SOURCE
 #CFLAGS += -DWITH_TIME_CALC
 
 GLIB_LDFLAGS := $(shell pkg-config glib-2.0 --libs)
