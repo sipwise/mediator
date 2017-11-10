@@ -4,8 +4,8 @@
 #include "mediator.h"
 
 unsigned int config_interval = MEDIATOR_DEFAULT_INTERVAL;
-u_int8_t config_dumpcdr = MEDIATOR_DEFAULT_DUMPCDR;
-u_int8_t config_daemonize = MEDIATOR_DEFAULT_DAEMONIZE;
+uint8_t config_dumpcdr = MEDIATOR_DEFAULT_DUMPCDR;
+uint8_t config_daemonize = MEDIATOR_DEFAULT_DAEMONIZE;
 char *config_pid_path;
 
 char *config_med_host;

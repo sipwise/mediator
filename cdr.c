@@ -5,8 +5,8 @@
 #include "config.h"
 #include "mediator.h"
 
-static int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
-		cdr_entry_t **cdrs, u_int64_t *cdr_count, u_int8_t *trash);
+static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
+		cdr_entry_t **cdrs, uint64_t *cdr_count, uint8_t *trash);
 
 static const char* cdr_map_status(const char *sip_status)
 {
@@ -38,22 +38,22 @@ static const char* cdr_map_status(const char *sip_status)
 	return CDR_STATUS_UNKNOWN;
 }
 
-int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *ext_count, struct medmysql_batches *batches)
+int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_count, struct medmysql_batches *batches)
 {
 	int ret = 0;
-	u_int8_t trash = 0;
-	u_int64_t i;
+	uint8_t trash = 0;
+	uint64_t i;
 
-	u_int16_t msg_invites = 0;
-	u_int16_t msg_byes = 0;
-	u_int16_t msg_unknowns = 0;
-	u_int16_t invite_200 = 0;
+	uint16_t msg_invites = 0;
+	uint16_t msg_byes = 0;
+	uint16_t msg_unknowns = 0;
+	uint16_t invite_200 = 0;
 
 	char *callid = records[0].callid;
 
 
 	cdr_entry_t *cdrs = NULL;
-	u_int64_t cdr_count;
+	uint64_t cdr_count;
 
 	*ext_count = 0;
 
@@ -580,11 +580,11 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 }
 
 
-static int cdr_create_cdrs(med_entry_t *records, u_int64_t count,
-		cdr_entry_t **cdrs, u_int64_t *cdr_count, u_int8_t *trash)
+static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
+		cdr_entry_t **cdrs, uint64_t *cdr_count, uint8_t *trash)
 {
-	u_int64_t i = 0, cdr_index = 0;
-	u_int32_t invites = 0;
+	uint64_t i = 0, cdr_index = 0;
+	uint32_t invites = 0;
 	size_t cdr_size;
 
 	char *endtime = NULL;

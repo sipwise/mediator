@@ -1,10 +1,10 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-#include <sys/types.h>
+#include <stdint.h>
 #include "mediator.h"
 
-extern u_int8_t config_daemonize;
+extern uint8_t config_daemonize;
 extern char *config_pid_path;
 extern char *config_hostname;
 
@@ -34,7 +34,7 @@ extern char *config_stats_db;
 extern med_stats_period_t config_stats_period;
 
 extern unsigned int config_interval;
-extern u_int8_t config_dumpcdr;
+extern uint8_t config_dumpcdr;
 
 extern int config_maintenance;
 extern int strict_leg_tokens;

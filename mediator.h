@@ -1,6 +1,7 @@
 #ifndef _MEDIATOR_H
 #define _MEDIATOR_H 
 
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -71,7 +72,7 @@ typedef struct {
 	char callid[256];
 	char timestamp[24];
 	double unix_timestamp;
-	u_int8_t valid;
+	uint8_t valid;
 	med_method_t method;
 	char sip_method[32];
 } med_entry_t;

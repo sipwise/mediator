@@ -19,7 +19,7 @@
 
 sig_atomic_t mediator_shutdown = 0;
 int mediator_lockfd = -1;
-u_int64_t mediator_count = 0;
+uint64_t mediator_count = 0;
 
 GHashTable *med_peer_ip_table = NULL;
 GHashTable *med_peer_host_table = NULL;
@@ -139,9 +139,9 @@ static int mediator_lock()
 
 #ifdef WITH_TIME_CALC
 /**********************************************************************/
-static u_int64_t mediator_calc_runtime(struct timeval *tv_start, struct timeval *tv_stop)
+static uint64_t mediator_calc_runtime(struct timeval *tv_start, struct timeval *tv_stop)
 {
-	return ((u_int64_t)((tv_stop->tv_sec * 1000000 + tv_stop->tv_usec) -
+	return ((uint64_t)((tv_stop->tv_sec * 1000000 + tv_stop->tv_usec) -
 			   (tv_start->tv_sec * 1000000 + tv_start->tv_usec)) / 1000);
 }
 #endif
@@ -152,14 +152,14 @@ int main(int argc, char **argv)
 {
 	med_callid_t *callids;
 	med_entry_t *records;
-	u_int64_t id_count, rec_count, i;
-	u_int64_t cdr_count, last_count;
+	uint64_t id_count, rec_count, i;
+	uint64_t cdr_count, last_count;
 	int maprefresh;
 	struct medmysql_batches batches;
 
 #ifdef WITH_TIME_CALC
 	struct timeval tv_start, tv_stop;
-	u_int64_t runtime;
+	uint64_t runtime;
 #endif	
 
 	openlog(MEDIATOR_SYSLOG_NAME, LOG_PID|LOG_NDELAY, LOG_DAEMON);

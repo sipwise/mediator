@@ -23,12 +23,12 @@ typedef struct {
 	char source_ext_subscriber_id[256];
 	char source_ext_contract_id[256];
 	char source_provider_id[256];
-	u_int64_t source_account_id;
+	uint64_t source_account_id;
 	char source_user[256];
 	char source_domain[256];
 	char source_cli[65];
 	char source_ip[65];
-	u_int8_t source_clir;
+	uint8_t source_clir;
 	char source_gpp[10][255];
 	char source_lnp_prefix[256];
 	char source_user_out[256];
@@ -38,13 +38,13 @@ typedef struct {
 	char destination_provider_id[256];
 	char destination_ext_subscriber_id[256];
 	char destination_ext_contract_id[256];
-	u_int64_t destination_account_id;
+	uint64_t destination_account_id;
 	char destination_user[256];
 	char destination_domain[256];
 	char destination_user_in[256];
 	char destination_domain_in[256];
 	char destination_dialed[256];
-	u_int64_t destination_lcr_id;
+	uint64_t destination_lcr_id;
 	char destination_gpp[10][255];
 	char destination_lnp_prefix[256];
 	char destination_user_out[256];
@@ -61,19 +61,19 @@ typedef struct {
 	double start_time;
 	double duration;
 
-	u_int32_t source_carrier_cost;
-	u_int32_t source_reseller_cost;
-	u_int32_t source_customer_cost;
-	u_int32_t destination_carrier_cost;
-	u_int32_t destination_reseller_cost;
-	u_int32_t destination_customer_cost;
+	uint32_t source_carrier_cost;
+	uint32_t source_reseller_cost;
+	uint32_t source_customer_cost;
+	uint32_t destination_carrier_cost;
+	uint32_t destination_reseller_cost;
+	uint32_t destination_customer_cost;
 
-	u_int8_t split;
+	uint8_t split;
 
 } cdr_entry_t;
 
-int cdr_process_records(med_entry_t *records, u_int64_t count, u_int64_t *cdr_count, struct medmysql_batches *);
-void cdr_fix_accids(med_entry_t *records, u_int64_t count);
+int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *cdr_count, struct medmysql_batches *);
+void cdr_fix_accids(med_entry_t *records, uint64_t count);
 int cdr_fill_record(cdr_entry_t *cdr);
 void cdr_set_provider(cdr_entry_t *cdr);
 

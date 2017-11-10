@@ -304,16 +304,16 @@ void medmysql_cleanup()
 }
 
 /**********************************************************************/
-med_callid_t *medmysql_fetch_callids(u_int64_t *count)
+med_callid_t *medmysql_fetch_callids(uint64_t *count)
 {
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 	/* char query[1024] = ""; */
 	size_t callid_size;
-	u_int64_t i = 0;
+	uint64_t i = 0;
 	med_callid_t *callids = NULL;
 
-	*count = (u_int64_t) -1; /* non-zero count and return of NULL == error */
+	*count = (uint64_t) -1; /* non-zero count and return of NULL == error */
 
 	/* g_strlcpy(query, MED_CALLID_QUERY, sizeof(query)); */
 
@@ -370,13 +370,13 @@ out:
 
 /**********************************************************************/
 int medmysql_fetch_records(med_callid_t *callid,
-		med_entry_t **entries, u_int64_t *count)
+		med_entry_t **entries, uint64_t *count)
 {
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 	char query[strlen(MED_FETCH_QUERY) + sizeof(callid->value) * 5 + 1];
 	size_t entry_size;
-	u_int64_t i = 0;
+	uint64_t i = 0;
 	int ret = 0;
 	int len;
 
@@ -500,9 +500,9 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *batches
 #define CDRESCAPE(x)	batches->cdrs.len += mysql_real_escape_string(med_handler->m, batches->cdrs.str + batches->cdrs.len, x, strlen(x))
 
 /**********************************************************************/
-int medmysql_insert_cdrs(cdr_entry_t *entries, u_int64_t count, struct medmysql_batches *batches)
+int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_batches *batches)
 {
-	u_int64_t i;
+	uint64_t i;
 	int gpp;
 
 	for(i = 0; i < count; ++i)
