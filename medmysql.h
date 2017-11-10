@@ -20,6 +20,11 @@ struct medmysql_batches {
 	struct medmysql_str acc_backup;
 	struct medmysql_str acc_trash;
 	struct medmysql_str to_delete;
+	struct medmysql_str tags;
+	struct medmysql_str mos;
+	unsigned long num_cdrs;
+	GQueue cdr_tags;
+	GQueue cdr_mos;
 };
 
 struct medmysql_call_stat_info_t {
@@ -38,6 +43,7 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *);
 int medmysql_insert_cdrs(cdr_entry_t *records, uint64_t count, struct medmysql_batches *);
 int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable *id_table);
 int medmysql_load_uuids(GHashTable *uuid_table);
+int medmysql_load_db_ids();
 int medmysql_batch_start(struct medmysql_batches *);
 int medmysql_batch_end(struct medmysql_batches *);
 int medmysql_update_call_stat_info(const char *call_code, const double start_time, struct medmysql_batches *batches);
