@@ -38,7 +38,7 @@ int strict_leg_tokens = 0;
 
 static void config_help(const char *self, int rc)
 {
-	printf("mediator 1.2.0 - Creates call detail records from OpenSER accounting.\n" \
+	printf("mediator %s - Creates call detail records from OpenSER accounting.\n" \
 		"Usage: %s [-?] [-d] [-D pidpath]\n" \
 		"  -D\tThe path of the PID file (default = '%s').\n" \
 		"  -d\tEnables daemonization of the process (default = disabled).\n" \
@@ -68,7 +68,8 @@ static void config_help(const char *self, int rc)
 		"  -m\tMaintenance mode (do nothing, just sleep).\n" \
 		"  -s\tStrict acc fields (move to trash otherwise).\n" \
 		"  -?\tDisplays this message.\n",
-		self, MEDIATOR_DEFAULT_PIDPATH, MEDIATOR_DEFAULT_INTERVAL,
+		MEDIATOR_VERSION, self,
+		MEDIATOR_DEFAULT_PIDPATH, MEDIATOR_DEFAULT_INTERVAL,
 		MEDIATOR_DEFAULT_ACCHOST, MEDIATOR_DEFAULT_ACCPORT,
 		MEDIATOR_DEFAULT_ACCUSER, MEDIATOR_DEFAULT_ACCPASS,
 		MEDIATOR_DEFAULT_ACCDB,

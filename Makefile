@@ -1,6 +1,10 @@
 BIN=mediator
 
+VERSION := $(shell sed -n -e '1s/^.*(\(.*\)).*$$/\1/p' debian/changelog)
+
 CC := gcc
+
+CPPFLAGS := -DMEDIATOR_VERSION="\"$(VERSION)\""
 
 GLIB_CFLAGS := $(shell pkg-config glib-2.0 --cflags)
 MARIADB_CFLAGS := $(shell mariadb_config --cflags)
