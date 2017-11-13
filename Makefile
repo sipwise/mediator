@@ -7,13 +7,11 @@ CC := gcc
 CPPFLAGS := -DMEDIATOR_VERSION="\"$(VERSION)\""
 
 GLIB_CFLAGS := $(shell pkg-config glib-2.0 --cflags)
-MARIADB_CFLAGS := $(shell mariadb_config --cflags)
-CFLAGS := $(GLIB_CFLAGS) $(MARIADB_CFLAGS) -g -Wall -O2
+CFLAGS := -I/usr/include/mysql $(GLIB_CFLAGS) -g -Wall -O2
 #CFLAGS += -DWITH_TIME_CALC
 
 GLIB_LDFLAGS := $(shell pkg-config glib-2.0 --libs)
-MARIADB_LDFLAGS := $(shell mariadb_config --libs)
-LDFLAGS := $(GLIB_LDFLAGS) $(MARIADB_LDFLAGS)
+LDFLAGS := $(GLIB_LDFLAGS) -lmysqlclient
 
 CFILES := $(wildcard *.c)
 OFILES := $(CFILES:.c=.o)
