@@ -92,7 +92,7 @@ case "$1" in
   stop)
       log_daemon_msg "Stopping $DESC: $NAME"
       start-stop-daemon --oknodo --stop --quiet --pidfile "$PIDFILE" \
-              --exec "$DAEMON"
+              --exec "$DAEMON" --retry 5
       if [ "$?" -ne 0 ]; then
           return $?
       fi
@@ -102,12 +102,11 @@ case "$1" in
   restart|force-reload)
       log_daemon_msg "Restarting $DESC: $NAME"
       start-stop-daemon --oknodo --stop --quiet --pidfile \
-             "$PIDFILE" --exec "$DAEMON"
+             "$PIDFILE" --exec "$DAEMON" --retry 5
       if [ "$?" -ne 0 ]; then
           return $?
       fi
       rm -f "$PIDFILE"
-      sleep 1
 
       if [ -x "/usr/sbin/ngcp-check_active" ]; then
         /usr/sbin/ngcp-check_active -q
