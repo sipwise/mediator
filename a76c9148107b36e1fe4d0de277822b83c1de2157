@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_7b739bb1",
+        "filename": "debian/mediator.init",
+        "patchSetId": 1
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1000001
+      },
+      "writtenOn": "2017-11-13T14:14:59Z",
+      "side": 0,
+      "message": "I like sleep\u0027s removal!",
+      "range": {
+        "startLine": 110,
+        "startChar": 6,
+        "endLine": 110,
+        "endChar": 13
+      },
+      "revId": "a76c9148107b36e1fe4d0de277822b83c1de2157",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
