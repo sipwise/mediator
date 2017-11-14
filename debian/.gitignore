@@ -1,6 +1,7 @@
+*.debhelper
 *.log
 *.substvars
-*.debhelper
+/.debhelper/
 /debhelper-build-stamp
 /files
 /ngcp-mediator/
