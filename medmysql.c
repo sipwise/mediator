@@ -639,20 +639,21 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *batches
 #define CDRESCAPE(x)	batches->cdrs.len += mysql_real_escape_string(med_handler->m, batches->cdrs.str + batches->cdrs.len, x, strlen(x))
 
 /**********************************************************************/
-static int medmysql_tag_record(GQueue *q, unsigned long cdr_id, unsigned long provider_id,
-		unsigned long direction_id, const char *value, double start_time, unsigned long tag_id)
-{
-	cdr_tag_record *record = malloc(sizeof(*record));
-	record->cdr_id = cdr_id;
-	if (asprintf(&record->sql_record, "%lu, %lu, %lu, '%s', %f",
-				provider_id, direction_id, tag_id, value, start_time) <= 0)
-	{
-		free(record);
-		return -1;
-	}
-	g_queue_push_tail(q, record);
-	return 0;
-}
+<<<<<<< HEAD
+// static int medmysql_tag_record(GQueue *q, unsigned long cdr_id, unsigned long provider_id,
+// 		unsigned long direction_id, const char *value, double start_time, unsigned long tag_id)
+// {
+// 	cdr_tag_record *record = malloc(sizeof(*record));
+// 	record->cdr_id = cdr_id;
+// 	if (asprintf(&record->sql_record, "%lu, %lu, %lu, '%s', %f",
+// 				provider_id, direction_id, tag_id, value, start_time) <= 0)
+// 	{
+// 		free(record);
+// 		return -1;
+// 	}
+// 	g_queue_push_tail(q, record);
+// 	return 0;
+// }
 static int medmysql_mos_record(GQueue *q, unsigned long cdr_id, double avg_score, int avg_packetloss,
 		int avg_jitter, int avg_rtt, double start_time)
 {
@@ -853,10 +854,12 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
 //		if (medmysql_tag_record(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_reseller,
 //				medmysql_tag_direction_destination, "fdfhgs", e->start_time, 1))
 //			return -1;
-//		if (medmysql_mos_record(&batches->cdr_mos, batches->num_cdrs, e->mos.avg_score,
-//					e->mos.avg_packetloss, e->mos.avg_jitter, e->mos.avg_rtt,
-//					e->start_time))
-//			return -1;
+		if (e->mos.filled) {
+			if (medmysql_mos_record(&batches->cdr_mos, batches->num_cdrs, e->mos.avg_score,
+						e->mos.avg_packetloss, e->mos.avg_jitter, e->mos.avg_rtt,
+						e->start_time))
+				return -1;
+		}
 
 		batches->num_cdrs++;
 
