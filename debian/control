@@ -5,6 +5,7 @@ Maintainer: Sipwise Development Team <support@sipwise.com>
 Build-Depends:
  debhelper (>= 10),
  default-libmysqlclient-dev | libmysqlclient15-dev,
+ json-c,
  libglib2.0-dev,
 Standards-Version: 3.9.8
 Homepage: https://www.sipwise.com/
