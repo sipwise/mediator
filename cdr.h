@@ -70,6 +70,12 @@ typedef struct {
 
 	uint8_t split;
 
+	struct {
+		double avg_score;
+		int avg_packetloss;
+		int avg_jitter;
+		int avg_rtt;
+	} mos;
 } cdr_entry_t;
 
 int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *cdr_count, struct medmysql_batches *);

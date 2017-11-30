@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <json.h>
 
 #include "cdr.h"
 #include "medmysql.h"
@@ -580,6 +581,28 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 }
 
 
+static int cdr_parse_bye_dstleg(char *dstleg, cdr_entry_t *cdr) {
+	json_object *json = json_tokener_parse(dstleg);
+	if (!json) {
+		syslog(LOG_ERR, "Could not parse JSON dst_leg string: '%s'", dstleg);
+		return -1;
+	}
+	if (!json_object_is_type(json, json_type_object)) {
+		syslog(LOG_ERR, "JSON type is not object: '%s'", dstleg);
+		goto err;
+	}
+	json_object *mos;
+	if (!json_object_object_get_ex(json, "mos", &mos)) {
+		syslog(LOG_ERR, "JSON object does not contain 'mos' key: '%s'", dstleg);
+	}
+	return 0;
+
+err:
+	json_object_put(json);
+	return -1;
+}
+
+
 static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
 		cdr_entry_t **cdrs, uint64_t *cdr_count, uint8_t *trash)
 {
@@ -638,8 +661,11 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
 		cdr = &(*cdrs)[cdr_index];
 		e = &(records[i]);
 
+		if (!e->valid)
+			continue;
+
 		call_status = cdr_map_status(e->sip_code);
-		if(e->valid && e->method == MED_INVITE && call_status != NULL)
+		if(e->method == MED_INVITE && call_status != NULL)
 		{
 			++cdr_index;
 
@@ -683,6 +709,12 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
 			if(cdr_fill_record(cdr) != 0)
 			{
 				// TODO: error handling
+			}
+		}
+		else if (e->method == MED_BYE) {
+			if (cdr_parse_bye_dstleg(e->dst_leg, cdr) < 0) {
+				*trash = 1;
+				return 0;
 			}
 		}
 
