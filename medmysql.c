@@ -845,10 +845,12 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
 //		if (medmysql_tag_record(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_reseller,
 //				medmysql_tag_direction_destination, "fdfhgs", e->start_time, 1))
 //			return -1;
-//		if (medmysql_mos_record(&batches->cdr_mos, batches->num_cdrs, e->mos.avg_score,
-//					e->mos.avg_packetloss, e->mos.avg_jitter, e->mos.avg_rtt,
-//					e->start_time))
-//			return -1;
+		if (e->mos.filled) {
+			if (medmysql_mos_record(&batches->cdr_mos, batches->num_cdrs, e->mos.avg_score,
+						e->mos.avg_packetloss, e->mos.avg_jitter, e->mos.avg_rtt,
+						e->start_time))
+				return -1;
+		}
 
 		batches->num_cdrs++;
 

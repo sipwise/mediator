@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <json.h>
 
 #include "cdr.h"
 #include "medmysql.h"
@@ -580,6 +581,72 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 }
 
 
+static int cdr_parse_json_get_int(json_object *obj, const char *key, int *outp) {
+	json_object *int_obj;
+	if (!json_object_object_get_ex(obj, key, &int_obj))
+		return 0;
+	if (!json_object_is_type(int_obj, json_type_int))
+		return 0;
+	*outp = json_object_get_int64(int_obj);
+	return 1;
+}
+
+static int cdr_parse_json_get_double(json_object *obj, const char *key, double *outp) {
+	json_object *int_obj;
+	if (!json_object_object_get_ex(obj, key, &int_obj))
+		return 0;
+	if (!json_object_is_type(int_obj, json_type_double))
+		return 0;
+	*outp = json_object_get_double(int_obj);
+	return 1;
+}
+
+static int cdr_parse_bye_dstleg(char *dstleg, cdr_entry_t *cdr) {
+	syslog(LOG_DEBUG, "Parsing JSON: '%s'", dstleg);
+
+	json_object *json = json_tokener_parse(dstleg);
+	if (!json) {
+		syslog(LOG_ERR, "Could not parse JSON dst_leg string: '%s'", dstleg);
+		return -1;
+	}
+	if (!json_object_is_type(json, json_type_object)) {
+		syslog(LOG_ERR, "JSON type is not object: '%s'", dstleg);
+		goto err;
+	}
+	json_object *mos;
+	if (!json_object_object_get_ex(json, "mos", &mos)
+			|| !json_object_is_type(mos, json_type_object))
+	{
+		syslog(LOG_ERR, "JSON object does not contain 'mos' key: '%s'", dstleg);
+		goto err;
+	}
+	if (!cdr_parse_json_get_double(mos, "avg_score", &cdr->mos.avg_score)) {
+		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_score' key: '%s'", dstleg);
+		goto err;
+	}
+	if (!cdr_parse_json_get_int(mos, "avg_packetloss", &cdr->mos.avg_packetloss)) {
+		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_packetloss' key: '%s'", dstleg);
+		goto err;
+	}
+	if (!cdr_parse_json_get_int(mos, "avg_jitter", &cdr->mos.avg_jitter)) {
+		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_jitter' key: '%s'", dstleg);
+		goto err;
+	}
+	if (!cdr_parse_json_get_int(mos, "avg_rtt", &cdr->mos.avg_rtt)) {
+		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_rtt' key: '%s'", dstleg);
+		goto err;
+	}
+
+	cdr->mos.filled = 1;
+	json_object_put(json);
+	return 0;
+
+err:
+	json_object_put(json);
+	return -1;
+}
+
+
 static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
 		cdr_entry_t **cdrs, uint64_t *cdr_count, uint8_t *trash)
 {
@@ -638,8 +705,11 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
 		cdr = &(*cdrs)[cdr_index];
 		e = &(records[i]);
 
+		if (!e->valid)
+			continue;
+
 		call_status = cdr_map_status(e->sip_code);
-		if(e->valid && e->method == MED_INVITE && call_status != NULL)
+		if(e->method == MED_INVITE && call_status != NULL)
 		{
 			++cdr_index;
 
@@ -683,6 +753,12 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
 			if(cdr_fill_record(cdr) != 0)
 			{
 				// TODO: error handling
+			}
+		}
+		else if (e->method == MED_BYE) {
+			if (cdr_parse_bye_dstleg(e->dst_leg, cdr) < 0) {
+				*trash = 1;
+				return 0;
 			}
 		}
 
