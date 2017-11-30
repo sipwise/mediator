@@ -17,6 +17,14 @@
 struct medmysql_batches;
 
 typedef struct {
+	int filled;
+	double avg_score;
+	int avg_packetloss;
+	int avg_jitter;
+	int avg_rtt;
+} mos_data_t;
+
+typedef struct {
 	char call_id[128];
 
 	char source_user_id[37];
@@ -70,6 +78,7 @@ typedef struct {
 
 	uint8_t split;
 
+	mos_data_t mos;
 } cdr_entry_t;
 
 int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *cdr_count, struct medmysql_batches *);
