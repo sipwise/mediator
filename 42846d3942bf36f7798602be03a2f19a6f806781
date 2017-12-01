@@ -16,6 +16,24 @@
       "revId": "42846d3942bf36f7798602be03a2f19a6f806781",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_64884823",
+        "filename": "medmysql.c",
+        "patchSetId": 10
+      },
+      "lineNbr": 518,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2017-12-01T16:46:20Z",
+      "side": 1,
+      "message": "Yes, this is just a rephrasing of what has been there before. Overall I agree, but should go in a different cleanup commit.",
+      "parentUuid": "baada198_e4945846",
+      "revId": "42846d3942bf36f7798602be03a2f19a6f806781",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
     }
   ]
 }
