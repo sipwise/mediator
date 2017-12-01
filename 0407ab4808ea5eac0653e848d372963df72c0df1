@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_c414b4f7",
+        "filename": "medmysql.c",
+        "patchSetId": 8
+      },
+      "lineNbr": 642,
+      "author": {
+        "id": 1000006
+      },
+      "writtenOn": "2017-12-01T15:57:16Z",
+      "side": 1,
+      "message": "merge conflict?",
+      "range": {
+        "startLine": 642,
+        "startChar": 0,
+        "endLine": 642,
+        "endChar": 12
+      },
+      "revId": "0407ab4808ea5eac0653e848d372963df72c0df1",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
