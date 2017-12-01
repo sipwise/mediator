@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_24e73042",
+        "filename": "medmysql.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2017-12-01T15:40:46Z",
+      "side": 1,
+      "message": "I\u0027m not sure what happens on return 0. But if the program continues, then this and the subsequent returns look like leaks?",
+      "revId": "6416f27194963b8ac7336a8b3a3ef294b84971ea",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_64d04854",
+        "filename": "medmysql.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2017-12-01T15:40:46Z",
+      "side": 1,
+      "message": "Not sure whether the input is sanitized, otherwise this is certainly not enough to discern parse errors.",
+      "range": {
+        "startLine": 357,
+        "startChar": 1,
+        "endLine": 357,
+        "endChar": 12
+      },
+      "revId": "6416f27194963b8ac7336a8b3a3ef294b84971ea",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_e4c37888",
+        "filename": "medmysql.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2017-12-01T15:40:46Z",
+      "side": 1,
+      "message": "This leaks record.",
+      "revId": "6416f27194963b8ac7336a8b3a3ef294b84971ea",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_04c14c80",
+        "filename": "medmysql.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 659,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2017-12-01T15:40:46Z",
+      "side": 1,
+      "message": "This leaks record.",
+      "revId": "6416f27194963b8ac7336a8b3a3ef294b84971ea",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_24be5000",
+        "filename": "medmysql.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 1120,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2017-12-01T15:40:46Z",
+      "side": 1,
+      "message": "What about buffer overflows?",
+      "range": {
+        "startLine": 1120,
+        "startChar": 14,
+        "endLine": 1120,
+        "endChar": 21
+      },
+      "revId": "6416f27194963b8ac7336a8b3a3ef294b84971ea",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
