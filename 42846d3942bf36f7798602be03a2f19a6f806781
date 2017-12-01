@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_e4945846",
+        "filename": "medmysql.c",
+        "patchSetId": 10
+      },
+      "lineNbr": 518,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2017-12-01T16:44:39Z",
+      "side": 1,
+      "message": "I get very nervous in general with this kind of hardcoded string length limits that can easily get out of sync with the actual strings. Because these can become a source of buffer overflows and similar if other changes happen to make those strings longer.\n\nI tend to prefer just handling theses strings automatically, either by some kind of automatic growing string struct always based on the string we are trying to append, or just asprintf-style calls. But I think this is the current prevalent style in the codebase anyway?",
+      "revId": "42846d3942bf36f7798602be03a2f19a6f806781",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
