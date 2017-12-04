@@ -1,3 +1,14 @@
+ngcp-mediator (5.5.3.0+0~mr5.5.3.0) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [6abecaa] TT#24140 add DB abstraction layer
+  * [5cd9b76] TT#24140 add transaction replay capability to work around temporary errors
+  * [a441430] TT#24140 add wrapper function to simulate DB errors for testing
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 04 Dec 2017 11:39:40 +0100
+
 ngcp-mediator (5.5.2.0+0~mr5.5.2.0) unstable; urgency=medium
 
   * New release.
