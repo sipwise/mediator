@@ -1,3 +1,30 @@
+ngcp-mediator (6.0.1.0+0~mr6.0.1.0) unstable; urgency=medium
+
+  [ Guillem Jover ]
+  * [63393e1] TT#24224 Use the actual option defaults
+  * [ec54acd] TT#24224 Pass the exit status to the config_help function
+  * [f7b3e5c] TT#24224 Simplify config string option handling
+  * [5d455c3] TT#24224 Use $(shell …) instead of `` in Makefile
+  * [0035cd0] TT#24224 Pass the relevant build flags to compile and link stages
+  * [e65f1fa] TT#24224 Switch to use libmariadb-dev
+  * [881f534] TT#24224 Switch from BSD to C99 integer types
+  * [a76c914] TT#24224 Print the correct project version on -?
+  * [e9d4cb7] TT#24209 Pass --retry 5 to start-stop-daemon
+  * [a05f1c2] TT#22072 Update packaging
+
+  [ Richard Fuchs ]
+  * [c94f9df] TT#24140 add DB abstraction layer
+  * [266c624] TT#24140 add transaction replay capability to work around temporary errors
+  * [09f0108] TT#24140 add wrapper function to simulate DB errors for testing
+  * [6086690] TT#24601 Revert "TT#24224 Switch to use libmariadb-dev"
+  * [42846d3] TT#24450 consolidate batch statement handling
+  * [7050bfa] TT#24450 support writing to cdr_tag_data and cdr_mos_data table
+  * [092b67b] TT#24226 parse MOS JSON values and store in CDR sub-tables
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Wed, 06 Dec 2017 00:06:00 +0100
+
 ngcp-mediator (6.0.0.0+0~mr6.0.0.0) unstable; urgency=medium
 
   [ Richard Fuchs ]
