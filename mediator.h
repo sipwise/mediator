@@ -15,6 +15,7 @@
 
 #define MEDIATOR_DEFAULT_INTERVAL 10
 
+#define MEDIATOR_CONFIG_FILE "/etc/ngcp-mediator/ngcp-mediator.conf"
 #define MEDIATOR_SYSLOG_NAME "mediator"
 #define MEDIATOR_LOCK_FILE "/var/lock/mediator.lock"
 #define MEDIATOR_DEFAULT_DAEMONIZE 0
