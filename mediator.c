@@ -171,7 +171,7 @@ int main(int argc, char **argv)
 	signal(SIGTERM, mediator_signal);
 	signal(SIGINT, mediator_signal);
 
-	if(config_parse_cmdopts(argc, argv) == -1)
+	if (config_parse(argc, argv) == -1)
 	{
 		return -1;
 	}
