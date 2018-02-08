@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "1a930d6b_1ec1ac2e",
+        "filename": "config.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2018-02-08T18:54:40Z",
+      "side": 1,
+      "message": "The function is supposed to return the number of characters read not including the terminating \u0027\\0\u0027, so the buffer should in principle always have at least be 1 char long, if the functions succeeded.",
+      "parentUuid": "1a930d6b_7e99d06d",
+      "revId": "4a181dd1be9d928609e36308e704dc3b4126db27",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a930d6b_de9f244f",
         "filename": "mediator.c",
         "patchSetId": 2
@@ -53,6 +71,24 @@
       "writtenOn": "2018-02-08T17:21:54Z",
       "side": 1,
       "message": "Perhaps allow specifying a different location of the config file somehow?",
+      "revId": "4a181dd1be9d928609e36308e704dc3b4126db27",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_de500461",
+        "filename": "mediator.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2018-02-08T18:54:40Z",
+      "side": 1,
+      "message": "You mean via a command-line option? Yeah I guess I can do that. Also I\u0027ve just noticed the logic is currently wrong, as we should first parse the command-line then the file and then the defaults, otherwise the command-line will not take preference over the config, which makes possible to select the config on the command-line.",
+      "parentUuid": "1a930d6b_de9f244f",
       "revId": "4a181dd1be9d928609e36308e704dc3b4126db27",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
