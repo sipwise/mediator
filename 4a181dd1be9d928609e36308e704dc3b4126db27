@@ -60,6 +60,24 @@
     },
     {
       "key": {
+        "uuid": "1a930d6b_9ea4bc58",
+        "filename": "config.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-02-08T22:42:24Z",
+      "side": 1,
+      "message": "I don\u0027t know how it behaves at the end of the file though, e.g. when the final newline is missing, which is a case which needs to be taken into account either way (as right now this would truncate the last character). If you expect the function to always return \u003e 0, then the if() should be phrased accordingly.",
+      "parentUuid": "1a930d6b_1ec1ac2e",
+      "revId": "4a181dd1be9d928609e36308e704dc3b4126db27",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a930d6b_de9f244f",
         "filename": "mediator.c",
         "patchSetId": 2
