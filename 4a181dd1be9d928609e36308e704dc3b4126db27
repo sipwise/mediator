@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a930d6b_bea25898",
+        "filename": "config.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-02-08T17:21:54Z",
+      "side": 1,
+      "message": "doesn\u0027t look like this actually uses the argument for anything",
+      "range": {
+        "startLine": 75,
+        "startChar": 13,
+        "endLine": 75,
+        "endChar": 31
+      },
+      "revId": "4a181dd1be9d928609e36308e704dc3b4126db27",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_7e99d06d",
+        "filename": "config.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-02-08T17:21:54Z",
+      "side": 1,
+      "message": "This requires nread to be at least 1",
+      "revId": "4a181dd1be9d928609e36308e704dc3b4126db27",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_de9f244f",
+        "filename": "mediator.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-02-08T17:21:54Z",
+      "side": 1,
+      "message": "Perhaps allow specifying a different location of the config file somehow?",
+      "revId": "4a181dd1be9d928609e36308e704dc3b4126db27",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
