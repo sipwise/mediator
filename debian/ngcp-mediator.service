@@ -1,0 +1,13 @@
+[Unit]
+Description=NGCP Mediator
+Requires=mysql.service
+After=remote-fs.target
+After=mysql.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/mediator
+
+[Install]
+WantedBy=multi-user.target
+Alias=mediator.service
