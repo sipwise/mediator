@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a930d6b_59e26ed6",
+        "filename": "config.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2018-02-09T18:21:33Z",
+      "side": 1,
+      "message": "Ah, hah, I now realize that the ? there is the actual short option for -? not a marker for an optional argument. :D\nWhich seemed weird as the command-line parser was not taking any argument but wanted to keep the supposedly old behavior.\n\nThanks, fixed.",
+      "parentUuid": "1a930d6b_bea25898",
+      "range": {
+        "startLine": 75,
+        "startChar": 13,
+        "endLine": 75,
+        "endChar": 31
+      },
+      "revId": "4a181dd1be9d928609e36308e704dc3b4126db27",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a930d6b_7e99d06d",
         "filename": "config.c",
         "patchSetId": 2
