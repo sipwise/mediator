@@ -46,6 +46,6 @@ int medmysql_load_uuids(GHashTable *uuid_table);
 int medmysql_load_db_ids();
 int medmysql_batch_start(struct medmysql_batches *);
 int medmysql_batch_end(struct medmysql_batches *);
-int medmysql_update_call_stat_info(const char *call_code, const double start_time, struct medmysql_batches *batches);
+int medmysql_update_call_stat_info(const char *call_code, const double start_time);
 
 #endif /* _MED_MYSQL_H */

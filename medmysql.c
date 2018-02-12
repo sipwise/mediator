@@ -863,7 +863,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
 		batches->num_cdrs++;
 
 		// no check for return codes here we should keep on nevertheless
-		medmysql_update_call_stat_info(e->call_code, e->start_time, batches);
+		medmysql_update_call_stat_info(e->call_code, e->start_time);
 
 		if (check_shutdown())
 			return -1;
@@ -876,7 +876,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
 }
 
 /**********************************************************************/
-int medmysql_update_call_stat_info(const char *call_code, const double start_time, struct medmysql_batches *batches)
+int medmysql_update_call_stat_info(const char *call_code, const double start_time)
 {
 	if (!med_call_stat_info_table)
 		return -1;
