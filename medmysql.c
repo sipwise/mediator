@@ -681,8 +681,8 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
 			return -1;
 
 		cdr_entry_t *e = &(entries[i]);
-		char str_source_clir[2] = "";
-		char str_split[2] = "";
+		char str_source_clir[4] = "";
+		char str_split[4] = "";
 		char str_init_time[32] = "";
 		char str_start_time[32] = "";
 		char str_duration[32] = "";
