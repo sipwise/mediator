@@ -46,7 +46,7 @@ static int mediator_load_maps()
 }
 
 /**********************************************************************/
-static void mediator_print_mapentry(gpointer key, gpointer value, gpointer d)
+static void mediator_print_mapentry(gpointer key, gpointer value, gpointer d __attribute__((unused)))
 {
 	syslog(LOG_DEBUG, "\t'%s' -> %s", (char*)key, (char*)value);
 }
