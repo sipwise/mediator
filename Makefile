@@ -7,7 +7,7 @@ CC := gcc
 CPPFLAGS := -DMEDIATOR_VERSION="\"$(VERSION)\""
 
 GLIB_CFLAGS := $(shell pkg-config glib-2.0 --cflags)
-CFLAGS := -I/usr/include/mysql $(GLIB_CFLAGS) -g -Wall -O2 -D_GNU_SOURCE
+CFLAGS := -I/usr/include/mysql $(GLIB_CFLAGS) -g -Wall -Wextra -O2 -D_GNU_SOURCE
 #CFLAGS += -DWITH_TIME_CALC
 CFLAGS += $(shell pkg-config json-c --cflags)
 
