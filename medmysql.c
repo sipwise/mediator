@@ -511,7 +511,7 @@ int medmysql_fetch_records(med_callid_t *callid,
 		callid->value, callid->value,
 		callid->value, callid->value);
 
-	assert(len < sizeof(query)); /* truncated - internal bug */
+	assert(len > 0 && (size_t)len < sizeof(query)); /* truncated - internal bug */
 
 	/*syslog(LOG_DEBUG, "q='%s'", query);*/
 
