@@ -1,0 +1,1 @@
+rm_conffile /etc/init.d/mediator 6.3.0.0+0~mr6.3.0.0~ ngcp-mediator

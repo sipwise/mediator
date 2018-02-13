@@ -13,7 +13,6 @@ Homepage: https://www.sipwise.com/
 Package: ngcp-mediator
 Architecture: any
 Depends:
- lsb-base,
  ${misc:Depends},
  ${shlibs:Depends},
 Description: CDR creation tool for NGCP
