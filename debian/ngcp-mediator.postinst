@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -e
+
+# Remove init script setup on upgrade.
+update-rc.d mediator remove >/dev/null
+
+#DEBHELPER#
