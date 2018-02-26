@@ -14,6 +14,11 @@ extern char *config_med_user;
 extern char *config_med_pass;
 extern char *config_med_db;
 
+extern char *config_redis_host;
+extern unsigned int config_redis_port;
+extern char *config_redis_pass;
+extern unsigned int config_redis_db;
+
 extern char *config_cdr_host;
 extern unsigned int config_cdr_port;
 extern char *config_cdr_user;
@@ -38,6 +43,8 @@ extern uint8_t config_dumpcdr;
 
 extern int config_maintenance;
 extern int strict_leg_tokens;
+
+extern med_loglevel_t config_loglevel;
 
 int config_parse(int argc, char **argv);
 void config_cleanup();

@@ -6,6 +6,7 @@ Build-Depends:
  debhelper (>= 10),
  default-libmysqlclient-dev | libmysqlclient15-dev,
  libglib2.0-dev,
+ libhiredis-dev,
  libjson-c-dev,
 Standards-Version: 3.9.8
 Homepage: https://www.sipwise.com/
