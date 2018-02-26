@@ -17,68 +17,68 @@
 struct medmysql_batches;
 
 typedef struct {
-	int filled;
-	double avg_score;
-	int avg_packetloss;
-	int avg_jitter;
-	int avg_rtt;
+    int filled;
+    double avg_score;
+    int avg_packetloss;
+    int avg_jitter;
+    int avg_rtt;
 } mos_data_t;
 
 typedef struct {
-	char call_id[128];
+    char call_id[128];
 
-	char source_user_id[37];
-	char source_ext_subscriber_id[256];
-	char source_ext_contract_id[256];
-	char source_provider_id[256];
-	uint64_t source_account_id;
-	char source_user[256];
-	char source_domain[256];
-	char source_cli[65];
-	char source_ip[65];
-	uint8_t source_clir;
-	char source_gpp[10][255];
-	char source_lnp_prefix[256];
-	char source_user_out[256];
-	char source_lnp_type[256];
+    char source_user_id[37];
+    char source_ext_subscriber_id[256];
+    char source_ext_contract_id[256];
+    char source_provider_id[256];
+    uint64_t source_account_id;
+    char source_user[256];
+    char source_domain[256];
+    char source_cli[65];
+    char source_ip[65];
+    uint8_t source_clir;
+    char source_gpp[10][255];
+    char source_lnp_prefix[256];
+    char source_user_out[256];
+    char source_lnp_type[256];
 
-	char destination_user_id[37];
-	char destination_provider_id[256];
-	char destination_ext_subscriber_id[256];
-	char destination_ext_contract_id[256];
-	uint64_t destination_account_id;
-	char destination_user[256];
-	char destination_domain[256];
-	char destination_user_in[256];
-	char destination_domain_in[256];
-	char destination_dialed[256];
-	uint64_t destination_lcr_id;
-	char destination_gpp[10][255];
-	char destination_lnp_prefix[256];
-	char destination_user_out[256];
-	char destination_lnp_type[256];
+    char destination_user_id[37];
+    char destination_provider_id[256];
+    char destination_ext_subscriber_id[256];
+    char destination_ext_contract_id[256];
+    uint64_t destination_account_id;
+    char destination_user[256];
+    char destination_domain[256];
+    char destination_user_in[256];
+    char destination_domain_in[256];
+    char destination_dialed[256];
+    uint64_t destination_lcr_id;
+    char destination_gpp[10][255];
+    char destination_lnp_prefix[256];
+    char destination_user_out[256];
+    char destination_lnp_type[256];
 
-	char call_type[8];
-	char call_status[16];
-	char call_code[4];
+    char call_type[8];
+    char call_status[16];
+    char call_code[4];
 
-	char peer_auth_user[256];
-	char peer_auth_realm[256];
+    char peer_auth_user[256];
+    char peer_auth_realm[256];
 
-	double init_time;
-	double start_time;
-	double duration;
+    double init_time;
+    double start_time;
+    double duration;
 
-	uint32_t source_carrier_cost;
-	uint32_t source_reseller_cost;
-	uint32_t source_customer_cost;
-	uint32_t destination_carrier_cost;
-	uint32_t destination_reseller_cost;
-	uint32_t destination_customer_cost;
+    uint32_t source_carrier_cost;
+    uint32_t source_reseller_cost;
+    uint32_t source_customer_cost;
+    uint32_t destination_carrier_cost;
+    uint32_t destination_reseller_cost;
+    uint32_t destination_customer_cost;
 
-	uint8_t split;
+    uint8_t split;
 
-	mos_data_t mos;
+    mos_data_t mos;
 } cdr_entry_t;
 
 int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *cdr_count, struct medmysql_batches *);
