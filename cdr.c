@@ -3,6 +3,7 @@
 
 #include "cdr.h"
 #include "medmysql.h"
+#include "medredis.h"
 #include "config.h"
 #include "mediator.h"
 
@@ -51,6 +52,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 	uint16_t invite_200 = 0;
 
 	char *callid = records[0].callid;
+	uint8_t redis = records[0].redis;
 
 
 	cdr_entry_t *cdrs = NULL;
@@ -77,6 +79,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 		}
 		else
 		{
+			L_DEBUG("Unrecognized record with method '%s' for cid '%s'\n", e->sip_method, callid);
 			++msg_unknowns;
 			e->method = MED_UNRECOGNIZED;
 		}
@@ -85,7 +88,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 			return -1;
 	}
 
-	/*syslog(LOG_DEBUG, "%d INVITEs, %d BYEs, %d unrecognized", msg_invites, msg_byes, msg_unknowns);*/
+	L_DEBUG("%d INVITEs, %d BYEs, %d unrecognized", msg_invites, msg_byes, msg_unknowns);
 
 	if(msg_invites > 0)
 	{
@@ -93,7 +96,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 		{
 			if(/*msg_byes > 2*/ 0)
 			{
-				syslog(LOG_WARNING, "Multiple (%d) BYE messages for callid '%s' found, trashing...",
+				L_WARNING("Multiple (%d) BYE messages for callid '%s' found, trashing...",
 						msg_byes, callid);
 				trash = 1;
 			}
@@ -112,11 +115,21 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 						}
 
 						if(medmysql_insert_cdrs(cdrs, cdr_count, batches) != 0)
+						{
 							goto error;
+						}
 						else
 						{
-							if(medmysql_backup_entries(callid, batches) != 0)
-								goto error;
+							if (redis)
+							{
+								if(medredis_backup_entries(callid) != 0)
+									goto error;
+							}
+							else
+							{
+								if(medmysql_backup_entries(callid, batches) != 0)
+									goto error;
+							}
 						}
 
 					}
@@ -132,21 +145,29 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 		else
 		{
 			/*
-			syslog(LOG_DEBUG, "No BYE message for callid '%s' found, skipping...",
+			L_DEBUG("No BYE message for callid '%s' found, skipping...",
 					callid);
 			*/
 		}
 	}
 	else
 	{
-		/*syslog(LOG_WARNING, "No INVITE message for callid '%s' found, trashing...", callid);*/
+		/*L_WARNING("No INVITE message for callid '%s' found, trashing...", callid);*/
 		trash = 1;
 	}
 
 	if(trash)
 	{
-		if(medmysql_trash_entries(callid, batches) != 0)
-			goto error;
+		if (redis)
+		{
+			if(medredis_trash_entries(callid) != 0)
+				goto error;
+		}
+		else
+		{
+			if(medmysql_trash_entries(callid, batches) != 0)
+				goto error;
+		}
 	}
 	return ret;
 
@@ -212,7 +233,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated source user id, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated source user id, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -222,7 +243,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated source user, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated source user, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -232,7 +253,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated source domain, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated source domain, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -243,7 +264,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated source cli, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated source cli, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -253,7 +274,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated source external subscriber id, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated source external subscriber id, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -264,7 +285,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated source external contract id, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated source external contract id, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -275,7 +296,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated source account id, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated source account id, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -285,7 +306,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated peer auth user, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated peer auth user, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -295,7 +316,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated peer auth realm, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated peer auth realm, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -305,7 +326,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated source clir status, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated source clir status, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -315,7 +336,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated call type, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated call type, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -325,7 +346,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated source ip, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated source ip, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -335,7 +356,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated source init time, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated source init time, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -348,7 +369,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 		tmp1 = strchr(tmp2, MED_SEP);
 		if(tmp1 == NULL)
 		{
-			syslog(LOG_WARNING, "Call-Id '%s' has no separated source gpp %d, '%s'", cdr->call_id, i, tmp2);
+			L_WARNING("Call-Id '%s' has no separated source gpp %d, '%s'", cdr->call_id, i, tmp2);
 			return -1;
 		}
 		*tmp1 = '\0';
@@ -360,12 +381,12 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	if(tmp1 == NULL)
 	{
 		if (strict_leg_tokens) {
-			syslog(LOG_WARNING, "Call-Id '%s' has no separated source lnp prefix, '%s'", cdr->call_id, tmp2);
+			L_WARNING("Call-Id '%s' has no separated source lnp prefix, '%s'", cdr->call_id, tmp2);
 			return -1;
 		} else {
 			cdr->source_lnp_prefix[0] = '\0';
 			cdr->source_user_out[0] = '\0';
-			syslog(LOG_WARNING, "Call-Id '%s' src leg has missing tokens (using empty lnp prefix, user out) '%s'", cdr->call_id, tmp2);
+			L_WARNING("Call-Id '%s' src leg has missing tokens (using empty lnp prefix, user out) '%s'", cdr->call_id, tmp2);
 			return 0;
 		}
 	}
@@ -377,11 +398,11 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	if(tmp1 == NULL)
 	{
 		if (strict_leg_tokens) {
-			syslog(LOG_WARNING, "Call-Id '%s' has no separated source user out, '%s'", cdr->call_id, tmp2);
+			L_WARNING("Call-Id '%s' has no separated source user out, '%s'", cdr->call_id, tmp2);
 			return -1;
 		} else {
 			cdr->source_user_out[0] = '\0';
-			syslog(LOG_WARNING, "Call-Id '%s' src leg has missing tokens (using empty user out) '%s'", cdr->call_id, tmp2);
+			L_WARNING("Call-Id '%s' src leg has missing tokens (using empty user out) '%s'", cdr->call_id, tmp2);
 			return 0;
 		}
 	}
@@ -392,7 +413,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-        syslog(LOG_WARNING, "Call-Id '%s' has no separated source lnp type, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated source lnp type, '%s'", cdr->call_id, tmp2);
         return -1;
 	}
 	*tmp1 = '\0';
@@ -411,7 +432,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated split flag, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated split flag, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -421,7 +442,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination external subscriber id, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated destination external subscriber id, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -432,7 +453,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination external contract id, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated destination external contract id, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -443,7 +464,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination account id, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated destination account id, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -453,7 +474,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated dialed digits", cdr->call_id);
+		L_WARNING("Call-Id '%s' has no separated dialed digits", cdr->call_id);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -463,7 +484,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination user id", cdr->call_id);
+		L_WARNING("Call-Id '%s' has no separated destination user id", cdr->call_id);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -473,7 +494,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination user", cdr->call_id);
+		L_WARNING("Call-Id '%s' has no separated destination user", cdr->call_id);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -483,7 +504,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination domain", cdr->call_id);
+		L_WARNING("Call-Id '%s' has no separated destination domain", cdr->call_id);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -493,7 +514,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated incoming destination user", cdr->call_id);
+		L_WARNING("Call-Id '%s' has no separated incoming destination user", cdr->call_id);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -503,7 +524,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated incoming destination domain", cdr->call_id);
+		L_WARNING("Call-Id '%s' has no separated incoming destination domain", cdr->call_id);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -513,7 +534,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-		syslog(LOG_WARNING, "Call-Id '%s' has no separated destination lcr id, '%s'", cdr->call_id, tmp2);
+		L_WARNING("Call-Id '%s' has no separated destination lcr id, '%s'", cdr->call_id, tmp2);
 		return -1;
 	}
 	*tmp1 = '\0';
@@ -526,7 +547,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 		tmp1 = strchr(tmp2, MED_SEP);
 		if(tmp1 == NULL)
 		{
-			syslog(LOG_WARNING, "Call-Id '%s' has no separated destination gpp %d, '%s'", cdr->call_id, i, tmp2);
+			L_WARNING("Call-Id '%s' has no separated destination gpp %d, '%s'", cdr->call_id, i, tmp2);
 			return -1;
 		}
 		*tmp1 = '\0';
@@ -538,12 +559,12 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	if(tmp1 == NULL)
 	{
 		if (strict_leg_tokens) {
-			syslog(LOG_WARNING, "Call-Id '%s' has no separated destination lnp prefix, '%s'", cdr->call_id, tmp2);
+			L_WARNING("Call-Id '%s' has no separated destination lnp prefix, '%s'", cdr->call_id, tmp2);
 			return -1;
 		} else {
 			cdr->destination_lnp_prefix[0] = '\0';
 			cdr->destination_user_out[0] = '\0';
-			syslog(LOG_WARNING, "Call-Id '%s' dst leg has missing tokens (using empty lnp prefix, user out) '%s'", cdr->call_id, tmp2);
+			L_WARNING("Call-Id '%s' dst leg has missing tokens (using empty lnp prefix, user out) '%s'", cdr->call_id, tmp2);
 			return 0;
 		}
 	}
@@ -555,11 +576,11 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	if(tmp1 == NULL)
 	{
 		if (strict_leg_tokens) {
-			syslog(LOG_WARNING, "Call-Id '%s' has no separated destination user out, '%s'", cdr->call_id, tmp2);
+			L_WARNING("Call-Id '%s' has no separated destination user out, '%s'", cdr->call_id, tmp2);
 			return -1;
 		} else {
 			cdr->destination_user_out[0] = '\0';
-			syslog(LOG_WARNING, "Call-Id '%s' dst leg has missing tokens (using empty user out) '%s'", cdr->call_id, tmp2);
+			L_WARNING("Call-Id '%s' dst leg has missing tokens (using empty user out) '%s'", cdr->call_id, tmp2);
 			return 0;
 		}
 	}
@@ -570,7 +591,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 	tmp1 = strchr(tmp2, MED_SEP);
 	if(tmp1 == NULL)
 	{
-        syslog(LOG_WARNING, "Call-Id '%s' has no separated destination lnp type, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated destination lnp type, '%s'", cdr->call_id, tmp2);
         return -1;
 	}
 	*tmp1 = '\0';
@@ -602,38 +623,38 @@ static int cdr_parse_json_get_double(json_object *obj, const char *key, double *
 }
 
 static int cdr_parse_bye_dstleg(char *dstleg, mos_data_t *mos_data) {
-	syslog(LOG_DEBUG, "Parsing JSON: '%s'", dstleg);
+	L_DEBUG("Parsing JSON: '%s'", dstleg);
 
 	json_object *json = json_tokener_parse(dstleg);
 	if (!json) {
-		syslog(LOG_ERR, "Could not parse JSON dst_leg string: '%s'", dstleg);
+		L_ERROR("Could not parse JSON dst_leg string: '%s'", dstleg);
 		return -1;
 	}
 	if (!json_object_is_type(json, json_type_object)) {
-		syslog(LOG_ERR, "JSON type is not object: '%s'", dstleg);
+		L_ERROR("JSON type is not object: '%s'", dstleg);
 		goto err;
 	}
 	json_object *mos;
 	if (!json_object_object_get_ex(json, "mos", &mos)
 			|| !json_object_is_type(mos, json_type_object))
 	{
-		syslog(LOG_ERR, "JSON object does not contain 'mos' key: '%s'", dstleg);
+		L_ERROR("JSON object does not contain 'mos' key: '%s'", dstleg);
 		goto err;
 	}
 	if (!cdr_parse_json_get_double(mos, "avg_score", &mos_data->avg_score)) {
-		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_score' key: '%s'", dstleg);
+		L_ERROR("JSON object does not contain 'mos.avg_score' key: '%s'", dstleg);
 		goto err;
 	}
 	if (!cdr_parse_json_get_int(mos, "avg_packetloss", &mos_data->avg_packetloss)) {
-		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_packetloss' key: '%s'", dstleg);
+		L_ERROR("JSON object does not contain 'mos.avg_packetloss' key: '%s'", dstleg);
 		goto err;
 	}
 	if (!cdr_parse_json_get_int(mos, "avg_jitter", &mos_data->avg_jitter)) {
-		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_jitter' key: '%s'", dstleg);
+		L_ERROR("JSON object does not contain 'mos.avg_jitter' key: '%s'", dstleg);
 		goto err;
 	}
 	if (!cdr_parse_json_get_int(mos, "avg_rtt", &mos_data->avg_rtt)) {
-		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_rtt' key: '%s'", dstleg);
+		L_ERROR("JSON object does not contain 'mos.avg_rtt' key: '%s'", dstleg);
 		goto err;
 	}
 
@@ -687,7 +708,7 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
 
 	if(invites == 0)
 	{
-		syslog(LOG_CRIT, "No valid INVITEs for creating a cdr, internal error, callid='%s'",
+		L_CRITICAL("No valid INVITEs for creating a cdr, internal error, callid='%s'",
 				records[0].callid);
 		return -1;
 	}
@@ -697,7 +718,7 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
 	*cdrs = (cdr_entry_t*)malloc(cdr_size);
 	if(*cdrs == NULL)
 	{
-		syslog(LOG_ERR, "Error allocating memory for cdrs: %s", strerror(errno));
+		L_ERROR("Error allocating memory for cdrs: %s", strerror(errno));
 		return -1;
 	}
 	memset(*cdrs, 0, cdr_size);
@@ -714,10 +735,14 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
 		if (!e->valid)
 			continue;
 
+		L_DEBUG("create cdr %lu of %lu in batch\n", i, count);
+
 		call_status = cdr_map_status(e->sip_code);
 		if(e->method == MED_INVITE && call_status != NULL)
 		{
 			++cdr_index;
+
+			L_DEBUG("Creating CDR index %lu\n", cdr_index);
 
 			if(strncmp("200", e->sip_code, 3))
 			{
@@ -762,6 +787,8 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
 			}
 
 			cdr->mos = mos_data;
+
+			L_DEBUG("Created CDR index %lu\n", cdr_index);
 		}
 
 		if (check_shutdown())
@@ -770,7 +797,7 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
 
 	*cdr_count = cdr_index;
 
-	/*syslog(LOG_DEBUG, "Created %llu CDRs:", *cdr_count);*/
+	/*L_DEBUG("Created %llu CDRs:", *cdr_count);*/
 
 	return 0;
 }
