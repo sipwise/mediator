@@ -47,6 +47,12 @@
 #define MEDIATOR_DEFAULT_STATSPORT 0
 #define MEDIATOR_DEFAULT_STATSPERIOD MED_STATS_HOUR
 
+#define MEDIATOR_DEFAULT_REDISHOST "localhost"
+#define MEDIATOR_DEFAULT_REDISPORT 6379
+#define MEDIATOR_DEFAULT_REDISDB   21
+
+#define MEDIATOR_DEFAULT_LOGLEVEL 6
+
 #define MED_GW_STRING "gw"
 #define MED_AS_STRING "as"
 #define MED_PEER_STRING "peer"
@@ -54,6 +60,9 @@
 #define MED_MIN_BASELEN 6
 
 #define MED_SEP '|'
+
+#define PBXSUFFIX "_pbx-1"
+#define XFERSUFFIX "_xfer-1"
 
 extern int mediator_lockfd;
 extern sig_atomic_t mediator_shutdown;
@@ -76,7 +85,14 @@ typedef struct {
 	uint8_t valid;
 	med_method_t method;
 	char sip_method[32];
+	uint8_t redis;
 } med_entry_t;
+
+typedef struct {
+	med_entry_t *records;
+	uint64_t rec_count;
+	char callid[256];
+} med_redis_entry_t;
 
 typedef struct {
 	char value[256];
@@ -104,5 +120,31 @@ typedef enum {
 	MED_STATS_DAY   = 2,
 	MED_STATS_MONTH = 3
 } med_stats_period_t;
+
+typedef enum {
+	MED_LOG_EMERGENCY = 0,
+	MED_LOG_ALERT     = 1,
+	MED_LOG_CRITICAL  = 2,
+	MED_LOG_ERROR     = 3,
+	MED_LOG_WARNING   = 4,
+	MED_LOG_NOTICE    = 5,
+	MED_LOG_INFO      = 6,
+	MED_LOG_DEBUG     = 7
+} med_loglevel_t;
+
+#define _LOG(level, fmt, args...) \
+	do { \
+		syslog((level), "%s:%d [%s]: " fmt, __FILE__, __LINE__, __func__, ##args); \
+	} while(0)
+
+#define L_DEBUG(fmt, args...)     do { if (config_loglevel >= MED_LOG_DEBUG) { _LOG(LOG_DEBUG,   fmt, ##args); } } while(0)
+#define L_INFO(fmt, args...)      do { if (config_loglevel >= MED_LOG_INFO) { _LOG(LOG_INFO,   fmt, ##args); } } while(0)
+#define L_NOTICE(fmt, args...)    do { if (config_loglevel >= MED_LOG_NOTICE) { _LOG(LOG_NOTICE,   fmt, ##args); } } while(0)
+#define L_WARNING(fmt, args...)   do { if (config_loglevel >= MED_LOG_WARNING) { _LOG(LOG_WARNING,   fmt, ##args); } } while(0)
+#define L_ERROR(fmt, args...)     do { if (config_loglevel >= MED_LOG_ERROR) { _LOG(LOG_ERR,   fmt, ##args); } } while(0)
+#define L_CRITICAL(fmt, args...)  do { if (config_loglevel >= MED_LOG_CRITICAL) { _LOG(LOG_CRIT,   fmt, ##args); } } while(0)
+#define L_ALERT(fmt, args...)     do { if (config_loglevel >= MED_LOG_ALERT) { _LOG(LOG_ALERT,   fmt, ##args); } } while(0)
+#define L_EMERGENCY(fmt, args...) do { if (config_loglevel >= MED_LOG_EMERG) { _LOG(LOG_EMERG,   fmt, ##args); } } while(0)
+
 
 #endif /* _MEDIATOR_H */
