@@ -10,9 +10,6 @@
 
 #define _TEST_SIMULATE_SQL_ERRORS 0
 
-#define PBXSUFFIX "_pbx-1"
-#define XFERSUFFIX "_xfer-1"
-
 #define MED_CALLID_QUERY "select a.callid from acc a" \
 	" where a.method = 'INVITE' " \
 	  " and (a.sip_code != '200' " \
@@ -184,7 +181,7 @@ static void __g_queue_clear_full(GQueue *q, GDestroyNotify free_func) {
 static unsigned int medmysql_real_query_errno(MYSQL *m, const char *s, unsigned long len) {
 #if _TEST_SIMULATE_SQL_ERRORS
 	if (rand() % 10 == 0) {
-		syslog(LOG_INFO, "Simulating SQL error - statement '%.*s'",
+		L_INFO("Simulating SQL error - statement '%.*s'",
 				(int) len, s);
 		return CR_SERVER_LOST;
 	}
@@ -207,7 +204,7 @@ static int medmysql_query_wrapper(medmysql_handler *mysql, const char *stmt_str,
 		if (err == CR_SERVER_GONE_ERROR || err == CR_SERVER_LOST || err == CR_CONN_HOST_ERROR
 				|| err == CR_CONNECTION_ERROR)
 		{
-			syslog(LOG_WARNING, "Lost connection to SQL server during query, retrying...");
+			L_WARNING("Lost connection to SQL server during query, retrying...");
 			sleep(10);
 			continue;
 		}
@@ -222,7 +219,7 @@ static int medmysql_query_wrapper_tx(medmysql_handler *mysql, const char *stmt_s
 	unsigned int err;
 
 	if (!mysql->is_transaction) {
-		syslog(LOG_CRIT, "SQL mode is not in transaction");
+		L_CRITICAL("SQL mode is not in transaction");
 		return -1;
 	}
 
@@ -236,11 +233,11 @@ static int medmysql_query_wrapper_tx(medmysql_handler *mysql, const char *stmt_s
 		{
 			// rollback, cancel transaction, restart transaction, replay all statements,
 			// and then try again
-			syslog(LOG_WARNING, "Got error %u from SQL server during transaction, retrying...",
+			L_WARNING("Got error %u from SQL server during transaction, retrying...",
 					err);
 			err = medmysql_real_query_errno(mysql->m, "rollback", 8);
 			if (err) {
-				syslog(LOG_CRIT, "Got error %u from SQL during rollback",
+				L_CRITICAL("Got error %u from SQL during rollback",
 						mysql_errno(mysql->m));
 				return -1;
 			}
@@ -272,12 +269,12 @@ static int medmysql_query_wrapper_tx(medmysql_handler *mysql, const char *stmt_s
 		// append statement to queue for possible replaying
 		statement_str *stm = malloc(sizeof(*stm));
 		if (!stm) {
-			syslog(LOG_CRIT, "Out of memory (malloc statement_str)");
+			L_CRITICAL("Out of memory (malloc statement_str)");
 			return -1;
 		}
 		stm->str = malloc(length);
 		if (!stm->str) {
-			syslog(LOG_CRIT, "Out of memory (malloc statement_str body)");
+			L_CRITICAL("Out of memory (malloc statement_str body)");
 			free(stm);
 			return -1;
 		}
@@ -296,7 +293,7 @@ static medmysql_handler *medmysql_handler_init(const char *name, const char *hos
 
 	ret = malloc(sizeof(*ret));
 	if (!ret) {
-		syslog(LOG_CRIT, "Out of memory (malloc in medmysql_handler_init)");
+		L_CRITICAL("Out of memory (malloc in medmysql_handler_init)");
 		return NULL;
 	}
 	memset(ret, 0, sizeof(*ret));
@@ -304,7 +301,7 @@ static medmysql_handler *medmysql_handler_init(const char *name, const char *hos
 	g_queue_init(&ret->transaction_statements);
 	ret->m = mysql_init(NULL);
 	if (!ret->m) {
-		syslog(LOG_CRIT, "Out of memory (mysql_init)");
+		L_CRITICAL("Out of memory (mysql_init)");
 		goto err;
 	}
 
@@ -312,17 +309,17 @@ static medmysql_handler *medmysql_handler_init(const char *name, const char *hos
 				host, user, pass,
 				db, port, NULL, 0))
 	{
-		syslog(LOG_CRIT, "Error connecting to %s db: %s", name, mysql_error(ret->m));
+		L_CRITICAL("Error connecting to %s db: %s", name, mysql_error(ret->m));
 		goto err;
 	}
 	if(mysql_options(ret->m, MYSQL_OPT_RECONNECT, &recon) != 0)
 	{
-		syslog(LOG_CRIT, "Error setting reconnect-option for %s db: %s", name, mysql_error(ret->m));
+		L_CRITICAL("Error setting reconnect-option for %s db: %s", name, mysql_error(ret->m));
 		goto err;
 	}
 	if(mysql_autocommit(ret->m, 1) != 0)
 	{
-		syslog(LOG_CRIT, "Error setting autocommit=1 for %s db: %s", name,
+		L_CRITICAL("Error setting autocommit=1 for %s db: %s", name,
 				mysql_error(ret->m));
 		goto err;
 	}
@@ -337,26 +334,26 @@ err:
 /**********************************************************************/
 static unsigned long medmysql_get_num_col(medmysql_handler *handler, const char *query) {
 	if (medmysql_query_wrapper(handler, query, strlen(query))) {
-		syslog(LOG_CRIT, "Error getting DB value (query '%s'): %s",
+		L_CRITICAL("Error getting DB value (query '%s'): %s",
 				query, mysql_error(handler->m));
 		return 0;
 	}
 	MYSQL_RES *res = mysql_store_result(handler->m);
 	if (!res) {
-		syslog(LOG_CRIT, "No result set returned from SQL (query '%s'): %s",
+		L_CRITICAL("No result set returned from SQL (query '%s'): %s",
 				query, mysql_error(handler->m));
 		return 0;
 	}
 	MYSQL_ROW row = mysql_fetch_row(res);
 	if (!row || !row[0]) {
-		syslog(LOG_CRIT, "No row returned from SQL (query '%s'): %s",
+		L_CRITICAL("No row returned from SQL (query '%s'): %s",
 				query, mysql_error(handler->m));
 		mysql_free_result(res);
 		return 0;
 	}
 	unsigned long num = strtoul(row[0], NULL, 10);
 	if (!num) {
-		syslog(LOG_CRIT, "Returned number from DB (query '%s') is '%s'",
+		L_CRITICAL("Returned number from DB (query '%s') is '%s'",
 				query, row[0]);
 		mysql_free_result(res);
 		return 0;
@@ -411,7 +408,7 @@ static void medmysql_handler_close(medmysql_handler **h) {
 		mysql_close((*h)->m);
 
 	if ((*h)->transaction_statements.length)
-		syslog(LOG_WARNING, "Closing DB handle with still %u statements in queue",
+		L_WARNING("Closing DB handle with still %u statements in queue",
 				(*h)->transaction_statements.length);
 	__g_queue_clear_full(&(*h)->transaction_statements, statement_free);
 
@@ -441,11 +438,11 @@ med_callid_t *medmysql_fetch_callids(uint64_t *count)
 
 	/* g_strlcpy(query, MED_CALLID_QUERY, sizeof(query)); */
 
-	/*syslog(LOG_DEBUG, "q='%s'", query);*/
+	/*L_DEBUG("q='%s'", query);*/
 
 	if(medmysql_query_wrapper(med_handler, MED_CALLID_QUERY, strlen(MED_CALLID_QUERY)) != 0)
 	{
-		syslog(LOG_CRIT, "Error getting acc callids: %s",
+		L_CRITICAL("Error getting acc callids: %s",
 				mysql_error(med_handler->m));
 		return NULL;
 	}
@@ -461,7 +458,7 @@ med_callid_t *medmysql_fetch_callids(uint64_t *count)
 	callids = malloc(callid_size);
 	if(callids == NULL)
 	{
-		syslog(LOG_CRIT, "Error allocating callid memory: %s", strerror(errno));
+		L_CRITICAL("Error allocating callid memory: %s", strerror(errno));
 		free(callids);
 		callids = NULL;
 		goto out;
@@ -479,7 +476,7 @@ med_callid_t *medmysql_fetch_callids(uint64_t *count)
 			g_strlcpy(c->value, row[0], sizeof(c->value));
 		}
 
-		/*syslog(LOG_DEBUG, "callid[%"PRIu64"]='%s'", i, c->value);*/
+		/*L_DEBUG("callid[%"PRIu64"]='%s'", i, c->value);*/
 
 		if (check_shutdown()) {
 			free(callids);
@@ -513,11 +510,11 @@ int medmysql_fetch_records(med_callid_t *callid,
 
 	assert(len > 0 && (size_t)len < sizeof(query)); /* truncated - internal bug */
 
-	/*syslog(LOG_DEBUG, "q='%s'", query);*/
+	/*L_DEBUG("q='%s'", query);*/
 
 	if(medmysql_query_wrapper(med_handler, query, len) != 0)
 	{
-		syslog(LOG_CRIT, "Error getting acc records for callid '%s': %s",
+		L_CRITICAL("Error getting acc records for callid '%s': %s",
 				callid->value, mysql_error(med_handler->m));
 		return -1;
 	}
@@ -526,7 +523,7 @@ int medmysql_fetch_records(med_callid_t *callid,
 	*count = mysql_num_rows(res);
 	if(*count == 0)
 	{
-		syslog(LOG_CRIT, "No records found for callid '%s'!",
+		L_CRITICAL("No records found for callid '%s'!",
 				callid->value);
 		ret = -1;
 		goto out;
@@ -536,7 +533,7 @@ int medmysql_fetch_records(med_callid_t *callid,
 	*entries = (med_entry_t*)malloc(entry_size);
 	if(*entries == NULL)
 	{
-		syslog(LOG_CRIT, "Error allocating memory for record entries: %s",
+		L_CRITICAL("Error allocating memory for record entries: %s",
 				strerror(errno));
 		ret = -1;
 		goto out;
@@ -869,7 +866,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
 			return -1;
 	}
 
-	/*syslog(LOG_DEBUG, "q='%s'", query);*/
+	/*L_DEBUG("q='%s'", query);*/
 
 
 	return 0;
@@ -898,7 +895,7 @@ int medmysql_update_call_stat_info(const char *call_code, const double start_tim
 			strftime(period, STAT_PERIOD_SIZE, "%Y-%m-01 00:00:00", localtime(&etime));
 			break;
 		default:
-			syslog(LOG_CRIT, "Undefinied or wrong config_stats_period %d",
+			L_CRITICAL("Undefinied or wrong config_stats_period %d",
 					config_stats_period);
 			return -1;
 	}
@@ -928,10 +925,10 @@ int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable 
 
 	/* snprintf(query, sizeof(query), MED_LOAD_PEER_QUERY); */
 
-	/* syslog(LOG_DEBUG, "q='%s'", query); */
+	/* L_DEBUG("q='%s'", query); */
 	if(medmysql_query_wrapper(prov_handler, MED_LOAD_PEER_QUERY, strlen(MED_LOAD_PEER_QUERY)) != 0)
 	{
-		syslog(LOG_CRIT, "Error loading peer hosts: %s",
+		L_CRITICAL("Error loading peer hosts: %s",
 				mysql_error(prov_handler->m));
 		return -1;
 	}
@@ -942,7 +939,7 @@ int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable 
 	{
 		if(row[0] == NULL || row[2] == NULL)
 		{
-			syslog(LOG_CRIT, "Error loading peer hosts, a mandatory column is NULL");
+			L_CRITICAL("Error loading peer hosts, a mandatory column is NULL");
 			ret = -1;
 			goto out;
 		}
@@ -950,14 +947,14 @@ int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable 
 		if(ip_table != NULL)
 		{
 			if(g_hash_table_lookup(ip_table, row[0]) != NULL)
-				syslog(LOG_WARNING, "Skipping duplicate IP '%s'", row[0]);
+				L_WARNING("Skipping duplicate IP '%s'", row[0]);
 			else
 				g_hash_table_insert(ip_table, strdup(row[0]), strdup(row[2]));
 		}
 		if(host_table != NULL && row[1] != NULL) // host column is optional
 		{
 			if(g_hash_table_lookup(host_table, row[1]) != NULL)
-				syslog(LOG_WARNING, "Skipping duplicate host '%s'", row[1]);
+				L_WARNING("Skipping duplicate host '%s'", row[1]);
 			else
 				g_hash_table_insert(host_table, strdup(row[1]), strdup(row[2]));
 		}
@@ -982,10 +979,10 @@ int medmysql_load_uuids(GHashTable *uuid_table)
 
 	/* snprintf(query, sizeof(query), MED_LOAD_UUID_QUERY); */
 
-	/* syslog(LOG_DEBUG, "q='%s'", query); */
+	/* L_DEBUG("q='%s'", query); */
 	if(medmysql_query_wrapper(prov_handler, MED_LOAD_UUID_QUERY, strlen(MED_LOAD_UUID_QUERY)) != 0)
 	{
-		syslog(LOG_CRIT, "Error loading uuids: %s",
+		L_CRITICAL("Error loading uuids: %s",
 				mysql_error(prov_handler->m));
 		return -1;
 	}
@@ -996,7 +993,7 @@ int medmysql_load_uuids(GHashTable *uuid_table)
 	{
 		if(row[0] == NULL || row[1] == NULL)
 		{
-			syslog(LOG_CRIT, "Error loading uuids, a column is NULL");
+			L_CRITICAL("Error loading uuids, a column is NULL");
 			ret = -1;
 			goto out;
 		}
@@ -1004,7 +1001,7 @@ int medmysql_load_uuids(GHashTable *uuid_table)
 		provider_id = strdup(row[1]);
 		if(provider_id == NULL)
 		{
-			syslog(LOG_CRIT, "Error allocating provider id memory: %s", strerror(errno));
+			L_CRITICAL("Error allocating provider id memory: %s", strerror(errno));
 			ret = -1;
 			goto out;
 		}
@@ -1100,17 +1097,20 @@ static int medmysql_flush_med_str(struct medmysql_str *str, const medmysql_batch
 	str->len--;
 	str->str[str->len] = '\0';
 
+	L_DEBUG("SQL flush med str\n");
+	L_DEBUG("SQL: %.*s\n", str->len, str->str);
+
 	if (def->sql_finish_string)
 		str->len += sprintf(str->str + str->len, "%s", def->sql_finish_string);
 
 	if (medmysql_query_wrapper_tx(*def->handler_ptr, str->str, str->len) != 0) {
 		str->len = 0;
-		syslog(LOG_CRIT, "Error executing query: %s",
+		L_CRITICAL("Error executing query: %s",
 				mysql_error((*def->handler_ptr)->m));
 		if (str->len <= 500)
-			syslog(LOG_CRIT, "Failed query: '%s'", str->str);
+			L_CRITICAL("Failed query: '%s'", str->str);
 		else
-			syslog(LOG_CRIT, "Failed query: '%.*s'...", 500, str->str);
+			L_CRITICAL("Failed query: '%.*s'...", 500, str->str);
 		return -1;
 	}
 
@@ -1146,30 +1146,35 @@ static int medmysql_write_cdr_tags(struct medmysql_batches *batches, unsigned lo
 
 
 static int medmysql_flush_cdr(struct medmysql_batches *batches) {
-	//FILE *qlog;
+
+	// TODO: the config option is a bit misleading
+	if (config_dumpcdr && batches->cdrs.len) {
+		FILE *qlog;
+
+		qlog = fopen("/var/log/ngcp/cdr-query.log", "a");
+		if(qlog == NULL)
+		{
+			L_CRITICAL("Failed to open cdr query log file '/var/log/ngcp/cdr-query.log': %s", strerror(errno));
+			return -1;
+		}
+		if(fputs(batches->cdrs.str, qlog) == EOF)
+		{
+			L_CRITICAL("Failed to write to cdr query log file '/var/log/ngcp/cdr-query.log': %s", strerror(errno));
+		}
+		fclose(qlog);
+	}
+
+	if (!batches->cdrs.len)
+		return 0;
+
 
 	if (medmysql_flush_med_str(&batches->cdrs, &medmysql_cdr_def)) {
-		// agranig: tmp. way to log failed query, since it's too big
-		// for syslog. Make this configurable (path, enable) via
-		// cmd line switches
-		//qlog = fopen("/var/log/ngcp/cdr-query.log", "a");
-		//if(qlog == NULL)
-		//{
-		//	syslog(LOG_CRIT, "Failed to open cdr query log file '/var/log/ngcp/cdr-query.log': %s", strerror(errno));
-		//	return -1;
-		//}
-		//if(fputs(batches->cdrs.str, qlog) == EOF)
-		//{
-		//	syslog(LOG_CRIT, "Failed to write to cdr query log file '/var/log/ngcp/cdr-query.log': %s", strerror(errno));
-		//}
-		//fclose(qlog);
-
 		return -1;
 	}
 
 	unsigned long long auto_id = mysql_insert_id(cdr_handler->m);
 	if (!auto_id) {
-		syslog(LOG_CRIT, "Received zero auto-ID from SQL");
+		L_CRITICAL("Received zero auto-ID from SQL");
 		return -1;
 	}
 
@@ -1187,7 +1192,7 @@ static int medmysql_flush_cdr(struct medmysql_batches *batches) {
 
 static int medmysql_flush_medlist(struct medmysql_str *str, const medmysql_batch_definition *def) {
 	if (medmysql_flush_med_str(str, def)) {
-		critical("Failed to execute potentially crucial SQL query, check syslog for details");
+		critical("Failed to execute potentially crucial SQL query, check LOG for details");
 		return -1;
 	}
 
@@ -1209,7 +1214,7 @@ static int medmysql_flush_call_stat_info() {
 	for (iter = keys; iter != NULL; iter = iter->next) {
 		char * period_key = iter->data;
  		if ((period_t = g_hash_table_lookup(call_stat_info, period_key)) == NULL) {
-			syslog(LOG_CRIT,
+			_LOG(LOG_CRIT,
 					"Error dumping call stats info: no data for period_key %s\n",
 					period_key
 				  );
@@ -1223,15 +1228,15 @@ static int medmysql_flush_call_stat_info() {
 				period_t->period, period_t->call_code, period_t->amount
 			);
 
-		//syslog(LOG_DEBUG, "updating call stats info: %s -- %s", period_t->call_code, period_t->period);
-		//syslog(LOG_DEBUG, "sql: %s", query.str);
+		//L_DEBUG("updating call stats info: %s -- %s", period_t->call_code, period_t->period);
+		//L_DEBUG("sql: %s", query.str);
 
 		if(medmysql_query_wrapper(stats_handler, query.str, query.len) != 0)
 		{
-			syslog(LOG_CRIT, "Error executing call info stats query: %s",
+			L_CRITICAL("Error executing call info stats query: %s",
 					mysql_error(stats_handler->m));
-			syslog(LOG_CRIT, "stats query: %s", query.str);
-			critical("Failed to execute potentially crucial SQL query, check syslog for details");
+			L_CRITICAL("stats query: %s", query.str);
+			critical("Failed to execute potentially crucial SQL query, check LOG for details");
 			return -1;
 		}
 		period_t->amount = 0; // reset code counter on success
