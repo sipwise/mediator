@@ -16,6 +16,11 @@ char *config_med_pass;
 char *config_med_db;
 unsigned int config_med_port = MEDIATOR_DEFAULT_ACCPORT;
 
+char *config_redis_host;
+unsigned int config_redis_port = MEDIATOR_DEFAULT_REDISPORT;
+unsigned int config_redis_db = MEDIATOR_DEFAULT_REDISDB;
+char *config_redis_pass;
+
 char *config_cdr_host;
 char *config_cdr_user;
 char *config_cdr_pass;
@@ -64,12 +69,16 @@ enum config_option {
 	OPT_STATS_USER = 'W',
 	OPT_STATS_PASS = 'w',
 	OPT_STATS_DB = 'X',
+	OPT_REDIS_HOST = 'a',
+	OPT_REDIS_PORT = 't',
+	OPT_REDIS_DB = 'r',
+	OPT_REDIS_PASS = 'e',
 	OPT_STATS_PERIOD = 'x',
 	OPT_MAINTENANCE = 'm',
 	OPT_LEG_TOKENS = 's',
 };
 
-static const char options[] = "?c:D:i:dlh:u:p:b:o:H:U:P:B:O:S:T:R:A:N:Z:z:W:w:X:x:ms";
+static const char options[] = "?a:c:e:D:i:dlh:u:p:b:o:H:U:P:B:O:S:t:T:r:R:A:N:Z:z:W:w:X:x:ms";
 
 struct option long_options[] = {
 	{ "configfile", required_argument, NULL, OPT_CONFIGFILE },
@@ -97,6 +106,10 @@ struct option long_options[] = {
 	{ "stats-user", required_argument, NULL, OPT_STATS_USER },
 	{ "stats-pass", required_argument, NULL, OPT_STATS_PASS },
 	{ "stats-db", required_argument, NULL, OPT_STATS_DB },
+	{ "redis-host", required_argument, NULL, OPT_REDIS_HOST },
+	{ "redis-port", required_argument, NULL, OPT_REDIS_PORT },
+	{ "redis-db", required_argument, NULL, OPT_REDIS_DB },
+	{ "redis-pass", optional_argument, NULL, OPT_REDIS_PASS },
 	{ "stats-period", required_argument, NULL, OPT_STATS_PERIOD },
 	{ "maintenance", no_argument, NULL, OPT_MAINTENANCE },
 	{ "leg-tokens", no_argument, NULL, OPT_LEG_TOKENS },
@@ -136,6 +149,10 @@ static void config_help(const char *self, int rc)
 "  -w, --stats-pass PASS\tThe stats db pass (default = '%s').\n" \
 "  -X, --stats-db DB\tThe stats db name (default = '%s').\n" \
 "  -x, --stats-period INT\tThe stats db period (default = '%d', 1=hour, 2=day, 3=month).\n" \
+"  -a, --redis-host HOST\tThe redis db host (default = '%s').\n" \
+"  -t, --redis-port PORT\tThe redis db port (default = '%d').\n" \
+"  -e, --redis-pass PASS\tThe redis db pass (default = none).\n" \
+"  -r, --redis-db DB\tThe redis usrloc db number (default = '%d').\n" \
 "  -m, --maintenance\tMaintenance mode (do nothing, just sleep).\n" \
 "  -s, --leg-tokens\tStrict acc fields (move to trash otherwise).\n" \
 "  -?, --help\t\tDisplays this message.\n",
@@ -152,7 +169,9 @@ static void config_help(const char *self, int rc)
 		MEDIATOR_DEFAULT_PROVDB,
 		MEDIATOR_DEFAULT_STATSHOST, MEDIATOR_DEFAULT_STATSPORT,
 		MEDIATOR_DEFAULT_STATSUSER, MEDIATOR_DEFAULT_STATSPASS,
-		MEDIATOR_DEFAULT_STATSDB, MEDIATOR_DEFAULT_STATSPERIOD);
+		MEDIATOR_DEFAULT_STATSDB, MEDIATOR_DEFAULT_STATSPERIOD,
+		MEDIATOR_DEFAULT_REDISHOST, MEDIATOR_DEFAULT_REDISPORT,
+		MEDIATOR_DEFAULT_REDISDB);
 
 	exit(rc);
 }
@@ -250,6 +269,18 @@ static void config_set_option(enum config_option option, const char *value)
 	case OPT_STATS_PERIOD:
 		config_stats_period = (med_stats_period_t)atoi(value);
 		break;
+	case OPT_REDIS_HOST:
+		config_set_string_option(&config_redis_host, value);
+		break;
+	case OPT_REDIS_PORT:
+		config_redis_port = atoi(value);
+		break;
+	case OPT_REDIS_DB:
+		config_redis_db = atoi(value);
+		break;
+	case OPT_REDIS_PASS:
+		config_set_string_option(&config_redis_pass, value);
+		break;
 	case OPT_MAINTENANCE:
 		config_maintenance = 1;
 		break;
@@ -279,6 +310,8 @@ static void config_set_defaults(void)
 	config_set_string_default(&config_stats_user, MEDIATOR_DEFAULT_STATSUSER);
 	config_set_string_default(&config_stats_pass, MEDIATOR_DEFAULT_STATSPASS);
 	config_set_string_default(&config_stats_db, MEDIATOR_DEFAULT_STATSDB);
+	config_set_string_default(&config_redis_host, MEDIATOR_DEFAULT_REDISHOST);
+	config_redis_pass = NULL;
 }
 
 static int config_parse_line(char *line)
@@ -403,4 +436,7 @@ void config_cleanup()
 	free(config_stats_user);
 	free(config_stats_pass);
 	free(config_stats_db);
+	free(config_redis_host);
+	if (config_redis_pass)
+		free(config_redis_pass);
 }

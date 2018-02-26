@@ -15,6 +15,7 @@
 #include "config.h"
 #include "daemonizer.h"
 #include "medmysql.h"
+#include "medredis.h"
 #include "cdr.h"
 
 sig_atomic_t mediator_shutdown = 0;
@@ -152,9 +153,10 @@ static uint64_t mediator_calc_runtime(struct timeval *tv_start, struct timeval *
 /**********************************************************************/
 int main(int argc, char **argv)
 {
-	med_callid_t *callids;
+	med_callid_t *mysql_callids;
+	med_callid_t *redis_callids;
 	med_entry_t *records;
-	uint64_t id_count, rec_count, i;
+	uint64_t mysql_id_count, redis_id_count, rec_count, i;
 	uint64_t cdr_count, last_count;
 	int maprefresh;
 	struct medmysql_batches batches;
@@ -212,9 +214,18 @@ int main(int argc, char **argv)
 			config_prov_host, config_prov_port, config_prov_user, config_prov_db);
 	syslog(LOG_INFO, "STATS database host='%s', port='%d', user='%s', name='%s'",
 			config_stats_host, config_stats_port, config_stats_user, config_stats_db);
+	syslog(LOG_INFO, "REDIS database host='%s', port='%d', pass='%s', id='%d'",
+			config_redis_host, config_redis_port,
+			config_redis_pass ? config_redis_pass : "<none>",
+			config_redis_db);
 	
 	syslog(LOG_DEBUG, "Setting up mysql connections.");
 	if(medmysql_init() != 0)
+	{
+		return -1;
+	}
+	syslog(LOG_DEBUG, "Setting up redis connections.");
+	if(medredis_init() != 0)
 	{
 		return -1;
 	}
@@ -239,28 +250,39 @@ int main(int argc, char **argv)
 		if (0)
 			mediator_print_maps();
 
-		id_count = 0, rec_count = 0, cdr_count = 0;
+		mysql_id_count = redis_id_count = rec_count = cdr_count = 0;
 		last_count = mediator_count;
 
-		callids = medmysql_fetch_callids(&id_count);
-		if(!callids) {
-			if (id_count) /* error */
-				break;
-			/* nothing to do */
+		mysql_callids = medmysql_fetch_callids(&mysql_id_count);
+		if(!mysql_callids && mysql_id_count) {
+			/* error */
+			break;
+		}
+
+		redis_callids = medredis_fetch_callids(&redis_id_count);
+		if (!redis_callids && redis_id_count) {
+			/* error */
+			break;
+		}
+
+		if (!mysql_id_count && !redis_id_count) {
 			goto idle;
 		}
 
 		if (medmysql_batch_start(&batches))
 			break;
 
-		/*syslog(LOG_DEBUG, "Processing %"PRIu64" accounting record group(s).", id_count);*/
-		for(i = 0; i < id_count && !mediator_shutdown; ++i)
+
+		//////////////// mysql handling //////////////////
+
+		syslog(LOG_DEBUG, "Processing %"PRIu64" mysql accounting record group(s).", mysql_id_count);
+		for(i = 0; i < mysql_id_count && !mediator_shutdown; ++i)
 		{
 #ifdef WITH_TIME_CALC
 			gettimeofday(&tv_start, NULL);
 #endif
 
-			if(medmysql_fetch_records(&(callids[i]), &records, &rec_count) != 0)
+			if(medmysql_fetch_records(&(mysql_callids[i]), &records, &rec_count) != 0)
 				goto out;
 
 			if(cdr_process_records(records, rec_count, &cdr_count, &batches) != 0)
@@ -276,11 +298,45 @@ int main(int argc, char **argv)
 #ifdef WITH_TIME_CALC
 			gettimeofday(&tv_stop, NULL);
 			runtime = mediator_calc_runtime(&tv_start, &tv_stop);
-			syslog(LOG_DEBUG, "Runtime for record group was %"PRIu64" ms.", runtime);
+			syslog(LOG_DEBUG, "Runtime for mysql record group was %"PRIu64" ms.", runtime);
+#endif
+		}
+		if (mysql_id_count) {
+			free(mysql_callids);
+		}
+
+
+		//////////////// redis handling //////////////////
+
+		syslog(LOG_DEBUG, "Processing %"PRIu64" redis accounting record group(s).", redis_id_count);
+		for(i = 0; i < redis_id_count && !mediator_shutdown; ++i)
+		{
+#ifdef WITH_TIME_CALC
+			gettimeofday(&tv_start, NULL);
+#endif
+
+			if(medredis_fetch_records(&(redis_callids[i]), &records, &rec_count) != 0)
+				goto out;
+
+			syslog(LOG_DEBUG, "process cdr with cid '%s' and %"PRIu64" records\n", redis_callids[i].value, rec_count);
+
+			if (rec_count) {
+				if(cdr_process_records(records, rec_count, &cdr_count, &batches) != 0)
+					goto out;
+				free(records);
+
+				mediator_count += cdr_count;
+			}
+
+#ifdef WITH_TIME_CALC
+			gettimeofday(&tv_stop, NULL);
+			runtime = mediator_calc_runtime(&tv_start, &tv_stop);
+			syslog(LOG_DEBUG, "Runtime for redis record group was %"PRIu64" ms.", runtime);
 #endif
 		}
 
-		free(callids);
+		//////////////// end //////////////////
+
 		if (medmysql_batch_end(&batches))
 			break;
 
@@ -302,6 +358,7 @@ out:
 	syslog(LOG_INFO, "Shutting down.");
 
 	medmysql_cleanup();
+	medredis_cleanup();
 
 	syslog(LOG_INFO, "Successfully shut down.");
 	return 0;

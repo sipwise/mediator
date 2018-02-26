@@ -3,6 +3,7 @@
 
 #include "cdr.h"
 #include "medmysql.h"
+#include "medredis.h"
 #include "config.h"
 #include "mediator.h"
 
@@ -51,6 +52,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 	uint16_t invite_200 = 0;
 
 	char *callid = records[0].callid;
+	uint8_t redis = records[0].redis;
 
 
 	cdr_entry_t *cdrs = NULL;
@@ -85,7 +87,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 			return -1;
 	}
 
-	/*syslog(LOG_DEBUG, "%d INVITEs, %d BYEs, %d unrecognized", msg_invites, msg_byes, msg_unknowns);*/
+	syslog(LOG_DEBUG, "%d INVITEs, %d BYEs, %d unrecognized", msg_invites, msg_byes, msg_unknowns);
 
 	if(msg_invites > 0)
 	{
@@ -112,11 +114,21 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 						}
 
 						if(medmysql_insert_cdrs(cdrs, cdr_count, batches) != 0)
+						{
 							goto error;
+						}
 						else
 						{
-							if(medmysql_backup_entries(callid, batches) != 0)
-								goto error;
+							if (redis)
+							{
+								if(medredis_backup_entries(callid) != 0)
+									goto error;
+							}
+							else
+							{
+								if(medmysql_backup_entries(callid, batches) != 0)
+									goto error;
+							}
 						}
 
 					}
@@ -145,8 +157,16 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 
 	if(trash)
 	{
-		if(medmysql_trash_entries(callid, batches) != 0)
-			goto error;
+		if (redis)
+		{
+			if(medredis_trash_entries(callid) != 0)
+				goto error;
+		}
+		else
+		{
+			if(medmysql_trash_entries(callid, batches) != 0)
+				goto error;
+		}
 	}
 	return ret;
 

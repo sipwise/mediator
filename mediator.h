@@ -47,6 +47,10 @@
 #define MEDIATOR_DEFAULT_STATSPORT 0
 #define MEDIATOR_DEFAULT_STATSPERIOD MED_STATS_HOUR
 
+#define MEDIATOR_DEFAULT_REDISHOST "localhost"
+#define MEDIATOR_DEFAULT_REDISPORT 6379
+#define MEDIATOR_DEFAULT_REDISDB   21
+
 #define MED_GW_STRING "gw"
 #define MED_AS_STRING "as"
 #define MED_PEER_STRING "peer"
@@ -54,6 +58,9 @@
 #define MED_MIN_BASELEN 6
 
 #define MED_SEP '|'
+
+#define PBXSUFFIX "_pbx-1"
+#define XFERSUFFIX "_xfer-1"
 
 extern int mediator_lockfd;
 extern sig_atomic_t mediator_shutdown;
@@ -76,7 +83,14 @@ typedef struct {
 	uint8_t valid;
 	med_method_t method;
 	char sip_method[32];
+	uint8_t redis;
 } med_entry_t;
+
+typedef struct {
+	med_entry_t *records;
+	uint64_t rec_count;
+	char callid[256];
+} med_redis_entry_t;
 
 typedef struct {
 	char value[256];
