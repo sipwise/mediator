@@ -16,6 +16,11 @@ char *config_med_pass;
 char *config_med_db;
 unsigned int config_med_port = MEDIATOR_DEFAULT_ACCPORT;
 
+char *config_redis_host;
+unsigned int config_redis_port = MEDIATOR_DEFAULT_REDISPORT;
+unsigned int config_redis_db = MEDIATOR_DEFAULT_REDISDB;
+char *config_redis_pass;
+
 char *config_cdr_host;
 char *config_cdr_user;
 char *config_cdr_pass;
@@ -38,11 +43,14 @@ med_stats_period_t config_stats_period = MEDIATOR_DEFAULT_STATSPERIOD;
 int config_maintenance = 0;
 int strict_leg_tokens = 0;
 
+med_loglevel_t config_loglevel = MEDIATOR_DEFAULT_LOGLEVEL;
+
 enum config_option {
 	OPT_CONFIGFILE = 'c',
 	OPT_DAEMONIZE = 'd',
 	OPT_PIDFILE = 'D',
 	OPT_SYSLOG = 'l',
+	OPT_LOGLEVEL = 'L',
 	OPT_INTERVAL = 'i',
 	OPT_MED_HOST = 'h',
 	OPT_MED_PORT = 'o',
@@ -64,18 +72,23 @@ enum config_option {
 	OPT_STATS_USER = 'W',
 	OPT_STATS_PASS = 'w',
 	OPT_STATS_DB = 'X',
+	OPT_REDIS_HOST = 'a',
+	OPT_REDIS_PORT = 't',
+	OPT_REDIS_DB = 'r',
+	OPT_REDIS_PASS = 'e',
 	OPT_STATS_PERIOD = 'x',
 	OPT_MAINTENANCE = 'm',
 	OPT_LEG_TOKENS = 's',
 };
 
-static const char options[] = "?c:D:i:dlh:u:p:b:o:H:U:P:B:O:S:T:R:A:N:Z:z:W:w:X:x:ms";
+static const char options[] = "?a:c:e:D:i:dlL:h:u:p:b:o:H:U:P:B:O:S:t:T:r:R:A:N:Z:z:W:w:X:x:ms";
 
 struct option long_options[] = {
 	{ "configfile", required_argument, NULL, OPT_CONFIGFILE },
 	{ "pidfile", required_argument, NULL, OPT_PIDFILE },
 	{ "daemonize", no_argument, NULL, OPT_DAEMONIZE },
-	{ "syslog", no_argument, NULL, OPT_SYSLOG },
+	{ "logquery", no_argument, NULL, OPT_SYSLOG },
+	{ "loglevel",  optional_argument, NULL, OPT_LOGLEVEL },
 	{ "interval", required_argument, NULL, OPT_INTERVAL },
 	{ "med-host", required_argument, NULL, OPT_MED_HOST },
 	{ "med-port", required_argument, NULL, OPT_MED_PORT },
@@ -97,6 +110,10 @@ struct option long_options[] = {
 	{ "stats-user", required_argument, NULL, OPT_STATS_USER },
 	{ "stats-pass", required_argument, NULL, OPT_STATS_PASS },
 	{ "stats-db", required_argument, NULL, OPT_STATS_DB },
+	{ "redis-host", required_argument, NULL, OPT_REDIS_HOST },
+	{ "redis-port", required_argument, NULL, OPT_REDIS_PORT },
+	{ "redis-db", required_argument, NULL, OPT_REDIS_DB },
+	{ "redis-pass", optional_argument, NULL, OPT_REDIS_PASS },
 	{ "stats-period", required_argument, NULL, OPT_STATS_PERIOD },
 	{ "maintenance", no_argument, NULL, OPT_MAINTENANCE },
 	{ "leg-tokens", no_argument, NULL, OPT_LEG_TOKENS },
@@ -113,7 +130,8 @@ static void config_help(const char *self, int rc)
 "  -c, --configfile FILE\tThe config file to use (default = '%s').\n" \
 "  -D, --pidfile PIDFILE\tThe path of the PID file (default = '%s').\n" \
 "  -d, --daemonize\tEnables daemonization of the process (default = disabled).\n" \
-"  -l, --syslog\t\tEnables dumping of CDRs to syslog (default = disabled).\n" \
+"  -l, --logquery\t\tEnables logging of CDR sql query to file (default = disabled).\n" \
+"  -L, --loglevel\tThe loglevel from 7=debug to 0=emergency (default = %d).\n" \
 "  -i, --interval INT\tThe creation interval (default = %d).\n" \
 "  -h, --med-host HOST\tThe ACC db host (default = '%s').\n" \
 "  -o, --med-port PORT\tThe ACC db port (default = '%d').\n" \
@@ -136,11 +154,16 @@ static void config_help(const char *self, int rc)
 "  -w, --stats-pass PASS\tThe stats db pass (default = '%s').\n" \
 "  -X, --stats-db DB\tThe stats db name (default = '%s').\n" \
 "  -x, --stats-period INT\tThe stats db period (default = '%d', 1=hour, 2=day, 3=month).\n" \
+"  -a, --redis-host HOST\tThe redis db host (default = '%s').\n" \
+"  -t, --redis-port PORT\tThe redis db port (default = '%d').\n" \
+"  -e, --redis-pass PASS\tThe redis db pass (default = none).\n" \
+"  -r, --redis-db DB\tThe redis usrloc db number (default = '%d').\n" \
 "  -m, --maintenance\tMaintenance mode (do nothing, just sleep).\n" \
 "  -s, --leg-tokens\tStrict acc fields (move to trash otherwise).\n" \
 "  -?, --help\t\tDisplays this message.\n",
 		MEDIATOR_VERSION, self, MEDIATOR_DEFAULT_CONFIG_FILE,
-		MEDIATOR_DEFAULT_PIDPATH, MEDIATOR_DEFAULT_INTERVAL,
+		MEDIATOR_DEFAULT_PIDPATH, MEDIATOR_DEFAULT_LOGLEVEL,
+		MEDIATOR_DEFAULT_INTERVAL,
 		MEDIATOR_DEFAULT_ACCHOST, MEDIATOR_DEFAULT_ACCPORT,
 		MEDIATOR_DEFAULT_ACCUSER, MEDIATOR_DEFAULT_ACCPASS,
 		MEDIATOR_DEFAULT_ACCDB,
@@ -152,7 +175,9 @@ static void config_help(const char *self, int rc)
 		MEDIATOR_DEFAULT_PROVDB,
 		MEDIATOR_DEFAULT_STATSHOST, MEDIATOR_DEFAULT_STATSPORT,
 		MEDIATOR_DEFAULT_STATSUSER, MEDIATOR_DEFAULT_STATSPASS,
-		MEDIATOR_DEFAULT_STATSDB, MEDIATOR_DEFAULT_STATSPERIOD);
+		MEDIATOR_DEFAULT_STATSDB, MEDIATOR_DEFAULT_STATSPERIOD,
+		MEDIATOR_DEFAULT_REDISHOST, MEDIATOR_DEFAULT_REDISPORT,
+		MEDIATOR_DEFAULT_REDISDB);
 
 	exit(rc);
 }
@@ -177,6 +202,9 @@ static void config_set_option(enum config_option option, const char *value)
 		break;
 	case OPT_SYSLOG:
 		config_dumpcdr = 1;
+		break;
+	case OPT_LOGLEVEL:
+		config_loglevel = atoi(value);
 		break;
 	case OPT_CONFIGFILE:
 		config_set_string_option(&config_file_path, value);
@@ -250,6 +278,18 @@ static void config_set_option(enum config_option option, const char *value)
 	case OPT_STATS_PERIOD:
 		config_stats_period = (med_stats_period_t)atoi(value);
 		break;
+	case OPT_REDIS_HOST:
+		config_set_string_option(&config_redis_host, value);
+		break;
+	case OPT_REDIS_PORT:
+		config_redis_port = atoi(value);
+		break;
+	case OPT_REDIS_DB:
+		config_redis_db = atoi(value);
+		break;
+	case OPT_REDIS_PASS:
+		config_set_string_option(&config_redis_pass, value);
+		break;
 	case OPT_MAINTENANCE:
 		config_maintenance = 1;
 		break;
@@ -279,6 +319,8 @@ static void config_set_defaults(void)
 	config_set_string_default(&config_stats_user, MEDIATOR_DEFAULT_STATSUSER);
 	config_set_string_default(&config_stats_pass, MEDIATOR_DEFAULT_STATSPASS);
 	config_set_string_default(&config_stats_db, MEDIATOR_DEFAULT_STATSDB);
+	config_set_string_default(&config_redis_host, MEDIATOR_DEFAULT_REDISHOST);
+	config_redis_pass = NULL;
 }
 
 static int config_parse_line(char *line)
@@ -301,16 +343,16 @@ static int config_parse_line(char *line)
 			break;
 
 	if (option->name == NULL) {
-		syslog(LOG_ERR, "No option found in config file line '%s'", line);
+		L_ERROR("No option found in config file line '%s'", line);
 		return -1;
 	}
 
 	if (option->has_arg == no_argument && *value != '\0') {
-		syslog(LOG_ERR, "Unexpected value in config file option '%s'",
+		L_ERROR("Unexpected value in config file option '%s'",
 		       option->name);
 		return -1;
 	} else if (option->has_arg == required_argument && *value == '\0') {
-		syslog(LOG_ERR, "Missing value in config file option '%s'",
+		L_ERROR("Missing value in config file option '%s'",
 		       option->name);
 		return -1;
 	}
@@ -327,14 +369,14 @@ static int config_parse_file(const char *filename)
 	size_t len = 0;
 	ssize_t nread;
 
-	syslog(LOG_DEBUG, "Loading config file '%s'", filename);
+	L_DEBUG("Loading config file '%s'", filename);
 
 	conffile = fopen(filename, "r");
 	if (conffile == NULL) {
 		if (errno == ENOENT)
 			return 0;
 
-		syslog(LOG_ERR, "Error loading config file: %s", strerror(errno));
+		L_ERROR("Error loading config file: %s", strerror(errno));
 		return -1;
 	}
 
@@ -346,7 +388,7 @@ static int config_parse_file(const char *filename)
 			line[nread - 1] = '\0';
 
 		if (config_parse_line(line) < 0) {
-			syslog(LOG_ERR, "Error parsing config file");
+			L_ERROR("Error parsing config file");
 			return -1;
 		}
 	}
@@ -403,4 +445,7 @@ void config_cleanup()
 	free(config_stats_user);
 	free(config_stats_pass);
 	free(config_stats_db);
+	free(config_redis_host);
+	if (config_redis_pass)
+		free(config_redis_pass);
 }
