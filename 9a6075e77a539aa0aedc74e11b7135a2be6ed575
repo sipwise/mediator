@@ -1,0 +1,153 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a75e904_e902710a",
+        "filename": "config.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-02-27T15:19:35Z",
+      "side": 1,
+      "message": "looks like this has a required argument",
+      "range": {
+        "startLine": 91,
+        "startChar": 16,
+        "endLine": 91,
+        "endChar": 32
+      },
+      "revId": "9a6075e77a539aa0aedc74e11b7135a2be6ed575",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_0cffdb02",
+        "filename": "config.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-02-27T15:19:35Z",
+      "side": 1,
+      "message": "also looks like required argument",
+      "range": {
+        "startLine": 116,
+        "startChar": 17,
+        "endLine": 116,
+        "endChar": 34
+      },
+      "revId": "9a6075e77a539aa0aedc74e11b7135a2be6ed575",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_4c09d32b",
+        "filename": "config.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-02-27T15:19:35Z",
+      "side": 1,
+      "message": "This overwrites/deletes the previously set password",
+      "revId": "9a6075e77a539aa0aedc74e11b7135a2be6ed575",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_cc1ce36d",
+        "filename": "mediator.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-02-27T15:19:35Z",
+      "side": 1,
+      "message": "Is it an expected use case that mediator could read from both at the same time? Because if so, then that would produce spurious error messages",
+      "range": {
+        "startLine": 259,
+        "startChar": 0,
+        "endLine": 267,
+        "endChar": 9
+      },
+      "revId": "9a6075e77a539aa0aedc74e11b7135a2be6ed575",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_ec199f7a",
+        "filename": "medredis.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-02-27T15:19:35Z",
+      "side": 1,
+      "message": "Don\u0027t use a trailing semicolon, it defeats the purpose of the do{}while(0)",
+      "range": {
+        "startLine": 26,
+        "startChar": 10,
+        "endLine": 26,
+        "endChar": 11
+      },
+      "revId": "9a6075e77a539aa0aedc74e11b7135a2be6ed575",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_ec30bfea",
+        "filename": "medredis.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-02-27T15:19:35Z",
+      "side": 1,
+      "message": "I also asked this in the other review: shouldn\u0027t this remove the first command from the queue instead of the last one?",
+      "revId": "9a6075e77a539aa0aedc74e11b7135a2be6ed575",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_ac3de7bd",
+        "filename": "medredis.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 486,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-02-27T15:19:35Z",
+      "side": 1,
+      "message": "This should probably be g_hash_table_replace to make sure the free function is called properly",
+      "range": {
+        "startLine": 486,
+        "startChar": 13,
+        "endLine": 486,
+        "endChar": 32
+      },
+      "revId": "9a6075e77a539aa0aedc74e11b7135a2be6ed575",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
