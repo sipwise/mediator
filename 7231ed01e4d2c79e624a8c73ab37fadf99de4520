@@ -22,6 +22,30 @@
       "revId": "7231ed01e4d2c79e624a8c73ab37fadf99de4520",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_0c827b52",
+        "filename": "medmysql.c",
+        "patchSetId": 8
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2018-02-27T15:47:05Z",
+      "side": 1,
+      "message": "\u003e Why not use a GString and save yourself some headache? (of course,\n \u003e too late now already)\n \u003e \n \u003e Even without a GString, it\u0027s better to avoid strcat() and instead\n \u003e sprintf directly into the tail of the buffer.\n\nWill look into GString, however I wanted to avoid the headaches of keeping track of the end of the string via snprintf() to append it correctly at the right position. Will revisit that.",
+      "parentUuid": "7a75e904_6caa0fd6",
+      "range": {
+        "startLine": 438,
+        "startChar": 0,
+        "endLine": 455,
+        "endChar": 44
+      },
+      "revId": "7231ed01e4d2c79e624a8c73ab37fadf99de4520",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
     }
   ]
 }
