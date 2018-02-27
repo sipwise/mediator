@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "7a75e904_ec8c3f82",
+        "filename": "config.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-02-27T16:01:13Z",
+      "side": 1,
+      "message": "There\u0027s a difference to not setting it, and using the option without an argument (e.g. \u0027--loglevel\u0027). The option isn\u0027t mandatory, but if it\u0027s present, the argument is mandatory.",
+      "parentUuid": "7a75e904_ec5eff11",
+      "range": {
+        "startLine": 91,
+        "startChar": 16,
+        "endLine": 91,
+        "endChar": 32
+      },
+      "revId": "9a6075e77a539aa0aedc74e11b7135a2be6ed575",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a75e904_0cffdb02",
         "filename": "config.c",
         "patchSetId": 7
@@ -131,6 +155,24 @@
     },
     {
       "key": {
+        "uuid": "7a75e904_0ce99b1a",
+        "filename": "config.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-02-27T16:01:13Z",
+      "side": 1,
+      "message": "Yes, see config_parse",
+      "parentUuid": "7a75e904_4ca55303",
+      "revId": "9a6075e77a539aa0aedc74e11b7135a2be6ed575",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a75e904_cc1ce36d",
         "filename": "mediator.c",
         "patchSetId": 7
@@ -166,6 +208,30 @@
       "side": 1,
       "message": "\u003e Is it an expected use case that mediator could read from both at\n \u003e the same time? Because if so, then that would produce spurious\n \u003e error messages\n\nWhy so? If medXXX_fetch_callids fails (count is MAX_INT but pointer is NULL) then something went fatally wrong, thus we abort, no?",
       "parentUuid": "7a75e904_cc1ce36d",
+      "range": {
+        "startLine": 259,
+        "startChar": 0,
+        "endLine": 267,
+        "endChar": 9
+      },
+      "revId": "9a6075e77a539aa0aedc74e11b7135a2be6ed575",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a75e904_2cee5723",
+        "filename": "mediator.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-02-27T16:01:13Z",
+      "side": 1,
+      "message": "Oh right, sorry, had that backwards... nevermind",
+      "parentUuid": "7a75e904_8cae6be6",
       "range": {
         "startLine": 259,
         "startChar": 0,
