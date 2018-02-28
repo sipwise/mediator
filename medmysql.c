@@ -433,23 +433,23 @@ int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *ta
     int ret;
 
     if (!count)
-    	return 0;
+        return 0;
 
     sql_buffer = (char*)malloc(sql_buffer_size);
     if (!sql_buffer) {
-    	L_ERROR("Failed to allocate memory for redis cleanup sql buffer\n");
-    	return -1;
+        L_ERROR("Failed to allocate memory for redis cleanup sql buffer\n");
+        return -1;
     }
     memset(sql_buffer, 0, sql_buffer_size);
     snprintf(sql_buffer, sql_buffer_size, "INSERT INTO kamailio.acc_%s " \
-    	"(sip_code,sip_reason,method,callid,time,time_hires,src_leg,dst_leg) VALUES ",
-    	 table);
+        "(sip_code,sip_reason,method,callid,time,time_hires,src_leg,dst_leg) VALUES ",
+         table);
     
     for (uint64_t i = 0; i < count; ++i) {
         med_entry_t *e = &(records[i]);
 
         snprintf(entry_buffer, sizeof(entry_buffer), "('%s','%s','%s','%s','%s','%f','%s','%s'),",
-        	e->sip_code, e->sip_reason, e->sip_method, e->callid, e->timestamp, e->unix_timestamp, e->src_leg, e->dst_leg);
+            e->sip_code, e->sip_reason, e->sip_method, e->callid, e->timestamp, e->unix_timestamp, e->src_leg, e->dst_leg);
         sql_buffer = strcat(sql_buffer, entry_buffer);
     }
     sql_buffer[strlen(sql_buffer)-1] = '\0';

@@ -236,8 +236,8 @@ int main(int argc, char **argv)
     maprefresh = 0;
     batches = malloc(sizeof(*batches));
     if (!batches) {
-	    L_ERROR("Out of memory allocating batches");
-	    return -1;
+        L_ERROR("Out of memory allocating batches");
+        return -1;
     }
 
     while(!mediator_shutdown)

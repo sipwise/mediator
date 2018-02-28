@@ -696,11 +696,11 @@ static int medredis_cleanup_entries(med_entry_t *records, uint64_t count, const 
     char buffer[512];
 
     if (medmysql_insert_records(records, count, table) != 0) {
-    	L_CRITICAL("Failed to cleanup redis records\n");
-    	goto err;
+        L_CRITICAL("Failed to cleanup redis records\n");
+        goto err;
     }
 
-	for (uint64_t i = 0; i < count; ++i) {
+    for (uint64_t i = 0; i < count; ++i) {
         med_entry_t *e = &(records[i]);
 
         L_DEBUG("Cleaning up redis entry for %s:%f\n", e->callid, e->unix_timestamp);
@@ -710,8 +710,8 @@ static int medredis_cleanup_entries(med_entry_t *records, uint64_t count, const 
         argv[0] = "DEL";
         argv[1] = buffer;
         if (medredis_append_command_argv(con, 2, argv, 1) != 0) {
-        	L_ERROR("Failed to append redis command to remove key '%s'\n", buffer);
-        	goto err;
+            L_ERROR("Failed to append redis command to remove key '%s'\n", buffer);
+            goto err;
         }
 
         // delete cid from acc:meth::INVITE and acc:meth::BYE
@@ -720,21 +720,21 @@ static int medredis_cleanup_entries(med_entry_t *records, uint64_t count, const 
         snprintf(buffer, sizeof(buffer), "acc:entry::%s:%f", e->callid, e->unix_timestamp);
         argv[2] = buffer;
         if (medredis_append_command_argv(con, 3, argv, 1) != 0) {
-        	L_ERROR("Failed to append redis command to remove key '%s' from '%s'\n", buffer, argv[1]);
-        	goto err;
+            L_ERROR("Failed to append redis command to remove key '%s' from '%s'\n", buffer, argv[1]);
+            goto err;
         }
         argv[1] = "acc:meth::BYE";
         if (medredis_append_command_argv(con, 3, argv, 1) != 0) {
-        	L_ERROR("Failed to append redis command to remove key '%s' from '%s'\n", buffer, argv[1]);
-        	goto err;
+            L_ERROR("Failed to append redis command to remove key '%s' from '%s'\n", buffer, argv[1]);
+            goto err;
         }
 
         // delete acc:entry::$cid:$timestamp
         argv[0] = "DEL";
         argv[1] = buffer;
-		if (medredis_append_command_argv(con, 2, argv, 1) != 0) {
-        	L_ERROR("Failed to append redis command to remove key '%s'\n", buffer);
-        	goto err;
+        if (medredis_append_command_argv(con, 2, argv, 1) != 0) {
+            L_ERROR("Failed to append redis command to remove key '%s'\n", buffer);
+            goto err;
         }
     }
 
