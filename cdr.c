@@ -581,23 +581,31 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 }
 
 
-static int cdr_parse_json_get_int(json_object *obj, const char *key, int *outp) {
+static int cdr_parse_json_get_int(json_object *obj, const char *key, int *outp, int min, int max) {
 	json_object *int_obj;
 	if (!json_object_object_get_ex(obj, key, &int_obj))
 		return 0;
 	if (!json_object_is_type(int_obj, json_type_int))
 		return 0;
 	*outp = json_object_get_int64(int_obj);
+	if (*outp > max)
+		*outp = max;
+	else if (*outp < min)
+		*outp = min;
 	return 1;
 }
 
-static int cdr_parse_json_get_double(json_object *obj, const char *key, double *outp) {
+static int cdr_parse_json_get_double(json_object *obj, const char *key, double *outp, double min, double max) {
 	json_object *int_obj;
 	if (!json_object_object_get_ex(obj, key, &int_obj))
 		return 0;
 	if (!json_object_is_type(int_obj, json_type_double))
 		return 0;
 	*outp = json_object_get_double(int_obj);
+	if (*outp > max)
+		*outp = max;
+	else if (*outp < min)
+		*outp = min;
 	return 1;
 }
 
@@ -620,19 +628,19 @@ static int cdr_parse_bye_dstleg(char *dstleg, mos_data_t *mos_data) {
 		syslog(LOG_ERR, "JSON object does not contain 'mos' key: '%s'", dstleg);
 		goto err;
 	}
-	if (!cdr_parse_json_get_double(mos, "avg_score", &mos_data->avg_score)) {
+	if (!cdr_parse_json_get_double(mos, "avg_score", &mos_data->avg_score, 0, 99)) {
 		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_score' key: '%s'", dstleg);
 		goto err;
 	}
-	if (!cdr_parse_json_get_int(mos, "avg_packetloss", &mos_data->avg_packetloss)) {
+	if (!cdr_parse_json_get_int(mos, "avg_packetloss", &mos_data->avg_packetloss, 0, 100)) {
 		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_packetloss' key: '%s'", dstleg);
 		goto err;
 	}
-	if (!cdr_parse_json_get_int(mos, "avg_jitter", &mos_data->avg_jitter)) {
+	if (!cdr_parse_json_get_int(mos, "avg_jitter", &mos_data->avg_jitter, 0, 99999)) {
 		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_jitter' key: '%s'", dstleg);
 		goto err;
 	}
-	if (!cdr_parse_json_get_int(mos, "avg_rtt", &mos_data->avg_rtt)) {
+	if (!cdr_parse_json_get_int(mos, "avg_rtt", &mos_data->avg_rtt, 0, 99999)) {
 		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_rtt' key: '%s'", dstleg);
 		goto err;
 	}
