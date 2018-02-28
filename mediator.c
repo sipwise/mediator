@@ -156,7 +156,7 @@ int main(int argc, char **argv)
     uint64_t mysql_id_count, redis_id_count, rec_count, i;
     uint64_t cdr_count, last_count;
     int maprefresh;
-    struct medmysql_batches batches;
+    struct medmysql_batches *batches;
     struct timeval loop_tv_start, loop_tv_stop;
     uint64_t loop_runtime;
 #ifdef WITH_TIME_CALC
@@ -234,6 +234,12 @@ int main(int argc, char **argv)
             config_daemonize, config_pid_path, config_interval);
 
     maprefresh = 0;
+    batches = malloc(sizeof(*batches));
+    if (!batches) {
+	    L_ERROR("Out of memory allocating batches");
+	    return -1;
+    }
+
     while(!mediator_shutdown)
     {
         L_DEBUG("Starting mediation loop\n");
@@ -272,7 +278,7 @@ int main(int argc, char **argv)
             goto idle;
         }
 
-        if (medmysql_batch_start(&batches)) {
+        if (medmysql_batch_start(batches)) {
             L_ERROR("Failed to start MySQL batches\n");
             break;
         }
@@ -290,7 +296,7 @@ int main(int argc, char **argv)
             if(medmysql_fetch_records(&(mysql_callids[i]), &records, &rec_count) != 0)
                 goto out;
 
-            if(cdr_process_records(records, rec_count, &cdr_count, &batches) != 0)
+            if(cdr_process_records(records, rec_count, &cdr_count, batches) != 0)
                 goto out;
 
             if(rec_count > 0)
@@ -327,7 +333,7 @@ int main(int argc, char **argv)
             L_DEBUG("process cdr with cid '%s' and %"PRIu64" records\n", redis_callids[i].value, rec_count);
 
             if (rec_count) {
-                if(cdr_process_records(records, rec_count, &cdr_count, &batches) != 0) {
+                if(cdr_process_records(records, rec_count, &cdr_count, batches) != 0) {
                     free(records);
                     goto out;
                 }
@@ -349,7 +355,7 @@ int main(int argc, char **argv)
 
         //////////////// end //////////////////
 
-        if (medmysql_batch_end(&batches))
+        if (medmysql_batch_end(batches))
             break;
 
         gettimeofday(&loop_tv_stop, NULL);
@@ -377,6 +383,7 @@ out:
 
     medmysql_cleanup();
     medredis_cleanup();
+    free(batches);
 
     L_INFO("Successfully shut down.");
     return 0;
