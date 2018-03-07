@@ -1,8 +1,10 @@
 [Unit]
 Description=NGCP Mediator
-Requires=mysql.service
-After=remote-fs.target
 After=mysql.service
+After=redis-server.service
+After=remote-fs.target
+Requires=mysql.service
+Requires=redis-server.service
 
 [Service]
 Type=simple
