@@ -636,11 +636,11 @@ static int cdr_parse_bye_dstleg(char *dstleg, mos_data_t *mos_data) {
 		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_packetloss' key: '%s'", dstleg);
 		goto err;
 	}
-	if (!cdr_parse_json_get_int(mos, "avg_jitter", &mos_data->avg_jitter, 0, 99999)) {
+	if (!cdr_parse_json_get_int(mos, "avg_jitter", &mos_data->avg_jitter, 0, 9999)) {
 		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_jitter' key: '%s'", dstleg);
 		goto err;
 	}
-	if (!cdr_parse_json_get_int(mos, "avg_rtt", &mos_data->avg_rtt, 0, 99999)) {
+	if (!cdr_parse_json_get_int(mos, "avg_rtt", &mos_data->avg_rtt, 0, 9999)) {
 		syslog(LOG_ERR, "JSON object does not contain 'mos.avg_rtt' key: '%s'", dstleg);
 		goto err;
 	}
