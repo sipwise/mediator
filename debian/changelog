@@ -1,3 +1,13 @@
+ngcp-mediator (6.0.2.1+0~mr6.0.2.1) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [927351e] TT#33040 clip MOS values to avoid errors when inserting into DB
+  * [80fdb5e] TT#33040 clip MOS values to avoid errors when inserting into DB
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 13 Mar 2018 14:04:20 +0100
+
 ngcp-mediator (6.0.2.0+0~mr6.0.2.0) unstable; urgency=medium
 
   * New release.
