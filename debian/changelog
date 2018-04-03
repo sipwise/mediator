@@ -1,3 +1,34 @@
+ngcp-mediator (6.2.1.0+0~mr6.2.1.0) unstable; urgency=medium
+
+  [ Guillem Jover ]
+  * [4a830b3] TT#32302 Implement config file parsing
+  * [25991bb] TT#26264 Add a new systemd native service file
+  * [28e928f] TT#32917 Fix format truncation warning
+  * [d48023f] TT#32917 Remove unused argument from medmysql_update_call_stat_info()
+  * [ec9b6dd] TT#32917 Mark unused function argument as such
+  * [412a87e] TT#32917 Do not compare values with different signedness
+  * [62f27ea] TT#32917 Enable -Wextra
+  * [e85462b] TT#26264 Add a manual alias for ngcp-mediator
+
+  [ Alexander Lutay ]
+  * [7c2d527] TT#33276 Remove sysv init script dependency on sshd
+
+  [ Andreas Granig ]
+  * [2812d16] TT#33319 Implement redis backend for mediator
+  * [0a40eb2] TT#33319 Convert tabs to spaces in code style
+
+  [ Richard Fuchs ]
+  * [dd75641] TT#33319 don't hold large structure on the stack
+  * [cd516a0] TT#33040 clip MOS values to avoid errors when inserting into DB
+  * [cd89ac0] TT#33040 clip MOS values to avoid errors when inserting into DB
+
+  [ Manuel Montecelo ]
+  * [34d102d] TT#31163 Require/After redis-server
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 03 Apr 2018 22:28:31 +0200
+
 ngcp-mediator (6.2.0.0+0~mr6.2.0.0) unstable; urgency=medium
 
   * New release.
