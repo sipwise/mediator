@@ -16,6 +16,23 @@
       "revId": "fd3eb548a9a4a595f5824a88a04d91b2589a8d70",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_38bbafc6",
+        "filename": "debian/ngcp-mediator.lintian-overrides",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000001
+      },
+      "writtenOn": "2018-04-16T17:41:49Z",
+      "side": 1,
+      "message": "IMHO, worth to add man instead of muting, very short... :-)",
+      "revId": "fd3eb548a9a4a595f5824a88a04d91b2589a8d70",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
     }
   ]
 }
