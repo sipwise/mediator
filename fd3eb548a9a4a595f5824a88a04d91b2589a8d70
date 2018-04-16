@@ -33,6 +33,24 @@
       "revId": "fd3eb548a9a4a595f5824a88a04d91b2589a8d70",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa53dc9_bf1fb75a",
+        "filename": "debian/ngcp-mediator.lintian-overrides",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2018-04-16T20:09:24Z",
+      "side": 1,
+      "message": "This was already in place, just as debian/lintian-overrides, I just renamed it. :) Probably for a later cleanup. We are missing many man pages. :(",
+      "parentUuid": "baa041b7_38bbafc6",
+      "revId": "fd3eb548a9a4a595f5824a88a04d91b2589a8d70",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
     }
   ]
 }
