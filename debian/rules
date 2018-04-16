@@ -5,8 +5,3 @@
 
 %:
 	dh $@
-
-override_dh_installinit:
-	dh_installinit --name=mediator
-
-.PHONY: override_dh_installinit
