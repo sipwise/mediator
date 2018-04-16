@@ -1,0 +1,2 @@
+rm_conffile /etc/default/mediator 6.3.0.0+1~mr6.3.0.0
+rm_conffile /etc/init.d/mediator 6.3.0.0+1~mr6.3.0.0
