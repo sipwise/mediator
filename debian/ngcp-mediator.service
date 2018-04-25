@@ -1,9 +1,9 @@
 [Unit]
 Description=NGCP Mediator
-After=mysql.service
+After=mariadb.service
 After=redis-server.service
 After=remote-fs.target
-Wants=mysql.service
+Wants=mariadb.service
 Wants=redis-server.service
 
 [Service]
