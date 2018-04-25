@@ -22,6 +22,30 @@
       "revId": "e41d0f9f929821c132bd007c45b9a783f571ce52",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aaa499b_449342fb",
+        "filename": "debian/ngcp-mediator.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1000001
+      },
+      "writtenOn": "2018-04-25T16:59:53Z",
+      "side": 1,
+      "message": "Yeah, noticed it too, it is ready in the next review... I can squash them if you want.",
+      "parentUuid": "7aaa499b_e4cb6e1d",
+      "range": {
+        "startLine": 6,
+        "startChar": 6,
+        "endLine": 6,
+        "endChar": 11
+      },
+      "revId": "e41d0f9f929821c132bd007c45b9a783f571ce52",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
     }
   ]
 }
