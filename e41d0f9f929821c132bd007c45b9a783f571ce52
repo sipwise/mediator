@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aaa499b_e4cb6e1d",
+        "filename": "debian/ngcp-mediator.service",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2018-04-25T16:52:49Z",
+      "side": 1,
+      "message": "mariadb",
+      "range": {
+        "startLine": 6,
+        "startChar": 6,
+        "endLine": 6,
+        "endChar": 11
+      },
+      "revId": "e41d0f9f929821c132bd007c45b9a783f571ce52",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
