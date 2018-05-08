@@ -248,6 +248,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->source_user, tmp2, sizeof(cdr->source_user));
+    uri_unescape(cdr->source_user);
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -269,6 +270,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->source_cli, tmp2, sizeof(cdr->source_cli));
+    uri_unescape(cdr->source_cli);
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -408,6 +410,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->source_user_out, tmp2, sizeof(cdr->source_user_out));
+    uri_unescape(cdr->source_user_out);
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
