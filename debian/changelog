@@ -1,3 +1,22 @@
+ngcp-mediator (6.4.0.0+0~mr6.4.0.0) unstable; urgency=medium
+
+  [ Guillem Jover ]
+  * [c304093] TT#26264 Remove obsolete init script
+  * [979da5e] TT#26264 Remove obsolete rc.d symlinks
+
+  [ Alexander Lutay ]
+  * [0e71eb8] TT#35502 Replace Requires=mysql.service with Wants=mariadb.service for ngcp-mediator.service
+
+  [ Richard Fuchs ]
+  * [30ba71a] TT#36261 fix segfault after redis restart
+
+  [ Andrew Pogrebennyk ]
+  * [f6d329d] TT#36226 implement unescaping for source_user and source_cli fields
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 29 May 2018 10:04:51 +0200
+
 ngcp-mediator (6.3.0.0+0~mr6.3.0.0) unstable; urgency=medium
 
   [ Guillem Jover ]
