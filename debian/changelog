@@ -1,3 +1,12 @@
+ngcp-mediator (5.5.5.1+0~mr5.5.5.1) unstable; urgency=medium
+
+  [ Andrew Pogrebennyk ]
+  * [5942621] TT#36226 implement unescaping for source_user and source_cli fields
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 04 Jun 2018 16:16:27 +0200
+
 ngcp-mediator (5.5.5.0+0~mr5.5.5.0) unstable; urgency=medium
 
   * New release.
