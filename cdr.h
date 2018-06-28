@@ -76,6 +76,10 @@ typedef struct {
     uint32_t destination_reseller_cost;
     uint32_t destination_customer_cost;
 
+    char furnished_charging_info[256];
+    char header_diversion[2048];
+    char header_pai[2048];
+
     uint8_t split;
 
     mos_data_t mos;

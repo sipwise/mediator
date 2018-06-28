@@ -103,6 +103,7 @@ extern GHashTable *med_peer_ip_table;
 extern GHashTable *med_peer_id_table;
 extern GHashTable *med_uuid_table;
 extern GHashTable *med_call_stat_info_table;
+extern GHashTable *med_cdr_tag_table;
 
 
 void critical(const char *);
