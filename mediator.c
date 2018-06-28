@@ -27,6 +27,7 @@ GHashTable *med_peer_host_table = NULL;
 GHashTable *med_peer_id_table = NULL;
 GHashTable *med_uuid_table = NULL;
 GHashTable *med_call_stat_info_table = NULL;
+GHashTable *med_cdr_tag_table = NULL;
 
 /**********************************************************************/
 static int mediator_load_maps()
@@ -35,12 +36,15 @@ static int mediator_load_maps()
     med_peer_host_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
     med_peer_id_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
     med_uuid_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
+    med_cdr_tag_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
 
     if(medmysql_load_maps(med_peer_ip_table, med_peer_host_table, med_peer_id_table))
         return -1;
     if(medmysql_load_uuids(med_uuid_table))
         return -1;
     if (medmysql_load_db_ids())
+        return -1;
+    if (medmysql_load_cdr_tag_ids(med_cdr_tag_table))
         return -1;
 
     return 0;
@@ -65,12 +69,15 @@ static void mediator_destroy_maps()
         g_hash_table_destroy(med_uuid_table);
     if(med_call_stat_info_table)
         g_hash_table_destroy(med_call_stat_info_table);
+    if(med_cdr_tag_table)
+        g_hash_table_destroy(med_cdr_tag_table);
 
     med_peer_ip_table = NULL;
     med_peer_host_table = NULL;
     med_peer_id_table = NULL;
     med_uuid_table = NULL;
     med_call_stat_info_table = NULL;
+    med_cdr_tag_table = NULL;
 }
 
 /**********************************************************************/

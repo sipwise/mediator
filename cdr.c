@@ -423,6 +423,26 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     g_strlcpy(cdr->source_lnp_type, tmp2, sizeof(cdr->source_lnp_type));
     tmp2 = ++tmp1;
 
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
+        L_WARNING("Call-Id '%s' has no separated P-Asserted-Identity header, '%s'", cdr->call_id, tmp2);
+        return -1;
+    }
+    *tmp1 = '\0';
+    g_strlcpy(cdr->header_pai, tmp2, sizeof(cdr->header_pai));
+    tmp2 = ++tmp1;
+
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
+        L_WARNING("Call-Id '%s' has no separated Diversion header, '%s'", cdr->call_id, tmp2);
+        return -1;
+    }
+    *tmp1 = '\0';
+    g_strlcpy(cdr->header_diversion, tmp2, sizeof(cdr->header_diversion));
+    tmp2 = ++tmp1;
+
     return 0;
 }
 
@@ -599,6 +619,16 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->destination_lnp_type, tmp2, sizeof(cdr->destination_lnp_type));
+    tmp2 = ++tmp1;
+
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
+        L_WARNING("Call-Id '%s' has no separated furnished charging info, '%s'", cdr->call_id, tmp2);
+        return -1;
+    }
+    *tmp1 = '\0';
+    g_strlcpy(cdr->furnished_charging_info, tmp2, sizeof(cdr->furnished_charging_info));
     tmp2 = ++tmp1;
 
     return 0;

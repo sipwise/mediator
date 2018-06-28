@@ -44,6 +44,7 @@ int medmysql_insert_cdrs(cdr_entry_t *records, uint64_t count, struct medmysql_b
 int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable *id_table);
 int medmysql_load_uuids(GHashTable *uuid_table);
 int medmysql_load_db_ids();
+int medmysql_load_cdr_tag_ids(GHashTable *cdr_tag_table);
 int medmysql_batch_start(struct medmysql_batches *);
 int medmysql_batch_end(struct medmysql_batches *);
 int medmysql_update_call_stat_info(const char *call_code, const double start_time);

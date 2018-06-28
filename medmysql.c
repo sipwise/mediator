@@ -52,6 +52,8 @@
     "billing.contracts c, billing.contacts ct, billing.resellers r where c.id = vs.contract_id and " \
     "c.contact_id = ct.id and ct.reseller_id = r.id"
 
+#define MED_LOAD_CDR_TAG_IDS_QUERY "select id, type from accounting.cdr_tag"
+
 typedef struct _medmysql_handler {
     const char *name;
     MYSQL *m;
@@ -674,20 +676,21 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *batches
 #define CDRESCAPE(x)    batches->cdrs.len += mysql_real_escape_string(med_handler->m, batches->cdrs.str + batches->cdrs.len, x, strlen(x))
 
 /**********************************************************************/
-// static int medmysql_tag_record(GQueue *q, unsigned long cdr_id, unsigned long provider_id,
-//         unsigned long direction_id, const char *value, double start_time, unsigned long tag_id)
-// {
-//     cdr_tag_record *record = malloc(sizeof(*record));
-//     record->cdr_id = cdr_id;
-//     if (asprintf(&record->sql_record, "%lu, %lu, %lu, '%s', %f",
-//                 provider_id, direction_id, tag_id, value, start_time) <= 0)
-//     {
-//         free(record);
-//         return -1;
-//     }
-//     g_queue_push_tail(q, record);
-//     return 0;
-// }
+static int medmysql_tag_record(GQueue *q, unsigned long cdr_id, unsigned long provider_id,
+        unsigned long direction_id, const char *value, double start_time, unsigned long tag_id)
+{
+    cdr_tag_record *record = malloc(sizeof(*record));
+    record->cdr_id = cdr_id;
+    if (asprintf(&record->sql_record, "%lu, %lu, %lu, '%s', %f",
+        provider_id, direction_id, tag_id, value, start_time) <= 0)
+    {
+        free(record);
+        return -1;
+    }
+    g_queue_push_tail(q, record);
+    return 0;
+}
+
 static int medmysql_mos_record(GQueue *q, unsigned long cdr_id, double avg_score, int avg_packetloss,
         int avg_jitter, int avg_rtt, double start_time)
 {
@@ -709,6 +712,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
 {
     uint64_t i;
     int gpp;
+    gpointer tag_id;
 
     for(i = 0; i < count; ++i)
     {
@@ -877,6 +881,45 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         }
 
         CDRPRINT("),");
+
+        if(strnlen(e->furnished_charging_info, sizeof(e->furnished_charging_info)) > 0)
+        {
+            if ((tag_id = g_hash_table_lookup(med_cdr_tag_table, "furnished_charging_info")) == NULL) {
+                L_WARNING("Call-Id '%s' has no cdr tag type 'furnished_charging_info', '%s'",
+                            e->call_id, e->header_diversion);
+                return -1;
+            }
+            if (medmysql_tag_record(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_customer,
+                    medmysql_tag_direction_destination, e->furnished_charging_info, e->start_time,
+                    GPOINTER_TO_UINT(tag_id)))
+                return -1;
+        }
+
+        if(strnlen(e->header_pai, sizeof(e->header_pai)) > 0)
+        {
+            if ((tag_id = g_hash_table_lookup(med_cdr_tag_table, "header=P-Asserted-Identity")) == NULL) {
+                L_WARNING("Call-Id '%s' has no cdr tag type 'header=P-Asserted-Identity', '%s'",
+                            e->call_id, e->header_diversion);
+                return -1;
+            }
+            if (medmysql_tag_record(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_customer,
+                    medmysql_tag_direction_source, e->header_pai, e->start_time,
+                    GPOINTER_TO_UINT(tag_id)))
+                return -1;
+        }
+
+        if(strnlen(e->header_diversion, sizeof(e->header_diversion)) > 0)
+        {
+            if ((tag_id = g_hash_table_lookup(med_cdr_tag_table, "header=Diversion")) == NULL) {
+                L_WARNING("Call-Id '%s' has no cdr tag type 'header=Diversion', '%s'",
+                            e->call_id, e->header_diversion);
+                return -1;
+            }
+            if (medmysql_tag_record(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_customer,
+                    medmysql_tag_direction_source, e->header_diversion, e->start_time,
+                    GPOINTER_TO_UINT(tag_id)))
+                return -1;
+        }
 
         // entries for the CDR tags table
 //        if (medmysql_tag_record(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_carrier,
@@ -1080,6 +1123,53 @@ int medmysql_load_db_ids() {
         return -1;
 
     return 0;
+}
+
+int medmysql_load_cdr_tag_ids(GHashTable *cdr_tag_table)
+{
+    MYSQL_RES *res;
+    MYSQL_ROW row;
+    int ret = 0;
+    /* char query[1024] = ""; */
+    gpointer key;
+    gpointer tag_id;
+
+    /* snprintf(query, sizeof(query), MED_LOAD_CDR_TAG_IDS_QUERY); */
+
+    /* L_DEBUG("q='%s'", query); */
+    if(medmysql_query_wrapper(cdr_handler, MED_LOAD_CDR_TAG_IDS_QUERY, strlen(MED_LOAD_CDR_TAG_IDS_QUERY)) != 0)
+    {
+        L_CRITICAL("Error loading cdr tag ids: %s",
+                mysql_error(prov_handler->m));
+        return -1;
+    }
+
+    res = mysql_store_result(cdr_handler->m);
+
+    while((row = mysql_fetch_row(res)) != NULL)
+    {
+        if(row[0] == NULL || row[1] == NULL)
+        {
+            L_CRITICAL("Error loading cdr tag ids, a column is NULL");
+            ret = -1;
+            goto out;
+        }
+
+        tag_id = GUINT_TO_POINTER(strtoul(row[0], NULL, 10));
+        if(tag_id == NULL)
+        {
+            L_CRITICAL("Error allocating cdr tag id memory: %s", strerror(errno));
+            ret = -1;
+            goto out;
+        }
+
+        key = (gpointer)g_strdup(row[1]);
+        g_hash_table_insert(cdr_tag_table, key, tag_id);
+    }
+
+out:
+    mysql_free_result(res);
+    return ret;
 }
 
 
