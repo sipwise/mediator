@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ad0253b_ac20a0f8",
+        "filename": "cdr.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 430,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-06-29T14:20:14Z",
+      "side": 1,
+      "message": "are these new fields mandatory to be present?",
+      "revId": "b838e75b3d5382c941cdd9379501fd42c920e63d",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ad0253b_0c88b4e6",
+        "filename": "medmysql.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 1158,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-06-29T14:20:14Z",
+      "side": 1,
+      "message": "you could do the strtoul() here instead of above for some minor improvements. you\u0027d use GUINT_TO_POINTER() to store it into the hash table here and then GPOINTER_TO_UINT() when retrieving it.",
+      "revId": "b838e75b3d5382c941cdd9379501fd42c920e63d",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
