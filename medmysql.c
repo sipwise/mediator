@@ -1132,7 +1132,7 @@ int medmysql_load_cdr_tag_ids(GHashTable *cdr_tag_table)
     int ret = 0;
     /* char query[1024] = ""; */
     gpointer key;
-    gpointer tag_id;
+    uint64_t *tag_id;
 
     /* snprintf(query, sizeof(query), MED_LOAD_CDR_TAG_IDS_QUERY); */
 
@@ -1155,16 +1155,16 @@ int medmysql_load_cdr_tag_ids(GHashTable *cdr_tag_table)
             goto out;
         }
 
-        tag_id = GUINT_TO_POINTER(strtoul(row[0], NULL, 10));
-        if(tag_id == NULL)
+        if((tag_id = malloc(sizeof(uint64_t))) == NULL)
         {
             L_CRITICAL("Error allocating cdr tag id memory: %s", strerror(errno));
             ret = -1;
             goto out;
         }
+        *tag_id = strtoul(row[0], NULL, 10);
 
         key = (gpointer)g_strdup(row[1]);
-        g_hash_table_insert(cdr_tag_table, key, tag_id);
+        g_hash_table_insert(cdr_tag_table, key, GUINT_TO_POINTER(tag_id));
     }
 
 out:

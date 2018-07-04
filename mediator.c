@@ -91,6 +91,8 @@ static void mediator_print_maps()
     g_hash_table_foreach(med_peer_id_table, mediator_print_mapentry, NULL);
     L_DEBUG("UUID map:");
     g_hash_table_foreach(med_uuid_table, mediator_print_mapentry, NULL);
+    L_DEBUG("TAGS map:");
+    g_hash_table_foreach(med_cdr_tag_table, mediator_print_mapentry, NULL);
 }
 
 /**********************************************************************/
