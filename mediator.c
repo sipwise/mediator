@@ -36,7 +36,7 @@ static int mediator_load_maps()
     med_peer_host_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
     med_peer_id_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
     med_uuid_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
-    med_cdr_tag_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
+    med_cdr_tag_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, NULL);
 
     if(medmysql_load_maps(med_peer_ip_table, med_peer_host_table, med_peer_id_table))
         return -1;
@@ -91,6 +91,8 @@ static void mediator_print_maps()
     g_hash_table_foreach(med_peer_id_table, mediator_print_mapentry, NULL);
     L_DEBUG("UUID map:");
     g_hash_table_foreach(med_uuid_table, mediator_print_mapentry, NULL);
+    L_DEBUG("TAGS map:");
+    g_hash_table_foreach(med_cdr_tag_table, mediator_print_mapentry, NULL);
 }
 
 /**********************************************************************/
