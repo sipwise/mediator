@@ -52,7 +52,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
     uint16_t invite_200 = 0;
 
     char *callid = records[0].callid;
-    uint8_t redis = records[0].redis;
+    int has_redis = 0, has_mysql = 0;
 
 
     cdr_entry_t *cdrs = NULL;
@@ -85,7 +85,12 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
         }
 
         if (check_shutdown())
-            return -1;
+            return 1;
+
+        if (e->redis)
+            has_redis = 1;
+        else
+            has_mysql = 1;
     }
 
     L_DEBUG("%d INVITEs, %d BYEs, %d unrecognized", msg_invites, msg_byes, msg_unknowns);
@@ -120,12 +125,12 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
                         }
                         else
                         {
-                            if (redis)
+                            if (has_redis)
                             {
                                 if(medredis_backup_entries(records, count) != 0)
                                     goto error;
                             }
-                            else
+                            if (has_mysql)
                             {
                                 if(medmysql_backup_entries(callid, batches) != 0)
                                     goto error;
@@ -158,12 +163,12 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 
     if(trash)
     {
-        if (redis)
+        if (has_redis)
         {
             if(medredis_trash_entries(records, count) != 0)
                 goto error;
         }
-        else
+        if (has_mysql)
         {
             if(medmysql_trash_entries(callid, batches) != 0)
                 goto error;
