@@ -507,19 +507,6 @@ static void medredis_append_key(gpointer data, gpointer user_data) {
 }
 
 /**********************************************************************/
-static gint medredis_sort_entry(gconstpointer a, gconstpointer b) {
-    med_entry_t *aa = (med_entry_t*)a;
-    med_entry_t *bb = (med_entry_t*)b;
-
-    if (aa->unix_timestamp == bb->unix_timestamp)
-        return 0;
-    else if (aa->unix_timestamp < bb->unix_timestamp)
-        return -1;
-    else
-        return 1;
-}
-
-/**********************************************************************/
 int medredis_fetch_records(med_callid_t *callid,
         med_entry_t **entries, uint64_t *count) {
 
@@ -544,8 +531,6 @@ int medredis_fetch_records(med_callid_t *callid,
     GList *keys;
 
     size_t i;
-    uint8_t has_bye = 0;
-    uint8_t has_inv_200 = 0;
     
     cid_set_argc = 2;
     cid_set_argv[0] = "SMEMBERS";
@@ -643,11 +628,11 @@ int medredis_fetch_records(med_callid_t *callid,
             goto err;
         }
         medredis_free_reply(&reply);
-        records = g_list_insert_sorted(records, e, medredis_sort_entry);
+        records = g_list_prepend(records, e);
+	(*count)++;
 
     } while(1);
 
-    *count = g_list_length(records);
     *entries = (med_entry_t*)malloc(*count * sizeof(med_entry_t));
     if (!*entries) {
         L_ERROR("Failed to allocate memory for entries (cid '%s')\n", callid->value);
@@ -661,24 +646,10 @@ int medredis_fetch_records(med_callid_t *callid,
         L_DEBUG("Copying record with cid='%s', method='%s', code='%s'",
             s->callid, s->sip_method, s->sip_code);
 
-        if (s->sip_method[0] == 'I' && s->sip_method[1] == 'N' && s->sip_method[2] == 'V' &&
-                s->sip_code[0] == '2') {
-            has_inv_200 |= 1;
-        } else if (s->sip_method[0] == 'B' && s->sip_method[1] == 'Y' && s->sip_method[2] == 'E') {
-            has_bye |= 1;
-        }
-
         memcpy(d, s, sizeof(med_entry_t));
         free(s);
 
         L_DEBUG("Added entry with cid '%s' and method '%s'\n", d->callid, d->sip_method);
-    }
-
-    if (has_inv_200 && !has_bye) {
-        L_DEBUG("Found incomplete call with cid '%s', skipping...\n", callid->value);
-        free(*entries);
-        *entries = NULL;
-        *count = 0;
     }
 
     g_list_free(records);
@@ -717,6 +688,8 @@ static int medredis_cleanup_entries(med_entry_t *records, uint64_t count, const 
 
     for (uint64_t i = 0; i < count; ++i) {
         med_entry_t *e = &(records[i]);
+        if (!e->redis)
+            continue;
 
         L_DEBUG("Cleaning up redis entry for %s:%f\n", e->callid, e->unix_timestamp);
 

@@ -12,23 +12,6 @@
 
 #define MED_CALLID_QUERY "select a.callid from acc a" \
     " where a.method = 'INVITE' " \
-      " and (a.sip_code != '200' " \
-            " OR EXISTS " \
-                " (select b.id from acc b " \
-                  " where b.callid = a.callid " \
-                    " and b.method = 'BYE' " \
-                   " limit 1) " \
-            " OR EXISTS " \
-                " (select b.id from acc b " \
-                  " where b.callid = concat(a.callid, '"PBXSUFFIX"') " \
-                    " and b.method = 'BYE' " \
-                  " limit 1) " \
-            " OR EXISTS " \
-                " (select b.id from acc b " \
-                  " where b.callid = concat(a.callid, '"XFERSUFFIX"') " \
-                    " and b.method = 'BYE' " \
-                  " limit 1) " \
-          " ) " \
    " group by a.callid limit 0,200000"
 
 #define MED_FETCH_QUERY "(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
@@ -449,6 +432,10 @@ int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *ta
     
     for (uint64_t i = 0; i < count; ++i) {
         med_entry_t *e = &(records[i]);
+
+        // this is only used for inserting redis entries into mysql
+        if (!e->redis)
+            continue;
 
         snprintf(entry_buffer, sizeof(entry_buffer), "('%s','%s','%s','%s','%s','%f','%s','%s'),",
             e->sip_code, e->sip_reason, e->sip_method, e->callid, e->timestamp, e->unix_timestamp, e->src_leg, e->dst_leg);
