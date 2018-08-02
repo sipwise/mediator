@@ -17,6 +17,7 @@
 #include "medmysql.h"
 #include "medredis.h"
 #include "cdr.h"
+#include "records.h"
 
 sig_atomic_t mediator_shutdown = 0;
 int mediator_lockfd = -1;
@@ -161,8 +162,8 @@ int main(int argc, char **argv)
 {
     med_callid_t *mysql_callids;
     med_callid_t *redis_callids;
-    med_entry_t *records;
-    uint64_t mysql_id_count, redis_id_count, rec_count, i;
+    med_entry_t *mysql_records, *redis_records;
+    uint64_t mysql_id_count, redis_id_count, mysql_rec_count, redis_rec_count, i;
     uint64_t cdr_count, last_count;
     int maprefresh;
     struct medmysql_batches *batches;
@@ -267,7 +268,7 @@ int main(int argc, char **argv)
         if (0)
             mediator_print_maps();
 
-        mysql_id_count = redis_id_count = rec_count = cdr_count = 0;
+        mysql_id_count = redis_id_count = mysql_rec_count = redis_rec_count = cdr_count = 0;
         last_count = mediator_count;
 
         mysql_callids = medmysql_fetch_callids(&mysql_id_count);
@@ -302,15 +303,38 @@ int main(int argc, char **argv)
             gettimeofday(&tv_start, NULL);
 #endif
 
-            if(medmysql_fetch_records(&(mysql_callids[i]), &records, &rec_count) != 0)
+            if(medmysql_fetch_records(&(mysql_callids[i]), &mysql_records, &mysql_rec_count) != 0)
                 goto out;
 
-            if(cdr_process_records(records, rec_count, &cdr_count, batches) != 0)
-                goto out;
-
-            if(rec_count > 0)
+            if(medredis_fetch_records(&(mysql_callids[i]), &redis_records, &redis_rec_count) == 0
+                    && redis_rec_count)
             {
-                free(records);
+                mysql_records = realloc(mysql_records, (mysql_rec_count + redis_rec_count) * sizeof(med_entry_t));
+                if (!mysql_records)
+                {
+                    L_ERROR("Failed to realloc mysql_records\n");
+                    break;
+                }
+                memcpy(&mysql_records[mysql_rec_count], redis_records, redis_rec_count * sizeof(med_entry_t));
+                free(redis_records);
+                mysql_rec_count += redis_rec_count;
+
+                records_sort(mysql_records, mysql_rec_count);
+            }
+
+            if (!records_complete(mysql_records, mysql_rec_count))
+            {
+                L_DEBUG("Found incomplete call with cid '%s', skipping...\n", mysql_callids[i].value);
+                free(mysql_records);
+                continue;
+            }
+
+            if(cdr_process_records(mysql_records, mysql_rec_count, &cdr_count, batches) != 0)
+                goto out;
+
+            if(mysql_rec_count > 0)
+            {
+                free(mysql_records);
             }
 
             mediator_count += cdr_count;
@@ -336,17 +360,40 @@ int main(int argc, char **argv)
             gettimeofday(&tv_start, NULL);
 #endif
 
-            if(medredis_fetch_records(&(redis_callids[i]), &records, &rec_count) != 0)
+            if(medredis_fetch_records(&(redis_callids[i]), &redis_records, &redis_rec_count) != 0)
                 goto out;
 
-            L_DEBUG("process cdr with cid '%s' and %"PRIu64" records\n", redis_callids[i].value, rec_count);
+            if(medmysql_fetch_records(&(redis_callids[i]), &mysql_records, &mysql_rec_count) == 0
+                    && mysql_rec_count)
+            {
+                redis_records = realloc(redis_records, (mysql_rec_count + redis_rec_count) * sizeof(med_entry_t));
+                if (!redis_records)
+                {
+                    L_ERROR("Failed to realloc redis_records\n");
+                    break;
+                }
+                memcpy(&redis_records[redis_rec_count], mysql_records, mysql_rec_count * sizeof(med_entry_t));
+                free(mysql_records);
+                redis_rec_count += mysql_rec_count;
+            }
 
-            if (rec_count) {
-                if(cdr_process_records(records, rec_count, &cdr_count, batches) != 0) {
-                    free(records);
+            records_sort(redis_records, redis_rec_count);
+
+            if (!records_complete(redis_records, redis_rec_count))
+            {
+                L_DEBUG("Found incomplete call with cid '%s', skipping...\n", redis_callids[i].value);
+                free(redis_records);
+                continue;
+            }
+
+            L_DEBUG("process cdr with cid '%s' and %"PRIu64" records\n", redis_callids[i].value, redis_rec_count);
+
+            if (redis_rec_count) {
+                if(cdr_process_records(redis_records, redis_rec_count, &cdr_count, batches) != 0) {
+                    free(redis_records);
                     goto out;
                 }
-                free(records);
+                free(redis_records);
 
                 mediator_count += cdr_count;
             }
