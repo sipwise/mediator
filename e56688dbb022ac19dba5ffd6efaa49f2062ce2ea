@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1aca2d91_28d80f1d",
+        "filename": "mediator.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-08-03T20:09:04Z",
+      "side": 1,
+      "message": "Yes, reason being: above deals with data from MySQL primarily, which does the sorting in the query. So it only needs to re-sort if data from Redis is merged. This one here is using Redis primarily, which always needs to be sorted. Previously the code was using g_list_insert_sorted during the fetch routine, which was converted to a g_list_prepend plus the sorting here.",
+      "parentUuid": "1aca2d91_289c8f68",
+      "revId": "e56688dbb022ac19dba5ffd6efaa49f2062ce2ea",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1aca2d91_0888b321",
         "filename": "records.c",
         "patchSetId": 5
@@ -30,6 +48,30 @@
       "writtenOn": "2018-08-03T17:34:35Z",
       "side": 1,
       "message": "What about GCC\u0027s typeof()? I think at least clang also supports it or are other compilers that do not support it expected to be used?",
+      "range": {
+        "startLine": 4,
+        "startChar": 17,
+        "endLine": 4,
+        "endChar": 21
+      },
+      "revId": "e56688dbb022ac19dba5ffd6efaa49f2062ce2ea",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1aca2d91_0804337c",
+        "filename": "records.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-08-03T20:09:04Z",
+      "side": 1,
+      "message": "I thought of that, but you can\u0027t do `typeof(strlen(...))`, can you?",
+      "parentUuid": "1aca2d91_0888b321",
       "range": {
         "startLine": 4,
         "startChar": 17,
