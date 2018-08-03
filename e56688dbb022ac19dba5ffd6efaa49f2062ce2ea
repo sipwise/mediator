@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1aca2d91_289c8f68",
+        "filename": "mediator.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2018-08-03T17:34:35Z",
+      "side": 1,
+      "message": "Should this be done unconditionally? The other branch above, does it within the if block.",
+      "revId": "e56688dbb022ac19dba5ffd6efaa49f2062ce2ea",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1aca2d91_0888b321",
+        "filename": "records.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2018-08-03T17:34:35Z",
+      "side": 1,
+      "message": "What about GCC\u0027s typeof()? I think at least clang also supports it or are other compilers that do not support it expected to be used?",
+      "range": {
+        "startLine": 4,
+        "startChar": 17,
+        "endLine": 4,
+        "endChar": 21
+      },
+      "revId": "e56688dbb022ac19dba5ffd6efaa49f2062ce2ea",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
