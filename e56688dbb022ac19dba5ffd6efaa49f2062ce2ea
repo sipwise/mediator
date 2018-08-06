@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1aca2d91_4877cb02",
+        "filename": "mediator.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2018-08-06T15:10:36Z",
+      "side": 1,
+      "message": "Ah ok. Do you mind adding a comment to that effect, because that\u0027s something that jumps as otherwise inconsistent, so might trip others too.",
+      "parentUuid": "1aca2d91_28d80f1d",
+      "revId": "e56688dbb022ac19dba5ffd6efaa49f2062ce2ea",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1aca2d91_0888b321",
         "filename": "records.c",
         "patchSetId": 5
@@ -72,6 +90,30 @@
       "side": 1,
       "message": "I thought of that, but you can\u0027t do `typeof(strlen(...))`, can you?",
       "parentUuid": "1aca2d91_0888b321",
+      "range": {
+        "startLine": 4,
+        "startChar": 17,
+        "endLine": 4,
+        "endChar": 21
+      },
+      "revId": "e56688dbb022ac19dba5ffd6efaa49f2062ce2ea",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1aca2d91_686a871c",
+        "filename": "records.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2018-08-06T15:10:36Z",
+      "side": 1,
+      "message": "Ah hah, had the following comment, when I noticed you had already gotten there. :D\n\n\"\"\"\nYes, it accepts either a type or an expression. Or you could even use: __auto_type x_a \u003d a_var;\n\"\"\"",
+      "parentUuid": "1aca2d91_0804337c",
       "range": {
         "startLine": 4,
         "startChar": 17,
