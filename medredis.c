@@ -587,6 +587,7 @@ int medredis_fetch_records(med_callid_t *callid,
             goto err;
         }
         free(cid);
+        cids[i] = NULL;
     }
 
     for (i = 0; i < 3; ++i) {
