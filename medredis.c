@@ -53,6 +53,19 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply) {
             reply->elements);
         return NULL;
     }
+    // verify types
+    for (int i = 0; i < (int) reply->elements; i++) {
+        if (reply->element[i]->type != REDIS_REPLY_STRING) {
+            L_ERROR("Received Redis reply type %i instead of %i (string) for element %i\n",
+                    reply->element[i]->type, REDIS_REPLY_STRING, i);
+            return NULL;
+        }
+        if (reply->element[i]->str == NULL) {
+            L_ERROR("Received NULL string from Redis for element %i\n",
+                    i);
+            return NULL;
+        }
+    }
     entry = (med_entry_t*)malloc(sizeof(med_entry_t));
     memset(entry, 0, sizeof(med_entry_t));
 
