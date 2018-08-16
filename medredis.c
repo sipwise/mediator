@@ -612,7 +612,7 @@ int medredis_fetch_records(med_callid_t *callid,
         for (size_t j = 0; j < reply->elements; ++j) {
             char *key = strdup(reply->element[j]->str);
             if (!key) {
-                L_ERROR("Failed to allocate memory for redis key\n");
+                L_ERROR("Failed to allocate memory for redis key (cid '%s')\n", callid->value);
                 goto err;
             }
             L_DEBUG("Putting key '%s' to keys list\n", key);
@@ -628,7 +628,7 @@ int medredis_fetch_records(med_callid_t *callid,
         med_entry_t *e;
         L_DEBUG("Fetching next reply record\n");
         if (medredis_get_reply(&reply) != 0) {
-            L_ERROR("Failed to get reply from redis\n");
+            L_ERROR("Failed to get reply from redis (cid '%s')\n", callid->value);
             goto err;
         }
         if (!reply)
@@ -638,7 +638,7 @@ int medredis_fetch_records(med_callid_t *callid,
 
         e = medredis_reply_to_entry(reply);
         if (!e) {
-            L_ERROR("Failed to convert redis reply to entry\n");
+            L_ERROR("Failed to convert redis reply to entry (cid '%s')\n", callid->value);
             medredis_free_reply(&reply);
             goto err;
         }
@@ -650,7 +650,7 @@ int medredis_fetch_records(med_callid_t *callid,
     *count = g_list_length(records);
     *entries = (med_entry_t*)malloc(*count * sizeof(med_entry_t));
     if (!*entries) {
-        L_ERROR("Failed to allocate memory for entries\n");
+        L_ERROR("Failed to allocate memory for entries (cid '%s')\n", callid->value);
         goto err;
     }
     i = 0;
