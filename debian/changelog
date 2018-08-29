@@ -1,3 +1,14 @@
+ngcp-mediator (6.4.1.2+0~mr6.4.1.2) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [f3321c5] TT#42673 verify redis reply types before processing them
+  * [5a97d94] TT#42673 prevent double-free in error case
+  * [01bf2bf] TT#42673 log call-id in error cases
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Wed, 29 Aug 2018 11:14:49 +0200
+
 ngcp-mediator (6.4.1.1+0~mr6.4.1.1) unstable; urgency=medium
 
   * New release.
