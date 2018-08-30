@@ -48,26 +48,37 @@ static medredis_con_t *con = NULL;
 static med_entry_t *medredis_reply_to_entry(redisReply *reply) {
     med_entry_t *entry;
 
-    if (reply->elements != 8) {
-        L_ERROR("Invalid number of redis reply elements for acc record, expected 8, got %lu\n",
-            reply->elements);
+    entry = (med_entry_t*)malloc(sizeof(med_entry_t));
+    if (!entry) {
+        L_ERROR("Failed to allocate memory for med_entry\n");
         return NULL;
     }
+    memset(entry, 0, sizeof(med_entry_t));
+    entry->valid = 1;
+    entry->redis = 1;
+
+    if (reply->elements != 8) {
+        L_WARNING("Invalid number of redis reply elements for acc record, expected 8, got %lu\n",
+            reply->elements);
+        entry->valid = 0;
+        return entry;
+    }
+
     // verify types
     for (int i = 0; i < (int) reply->elements; i++) {
         if (reply->element[i]->type != REDIS_REPLY_STRING) {
-            L_ERROR("Received Redis reply type %i instead of %i (string) for element %i\n",
+            L_WARNING("Received Redis reply type %i instead of %i (string) for element %i\n",
                     reply->element[i]->type, REDIS_REPLY_STRING, i);
-            return NULL;
+            entry->valid = 0;
+            return entry;
         }
         if (reply->element[i]->str == NULL) {
             L_ERROR("Received NULL string from Redis for element %i\n",
                     i);
-            return NULL;
+            entry->valid = 0;
+            return entry;
         }
     }
-    entry = (med_entry_t*)malloc(sizeof(med_entry_t));
-    memset(entry, 0, sizeof(med_entry_t));
 
     g_strlcpy(entry->sip_code,   reply->element[0]->str, sizeof(entry->sip_code));
     g_strlcpy(entry->sip_reason, reply->element[1]->str, sizeof(entry->sip_reason));
@@ -77,8 +88,6 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply) {
     entry->unix_timestamp =      atof(reply->element[5]->str);
     g_strlcpy(entry->src_leg,    reply->element[6]->str, sizeof(entry->src_leg));
     g_strlcpy(entry->dst_leg,    reply->element[7]->str, sizeof(entry->dst_leg));
-    entry->valid = 1;
-    entry->redis = 1;
 
     L_DEBUG("Converted record with cid '%s' and method '%s'\n", entry->callid, entry->sip_method);
 
@@ -629,7 +638,7 @@ int medredis_fetch_records(med_callid_t *callid,
         }
         medredis_free_reply(&reply);
         records = g_list_prepend(records, e);
-	(*count)++;
+        (*count)++;
 
     } while(1);
 
@@ -643,13 +652,19 @@ int medredis_fetch_records(med_callid_t *callid,
         med_entry_t *s = (med_entry_t*)l->data;
         med_entry_t *d = &(*entries)[i++];
 
-        L_DEBUG("Copying record with cid='%s', method='%s', code='%s'",
-            s->callid, s->sip_method, s->sip_code);
+        if (s->valid)
+        {
+            L_DEBUG("Copying record with cid='%s', method='%s', code='%s'",
+                s->callid, s->sip_method, s->sip_code);
+        }
+        else
+        {
+            L_DEBUG("Copying invalid record with cid='%s', about to be trashed",
+                    callid);
+        }
 
         memcpy(d, s, sizeof(med_entry_t));
         free(s);
-
-        L_DEBUG("Added entry with cid '%s' and method '%s'\n", d->callid, d->sip_method);
     }
 
     g_list_free(records);
