@@ -63,7 +63,13 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
     for(i = 0; i < count; ++i)
     {
         med_entry_t *e = &(records[i]);
-        if(strcmp(e->sip_method, MSG_INVITE) == 0)
+        if(!e->valid)
+        {
+            L_DEBUG("Invalid record for cid '%s'\n", e->sip_method, callid);
+            ++msg_unknowns;
+            e->method = MED_UNRECOGNIZED;
+        }
+        else if(strcmp(e->sip_method, MSG_INVITE) == 0)
         {
             ++msg_invites;
             e->method = MED_INVITE;
@@ -738,7 +744,7 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
         {
             ++invites;
         }
-        else if(e->method == MED_BYE)
+        else if(e->valid && e->method == MED_BYE)
         {
             if (endtime == NULL) {
                 endtime = e->timestamp;
@@ -754,8 +760,9 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
 
     if(invites == 0)
     {
-        L_CRITICAL("No valid INVITEs for creating a cdr, internal error, callid='%s'",
+        L_WARNING("No valid INVITEs for creating a cdr for callid '%s'",
                 records[0].callid);
+        *trash = 1;
         return -1;
     }
 
