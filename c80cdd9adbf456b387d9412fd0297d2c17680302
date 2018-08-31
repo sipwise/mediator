@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9af37de9_d5cb6c1d",
+        "filename": "medredis.c",
+        "patchSetId": 8
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-08-31T15:43:08Z",
+      "side": 1,
+      "message": "This is probably unnecessary (except for the more specific error message) since the check for the call ID below catching this case anyway.",
+      "range": {
+        "startLine": 308,
+        "startChar": 0,
+        "endLine": 318,
+        "endChar": 5
+      },
+      "revId": "c80cdd9adbf456b387d9412fd0297d2c17680302",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9af37de9_b5d0e8ca",
+        "filename": "medredis.c",
+        "patchSetId": 8
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-08-31T15:43:08Z",
+      "side": 1,
+      "message": "All these scream for the use of a wrapper function :P",
+      "range": {
+        "startLine": 334,
+        "startChar": 2,
+        "endLine": 391,
+        "endChar": 5
+      },
+      "revId": "c80cdd9adbf456b387d9412fd0297d2c17680302",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9af37de9_f5c67015",
+        "filename": "medredis.c",
+        "patchSetId": 8
+      },
+      "lineNbr": 741,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2018-08-31T15:43:08Z",
+      "side": 1,
+      "message": "Any reason not to just walk the list normally while iterating the loop?",
+      "revId": "c80cdd9adbf456b387d9412fd0297d2c17680302",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
