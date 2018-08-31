@@ -503,6 +503,11 @@ static void medredis_append_key(gpointer data, gpointer user_data) {
     if (medredis_append_command_argv(entry_argc, entry_argv, 1) != 0) {
         L_ERROR("Failed to append command to fetch key\n");
     }
+}
+
+/**********************************************************************/
+static void medredis_free_keys_list(gpointer data) {
+    char *key = (char*)data;
     free(key);
 }
 
@@ -609,9 +614,12 @@ int medredis_fetch_records(med_callid_t *callid,
 
     L_DEBUG("Appending all keys to redis command\n");
     g_list_foreach(keys, medredis_append_key, NULL);
+    i = 0;
     do {
         med_entry_t *e;
-        L_DEBUG("Fetching next reply record\n");
+        char *key = (char*)g_list_nth_data(keys, i++);
+        
+        L_DEBUG("Fetching next reply record, query key was '%s'\n", key);
         if (medredis_get_reply(&reply) != 0) {
             L_ERROR("Failed to get reply from redis (cid '%s')\n", callid->value);
             goto err;
@@ -629,7 +637,7 @@ int medredis_fetch_records(med_callid_t *callid,
         }
         medredis_free_reply(&reply);
         records = g_list_prepend(records, e);
-	(*count)++;
+        (*count)++;
 
     } while(1);
 
@@ -653,7 +661,7 @@ int medredis_fetch_records(med_callid_t *callid,
     }
 
     g_list_free(records);
-    g_list_free(keys);
+    g_list_free_full(keys, medredis_free_keys_list);
 
     medredis_consume_replies();
 
