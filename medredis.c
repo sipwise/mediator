@@ -503,7 +503,50 @@ static void medredis_append_key(gpointer data, gpointer user_data) {
     if (medredis_append_command_argv(entry_argc, entry_argv, 1) != 0) {
         L_ERROR("Failed to append command to fetch key\n");
     }
+}
+
+/**********************************************************************/
+static void medredis_free_keys_list(gpointer data) {
+    char *key = (char*)data;
     free(key);
+}
+
+/**********************************************************************/
+static int medredis_remove_mappings(const char* cid, const char* key) {
+    char *argv[3];
+    char buffer[512];
+
+    snprintf(buffer, sizeof(buffer), "acc:cid::%s", cid);
+
+    // delete cid from acc:cid::$cid mapping
+    argv[0] = "SREM";
+    argv[1] = buffer;
+    argv[2] = key;
+    if (medredis_append_command_argv(3, argv, 1) != 0) {
+        L_ERROR("Failed to append redis command to remove mapping key '%s' from '%s'\n", key, argv[1]);
+        goto err;
+    }
+
+    // delete cid from acc:meth::INVITE and acc:meth::BYE
+    argv[0] = "SREM";
+    argv[1] = "acc:meth::INVITE";
+    argv[2] = key;
+    if (medredis_append_command_argv(3, argv, 1) != 0) {
+        L_ERROR("Failed to append redis command to remove mapping key '%s' from '%s'\n", key, argv[1]);
+        goto err;
+    }
+    argv[1] = "acc:meth::BYE";
+    if (medredis_append_command_argv(3, argv, 1) != 0) {
+        L_ERROR("Failed to append redis command to remove mapping key '%s' from '%s'\n", key, argv[1]);
+        goto err;
+    }
+
+    medredis_consume_replies();
+    return 0;
+
+err:
+    medredis_consume_replies();
+    return -1;
 }
 
 /**********************************************************************/
@@ -609,9 +652,12 @@ int medredis_fetch_records(med_callid_t *callid,
 
     L_DEBUG("Appending all keys to redis command\n");
     g_list_foreach(keys, medredis_append_key, NULL);
+    i = 0;
     do {
         med_entry_t *e;
-        L_DEBUG("Fetching next reply record\n");
+        char *key = (char*)g_list_nth_data(keys, i++);
+        
+        L_DEBUG("Fetching next reply record, query key was '%s'\n", key);
         if (medredis_get_reply(&reply) != 0) {
             L_ERROR("Failed to get reply from redis (cid '%s')\n", callid->value);
             goto err;
@@ -623,13 +669,16 @@ int medredis_fetch_records(med_callid_t *callid,
 
         e = medredis_reply_to_entry(reply);
         if (!e) {
-            L_ERROR("Failed to convert redis reply to entry (cid '%s')\n", callid->value);
+            L_WARNING("Failed to convert redis reply to entry (cid '%s')\n", callid->value);
             medredis_free_reply(&reply);
-            goto err;
+            if (medredis_remove_mappings(callid->value, key) != 0) {
+                goto err;
+            }
+            continue;
         }
         medredis_free_reply(&reply);
         records = g_list_prepend(records, e);
-	(*count)++;
+        (*count)++;
 
     } while(1);
 
@@ -653,7 +702,7 @@ int medredis_fetch_records(med_callid_t *callid,
     }
 
     g_list_free(records);
-    g_list_free(keys);
+    g_list_free_full(keys, medredis_free_keys_list);
 
     medredis_consume_replies();
 
@@ -691,29 +740,10 @@ static int medredis_cleanup_entries(med_entry_t *records, uint64_t count, const 
         if (!e->redis)
             continue;
 
-        L_DEBUG("Cleaning up redis entry for %s:%f\n", e->callid, e->unix_timestamp);
-
-        // delete acc:cid mapping
-        snprintf(buffer, sizeof(buffer), "acc:cid::%s", e->callid);
-        argv[0] = "DEL";
-        argv[1] = buffer;
-        if (medredis_append_command_argv(2, argv, 1) != 0) {
-            L_ERROR("Failed to append redis command to remove key '%s'\n", buffer);
-            goto err;
-        }
-
-        // delete cid from acc:meth::INVITE and acc:meth::BYE
-        argv[0] = "SREM";
-        argv[1] = "acc:meth::INVITE";
         snprintf(buffer, sizeof(buffer), "acc:entry::%s:%f", e->callid, e->unix_timestamp);
-        argv[2] = buffer;
-        if (medredis_append_command_argv(3, argv, 1) != 0) {
-            L_ERROR("Failed to append redis command to remove key '%s' from '%s'\n", buffer, argv[1]);
-            goto err;
-        }
-        argv[1] = "acc:meth::BYE";
-        if (medredis_append_command_argv(3, argv, 1) != 0) {
-            L_ERROR("Failed to append redis command to remove key '%s' from '%s'\n", buffer, argv[1]);
+
+        L_DEBUG("Cleaning up redis entry for %s:%f\n", buffer);
+        if (medredis_remove_mappings(e->callid, buffer) != 0) {
             goto err;
         }
 
