@@ -457,6 +457,11 @@ int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *ta
     L_DEBUG("Issuing record insert query: %s\n", sql_buffer);
     
     ret = medmysql_query_wrapper(med_handler, sql_buffer, strlen(sql_buffer));
+    if (ret != 0)
+    {
+        L_ERROR("Error executing query '%s': %s",
+                sql_buffer, mysql_error(med_handler->m));
+    }
 
     free(sql_buffer);
     return ret;
