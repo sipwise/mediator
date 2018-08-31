@@ -63,7 +63,12 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
     for(i = 0; i < count; ++i)
     {
         med_entry_t *e = &(records[i]);
-        if(strcmp(e->sip_method, MSG_INVITE) == 0)
+        if(!e->valid)
+        {
+            ++msg_unknowns;
+            e->method = MED_UNRECOGNIZED;
+        }
+        else if(strcmp(e->sip_method, MSG_INVITE) == 0)
         {
             ++msg_invites;
             e->method = MED_INVITE;
