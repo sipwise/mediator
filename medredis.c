@@ -294,13 +294,13 @@ err:
 
 /**********************************************************************/
 static int medredis_check_reply_string(med_entry_t *entry, redisReply *reply,
-        const char* element, const char* element_name, size_t element_size,
+        char* element, const char* element_name, size_t element_size,
         int index,
         const char* cid, const char* key) {
     int ret;
     if (reply->element[index]->type != REDIS_REPLY_STRING) {
         L_WARNING("Received Redis reply type %i instead of %i (string) for %s field of cid '%s' using key '%s'\n",
-                reply->element[index]->type, REDIS_REPLY_STRING, cid, key);
+                reply->element[index]->type, REDIS_REPLY_STRING, element_name, cid, key);
         entry->valid = 0;
         ret = -1;
     } else {
@@ -311,7 +311,7 @@ static int medredis_check_reply_string(med_entry_t *entry, redisReply *reply,
 }
 
 /**********************************************************************/
-static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, const char* key) {
+static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, char* key) {
     med_entry_t *entry;
     uint8_t all_null = 1;
 
