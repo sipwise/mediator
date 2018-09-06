@@ -153,6 +153,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
             L_DEBUG("No BYE message for callid '%s' found, skipping...",
                     callid);
             */
+            trash = 1;
         }
     }
     else
