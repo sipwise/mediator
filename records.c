@@ -1,5 +1,6 @@
 #include "records.h"
 #include "config.h"
+#include <time.h>
 
 #define comp_ret(a_var, b_var) \
     do { \
@@ -30,6 +31,13 @@ int records_complete(med_entry_t *records, uint64_t count)
 {
     uint8_t has_bye = 0;
     uint8_t has_inv_200 = 0;
+
+    // if our records are old enough, we always consider them complete
+    if (count && config_max_acc_age)
+    {
+        if (time(NULL) - records[0].unix_timestamp > config_max_acc_age)
+            return 1;
+    }
 
     for (uint64_t i = 0; i < count; i++)
     {
