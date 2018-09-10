@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <systemd/sd-daemon.h>
 
 
 
@@ -242,6 +243,7 @@ int main(int argc, char **argv)
 
     L_NOTICE("Up and running, daemonized=%d, pid-path='%s', interval=%d",
             config_daemonize, config_pid_path, config_interval);
+    sd_notify(0, "READY=1\n");
 
     maprefresh = 0;
     batches = malloc(sizeof(*batches));
@@ -436,9 +438,10 @@ idle:
     }
 
 out:
-    mediator_destroy_maps();
     L_INFO("Shutting down.");
+    sd_notify(0, "STOPPING=1\n");
 
+    mediator_destroy_maps();
     medmysql_cleanup();
     medredis_cleanup();
     free(batches);

@@ -8,6 +8,7 @@ Build-Depends:
  libglib2.0-dev,
  libhiredis-dev,
  libjson-c-dev,
+ libsystemd-dev,
 Standards-Version: 3.9.8
 Homepage: https://www.sipwise.com/
 
