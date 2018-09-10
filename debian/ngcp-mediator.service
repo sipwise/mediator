@@ -7,7 +7,7 @@ Wants=mariadb.service
 Wants=redis-server.service
 
 [Service]
-Type=simple
+Type=notify
 ExecStart=/usr/bin/mediator
 
 [Install]
