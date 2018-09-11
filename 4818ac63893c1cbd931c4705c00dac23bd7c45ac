@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9af37de9_9b0cee43",
+        "filename": "mediator.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1000042
+      },
+      "writtenOn": "2018-09-11T07:54:41Z",
+      "side": 1,
+      "message": "This line doesn\u0027t seem (directly) related?",
+      "range": {
+        "startLine": 444,
+        "startChar": 0,
+        "endLine": 444,
+        "endChar": 28
+      },
+      "revId": "4818ac63893c1cbd931c4705c00dac23bd7c45ac",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
