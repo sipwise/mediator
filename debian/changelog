@@ -1,3 +1,23 @@
+ngcp-mediator (6.5.1.0+0~mr6.5.1.0) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [094ef0b] TT#37553 always combine acc records from mysql and redis
+  * [b1c9f2b] TT#42673 verify redis reply types before processing them
+  * [0fc3d0f] TT#42673 prevent double-free in error case
+  * [4ff9eda] TT#42673 log call-id in error cases
+  * [0e7d468] TT#43558 fix compiler warnings introduced in 15eb7bbfa
+  * [a0f63f3] TT#44000 support trashing of acc entries that are too old
+
+  [ Andreas Granig ]
+  * [15eb7bb] TT#43558 Move invalid redis acc records to trash
+
+  [ Guillem Jover ]
+  * [4818ac6] TT#42910 Add systemd notify support
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 24 Sep 2018 18:54:38 +0200
+
 ngcp-mediator (6.5.0.0+0~mr6.5.0.0) unstable; urgency=medium
 
   [ Kirill Solomko ]
