@@ -1,3 +1,15 @@
+ngcp-mediator (6.3.2.2+0~mr6.3.2.2) unstable; urgency=medium
+
+  [ Andreas Granig ]
+  * [c92caf2] TT#43558 Move invalid redis acc records to trash
+
+  [ Richard Fuchs ]
+  * [ab0c4dc] TT#43558 fix compiler warnings introduced in 15eb7bbfa
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Wed, 26 Sep 2018 01:18:55 +0200
+
 ngcp-mediator (6.3.2.1+0~mr6.3.2.1) unstable; urgency=medium
 
   [ Richard Fuchs ]
