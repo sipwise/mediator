@@ -409,12 +409,15 @@ void medmysql_cleanup()
     medmysql_handler_close(&stats_handler);
 }
 
+#define BUFPRINT(x...)    buflen += sprintf(sql_buffer + buflen, x); if (buflen >= sql_buffer_size) abort()
+#define BUFESCAPE(x)    buflen += mysql_real_escape_string(med_handler->m, sql_buffer + buflen, x, strlen(x)); if (buflen >= sql_buffer_size) abort()
+
 /**********************************************************************/
 int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *table)
 {
     char *sql_buffer = NULL;
     size_t sql_buffer_size = (count + 1) * 1024; // some extra space for sql overhead
-    char entry_buffer[1024];
+    size_t buflen = 0;
     int ret;
 
     if (!count)
@@ -425,8 +428,7 @@ int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *ta
         L_ERROR("Failed to allocate memory for redis cleanup sql buffer\n");
         return -1;
     }
-    memset(sql_buffer, 0, sql_buffer_size);
-    snprintf(sql_buffer, sql_buffer_size, "INSERT INTO kamailio.acc_%s " \
+    BUFPRINT("INSERT INTO kamailio.acc_%s " \
         "(sip_code,sip_reason,method,callid,time,time_hires,src_leg,dst_leg) VALUES ",
          table);
     
@@ -437,15 +439,27 @@ int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *ta
         if (!e->redis)
             continue;
 
-        snprintf(entry_buffer, sizeof(entry_buffer), "('%s','%s','%s','%s','%s','%f','%s','%s'),",
-            e->sip_code, e->sip_reason, e->sip_method, e->callid, e->timestamp, e->unix_timestamp, e->src_leg, e->dst_leg);
-        sql_buffer = strcat(sql_buffer, entry_buffer);
+	BUFPRINT("('");
+	BUFESCAPE(e->sip_code);
+	BUFPRINT("','");
+	BUFESCAPE(e->sip_reason);
+	BUFPRINT("','");
+	BUFESCAPE(e->sip_method);
+	BUFPRINT("','");
+	BUFESCAPE(e->callid);
+	BUFPRINT("','");
+	BUFESCAPE(e->timestamp);
+	BUFPRINT("','%f','", e->unix_timestamp);
+	BUFESCAPE(e->src_leg);
+	BUFPRINT("','");
+	BUFESCAPE(e->dst_leg);
+	BUFPRINT("'),");
     }
-    sql_buffer[strlen(sql_buffer)-1] = '\0';
+    sql_buffer[--buflen] = '\0';
 
     L_DEBUG("Issuing record insert query: %s\n", sql_buffer);
     
-    ret = medmysql_query_wrapper(med_handler, sql_buffer, strlen(sql_buffer));
+    ret = medmysql_query_wrapper(med_handler, sql_buffer, buflen);
     if (ret != 0)
     {
         L_ERROR("Error executing query '%s': %s",
