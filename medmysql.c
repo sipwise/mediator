@@ -1291,15 +1291,15 @@ static int medmysql_flush_cdr(struct medmysql_batches *batches) {
     if (config_dumpcdr && batches->cdrs.len) {
         FILE *qlog;
 
-        qlog = fopen("/var/log/ngcp/cdr-query.log", "a");
+        qlog = fopen("/ngcp-data/logs/cdr-query.log", "a");
         if(qlog == NULL)
         {
-            L_CRITICAL("Failed to open cdr query log file '/var/log/ngcp/cdr-query.log': %s", strerror(errno));
+            L_CRITICAL("Failed to open cdr query log file '/ngcp-data/logs/cdr-query.log': %s", strerror(errno));
             return -1;
         }
         if(fputs(batches->cdrs.str, qlog) == EOF)
         {
-            L_CRITICAL("Failed to write to cdr query log file '/var/log/ngcp/cdr-query.log': %s", strerror(errno));
+            L_CRITICAL("Failed to write to cdr query log file '/ngcp-data/logs/cdr-query.log': %s", strerror(errno));
         }
         fclose(qlog);
     }
