@@ -46,6 +46,30 @@
       "revId": "a69fa5ccdd1b9c3e9ec9ca25c15fc7b15403eec4",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9af37de9_37829701",
+        "filename": "medmysql.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 1302,
+      "author": {
+        "id": 1000001
+      },
+      "writtenOn": "2018-10-05T14:17:36Z",
+      "side": 0,
+      "message": "tnx!",
+      "parentUuid": "9af37de9_947ee1ac",
+      "range": {
+        "startLine": 1302,
+        "startChar": 77,
+        "endLine": 1302,
+        "endChar": 90
+      },
+      "revId": "a69fa5ccdd1b9c3e9ec9ca25c15fc7b15403eec4",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
     }
   ]
 }
