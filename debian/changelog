@@ -1,3 +1,12 @@
+ngcp-mediator (6.5.1.1+0~mr6.5.1.1) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [d8bffdd] TT#44639 properly quote mysql insert string
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 15 Oct 2018 21:17:02 +0200
+
 ngcp-mediator (6.5.1.0+0~mr6.5.1.0) unstable; urgency=medium
 
   [ Richard Fuchs ]
