@@ -1,3 +1,19 @@
+ngcp-mediator (6.4.3.0+0~mr6.4.3.0) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [2bce64c] TT#42673 verify redis reply types before processing them
+  * [6f25461] TT#42673 prevent double-free in error case
+  * [e00fcef] TT#42673 log call-id in error cases
+  * [1453aed] TT#43558 fix compiler warnings introduced in 15eb7bbfa
+  * [78c16f5] TT#44639 properly quote mysql insert string
+
+  [ Andreas Granig ]
+  * [74d5d8d] TT#43558 Move invalid redis acc records to trash
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 23 Oct 2018 14:15:35 +0200
+
 ngcp-mediator (6.4.2.0+0~mr6.4.2.0) unstable; urgency=medium
 
   * New release.
