@@ -1,3 +1,9 @@
+ngcp-mediator (7.1.1.0+0~mr7.1.1.0) unstable; urgency=medium
+
+  * New release.
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Wed, 09 Jan 2019 21:57:56 +0100
+
 ngcp-mediator (7.1.0.0+0~mr7.1.0.0) unstable; urgency=medium
 
   [ Richard Fuchs ]
