@@ -1,2 +1,2 @@
-ngcp-mediator: binary-without-manpage usr/bin/mediator
+ngcp-mediator: binary-without-manpage usr/bin/ngcp-mediator
 ngcp-mediator: init.d-script-not-included-in-package etc/init.d/ngcp-mediator

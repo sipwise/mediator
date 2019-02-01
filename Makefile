@@ -1,4 +1,4 @@
-BIN=mediator
+BIN=ngcp-mediator
 
 VERSION := $(shell sed -n -e '1s/^.*(\(.*\)).*$$/\1/p' debian/changelog)
 

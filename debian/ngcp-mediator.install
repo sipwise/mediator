@@ -1,2 +1,2 @@
 debian/ngcp-mediator.conf etc/ngcp-mediator/
-mediator usr/bin/
+ngcp-mediator usr/bin/

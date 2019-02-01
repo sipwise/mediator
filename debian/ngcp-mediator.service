@@ -8,7 +8,7 @@ Wants=redis-server.service
 
 [Service]
 Type=notify
-ExecStart=/usr/bin/mediator
+ExecStart=/usr/bin/ngcp-mediator
 
 [Install]
 WantedBy=multi-user.target
