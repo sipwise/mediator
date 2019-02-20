@@ -543,7 +543,7 @@ out:
 
 /**********************************************************************/
 int medmysql_fetch_records(med_callid_t *callid,
-        med_entry_t **entries, uint64_t *count)
+        med_entry_t **entries, uint64_t *count, int warn_empty)
 {
     MYSQL_RES *res;
     MYSQL_ROW row;
@@ -575,8 +575,9 @@ int medmysql_fetch_records(med_callid_t *callid,
     *count = mysql_num_rows(res);
     if(*count == 0)
     {
-        L_CRITICAL("No records found for callid '%s'!",
-                callid->value);
+        if (warn_empty)
+            L_CRITICAL("No records found for callid '%s'!",
+                    callid->value);
         ret = -1;
         goto out;
     }
