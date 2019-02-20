@@ -305,7 +305,7 @@ int main(int argc, char **argv)
             gettimeofday(&tv_start, NULL);
 #endif
 
-            if(medmysql_fetch_records(&(mysql_callids[i]), &mysql_records, &mysql_rec_count) != 0)
+            if(medmysql_fetch_records(&(mysql_callids[i]), &mysql_records, &mysql_rec_count, 1) != 0)
                 goto out;
 
             if(medredis_fetch_records(&(mysql_callids[i]), &redis_records, &redis_rec_count) == 0
@@ -366,7 +366,7 @@ int main(int argc, char **argv)
             if(medredis_fetch_records(&(redis_callids[i]), &redis_records, &redis_rec_count) != 0)
                 goto out;
 
-            if(medmysql_fetch_records(&(redis_callids[i]), &mysql_records, &mysql_rec_count) == 0
+            if(medmysql_fetch_records(&(redis_callids[i]), &mysql_records, &mysql_rec_count, 0) == 0
                     && mysql_rec_count)
             {
                 redis_records = realloc(redis_records, (mysql_rec_count + redis_rec_count) * sizeof(med_entry_t));
