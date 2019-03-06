@@ -80,6 +80,8 @@ typedef struct {
     char header_diversion[2048];
     char header_pai[2048];
 
+    char group[256];
+
     uint8_t split;
 
     mos_data_t mos;
