@@ -22,9 +22,11 @@ struct medmysql_batches {
     struct medmysql_str to_delete;
     struct medmysql_str tags;
     struct medmysql_str mos;
+    struct medmysql_str group;
     unsigned long num_cdrs;
     GQueue cdr_tags;
     GQueue cdr_mos;
+    GQueue cdr_group;
 };
 
 struct medmysql_call_stat_info_t {
