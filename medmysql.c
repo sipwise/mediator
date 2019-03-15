@@ -1,5 +1,3 @@
-#include <my_global.h>
-#include <m_string.h>
 #include <mysql.h>
 #include <mysql/errmsg.h>
 #include <mysql/mysqld_error.h>

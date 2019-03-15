@@ -7,14 +7,34 @@ CC := gcc
 CPPFLAGS := -DMEDIATOR_VERSION="\"$(VERSION)\""
 
 GLIB_CFLAGS := $(shell pkg-config glib-2.0 --cflags)
-CFLAGS := -I/usr/include/mysql $(GLIB_CFLAGS) -g -Wall -Wextra -O2 -D_GNU_SOURCE
+
+# mariadb/mysql support
+CFLAGS := $(GLIB_CFLAGS) -g -Wall -Wextra -O2 -D_GNU_SOURCE
+ifneq ($(shell which mariadb_config),)
+CFLAGS += $(shell mariadb_config --cflags)
+else ifneq ($(shell which mysql_config),)
+CFLAGS += $(shell mysql_config --cflags)
+else
+CFLAGS += -I/usr/include/mysql
+endif
+
 #CFLAGS += -DWITH_TIME_CALC
 CFLAGS += $(shell pkg-config json-c --cflags)
 CFLAGS += $(shell pkg-config hiredis --cflags)
 CFLAGS += $(shell pkg-config libsystemd --cflags)
 
 GLIB_LDFLAGS := $(shell pkg-config glib-2.0 --libs)
-LDFLAGS := $(GLIB_LDFLAGS) -lmysqlclient
+LDFLAGS := $(GLIB_LDFLAGS)
+
+# mariadb/mysql support
+ifneq ($(shell which mariadb_config),)
+LDFLAGS += $(shell mariadb_config --libs)
+else ifneq ($(shell which mysql_config),)
+LDFLAGS += $(shell mysql_config --libs)
+else
+LDFLAGS += -lmysqlclient
+endif
+
 LDFLAGS += $(shell pkg-config json-c --libs)
 LDFLAGS += $(shell pkg-config hiredis --libs)
 LDFLAGS += $(shell pkg-config libsystemd --libs)
