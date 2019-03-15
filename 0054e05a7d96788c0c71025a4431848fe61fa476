@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "9a0c5dc1_0e1799a4",
+        "filename": "Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1000042
+      },
+      "writtenOn": "2019-03-15T14:22:54Z",
+      "side": 1,
+      "message": "technically this would be CPPFLAGS, I think",
+      "revId": "0054e05a7d96788c0c71025a4431848fe61fa476",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0c5dc1_2e125db5",
         "filename": "Makefile",
         "patchSetId": 1
@@ -13,6 +30,23 @@
       "writtenOn": "2019-03-15T14:21:19Z",
       "side": 1,
       "message": "Maybe refactor the checks into a common block so that we avoid the duped which calls, and then set something like MYSQL_CFLAGS and MYSQL_LDFLAGS or similar which we just add unconditionally?",
+      "revId": "0054e05a7d96788c0c71025a4431848fe61fa476",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0c5dc1_6e2055f8",
+        "filename": "Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1000042
+      },
+      "writtenOn": "2019-03-15T14:22:54Z",
+      "side": 1,
+      "message": "Maybe it\u0027s better to fold these into the similar check above?  When one of them is found, either mysql_ or mariadb_config, just set CFLAGS and LDFLAGS at once.",
       "revId": "0054e05a7d96788c0c71025a4431848fe61fa476",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
