@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a016987_8d54c254",
+        "filename": "debian/rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-03-29T14:24:16Z",
+      "side": 1,
+      "message": "Same here, we\u0027re already using compat version 10?",
+      "revId": "ce80640bb27a624c22857a6293448e770202ef09",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
