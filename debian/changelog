@@ -1,3 +1,12 @@
+ngcp-mediator (7.1.3.0+0~mr7.1.3.0) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [8c3561b] TT#52964 suppress stray warning when no MySQL acc records are found
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 01 Apr 2019 16:30:03 +0200
+
 ngcp-mediator (7.1.2.0+0~mr7.1.2.0) unstable; urgency=medium
 
   * New release.
