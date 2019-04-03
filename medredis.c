@@ -5,8 +5,8 @@
 #include "medmysql.h"
 #include "config.h"
 
-#define PBXSUFFIX "_pbx-1"
-#define XFERSUFFIX "_xfer-1"
+#define PBXSUFFIX "_pbx-1:*"
+#define XFERSUFFIX "_xfer-1:*"
 
 #define medredis_check_reply(cmd, reply, err) do { \
     if (!(reply) && (!(con) || !(con)->ctx)) { \
@@ -531,8 +531,12 @@ med_callid_t *medredis_fetch_callids(uint64_t *count) {
             L_DEBUG("Got entry '%s'\n", entry->str);
 
 
-            // strip leading "acc:entry::" and trailing ":<time_hires>"
+            // strip leading "acc:entry::" and trailing ":<time_hires>:<branch_id>"
             cid = strdup(entry->str + strlen("acc:entry::"));
+            tmp = strrchr(cid, ':');
+            if (tmp) {
+                *tmp = '\0';
+            }
             tmp = strrchr(cid, ':');
             if (tmp) {
                 *tmp = '\0';
