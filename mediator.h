@@ -82,6 +82,7 @@ typedef struct {
     char callid[256];
     char timestamp[24];
     double unix_timestamp;
+    char branch_id[3];
     uint8_t valid;
     med_method_t method;
     char sip_method[32];
