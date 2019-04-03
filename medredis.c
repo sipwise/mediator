@@ -537,6 +537,10 @@ med_callid_t *medredis_fetch_callids(uint64_t *count) {
             if (tmp) {
                 *tmp = '\0';
             }
+            tmp = strrchr(cid, ':');
+            if (tmp) {
+                *tmp = '\0';
+            }
 
             // strip (potentially chained) suffices
             if ((tmp = strstr(entry->str, PBXSUFFIX)) ||
