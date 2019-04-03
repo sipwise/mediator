@@ -315,7 +315,7 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, 
     med_entry_t *entry;
     uint8_t all_null = 1;
 
-    if (reply->elements != 8) {
+    if (reply->elements != 9) {
         L_ERROR("Invalid number of redis reply elements for acc record with cid '%s' and key '%s', expected 8, got %lu, trashing record\n",
             cid, key, reply->elements);
         medredis_remove_mappings(cid, key);
@@ -367,6 +367,7 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, 
     }
     medredis_check_reply_string(entry, reply, entry->src_leg, "src_leg", sizeof(entry->src_leg), 6, cid, key);
     medredis_check_reply_string(entry, reply, entry->dst_leg, "dst_leg", sizeof(entry->dst_leg), 7, cid, key);
+    medredis_check_reply_string(entry, reply, entry->branch_id, "dst_leg", sizeof(entry->branch_id), 8, cid, key);
 
     L_DEBUG("Converted record with cid '%s' and method '%s'\n", entry->callid, entry->sip_method);
 
@@ -531,9 +532,13 @@ med_callid_t *medredis_fetch_callids(uint64_t *count) {
             L_DEBUG("Got entry '%s'\n", entry->str);
 
 
-            // strip leading "acc:entry::" and trailing ":<time_hires>"
+            // strip leading "acc:entry::" and trailing ":<time_hires>:<branch_id>"
             cid = strdup(entry->str + strlen("acc:entry::"));
             tmp = strrchr(cid, ':');
+            if (tmp) {
+                *tmp = '\0';
+            }
+            tmp = strrchr(tmp, ':');
             if (tmp) {
                 *tmp = '\0';
             }
@@ -584,8 +589,8 @@ static void medredis_append_key(gpointer data, gpointer user_data) {
 
     L_DEBUG("Appending key '%s' to keys list\n", key);
 
-    size_t entry_argc = 10;
-    char *entry_argv[10];
+    size_t entry_argc = 11;
+    char *entry_argv[11];
 
     entry_argv[0] = "HMGET";
     entry_argv[1] = key;
@@ -597,6 +602,7 @@ static void medredis_append_key(gpointer data, gpointer user_data) {
     entry_argv[7] = "time_hires";
     entry_argv[8] = "src_leg";
     entry_argv[9] = "dst_leg";
+    entry_argv[10] = "branch_id";
 
 
     if (medredis_append_command_argv(entry_argc, entry_argv, 1) != 0) {
@@ -796,7 +802,7 @@ static int medredis_cleanup_entries(med_entry_t *records, uint64_t count, const 
         if (!e->redis)
             continue;
 
-        snprintf(buffer, sizeof(buffer), "acc:entry::%s:%f", e->callid, e->unix_timestamp);
+        snprintf(buffer, sizeof(buffer), "acc:entry::%s:%f:%s", e->callid, e->unix_timestamp, e->branch_id);
 
         L_DEBUG("Cleaning up redis entry for %s\n", buffer);
         if (medredis_remove_mappings(e->callid, buffer) != 0) {
