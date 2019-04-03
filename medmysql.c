@@ -15,16 +15,16 @@
    " group by a.callid limit 0,200000"
 
 #define MED_FETCH_QUERY "(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
-    "src_leg, dst_leg " \
+    "src_leg, dst_leg, branch_id " \
     "from acc where method = 'INVITE' and callid = '%s' order by time_hires asc) " \
     "union all " \
     "(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
-    "src_leg, dst_leg " \
+    "src_leg, dst_leg, branch_id " \
     "from acc where method = 'BYE' and callid in ('%s', '%s"PBXSUFFIX"') " \
     "order by length(callid) asc, time_hires asc) " \
     "union all " \
     "(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
-    "src_leg, dst_leg " \
+    "src_leg, dst_leg, branch_id " \
     "from acc where method = 'BYE' and callid in ('%s', '%s"XFERSUFFIX"') " \
     "order by length(callid) asc, time_hires asc)"
 
@@ -85,9 +85,9 @@ static int medmysql_handler_transaction(medmysql_handler *h);
 static const medmysql_batch_definition medmysql_trash_def = {
     .sql_init_string = "insert into acc_trash (method, from_tag, to_tag, callid, sip_code, " \
                 "sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, " \
-                "dst_domain, src_user, src_domain) select method, from_tag, to_tag, " \
+                "dst_domain, src_user, src_domain, branch_id) select method, from_tag, to_tag, " \
                 "callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, " \
-                "dst_user, dst_ouser, dst_domain, src_user, src_domain from acc " \
+                "dst_user, dst_ouser, dst_domain, src_user, src_domain, branch_id from acc " \
                 "where callid in (",
     .sql_finish_string = ")",
     .single_flush_func = medmysql_flush_medlist,
@@ -96,9 +96,9 @@ static const medmysql_batch_definition medmysql_trash_def = {
 static const medmysql_batch_definition medmysql_backup_def = {
     .sql_init_string = "insert into acc_backup (method, from_tag, to_tag, callid, sip_code, " \
                 "sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, " \
-                "dst_domain, src_user, src_domain) select method, from_tag, to_tag, " \
+                "dst_domain, src_user, src_domain, branch_id) select method, from_tag, to_tag, " \
                 "callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, " \
-                "dst_user, dst_ouser, dst_domain, src_user, src_domain from acc " \
+                "dst_user, dst_ouser, dst_domain, src_user, src_domain, branch_id from acc " \
                 "where callid in (",
     .sql_finish_string = ")",
     .single_flush_func = medmysql_flush_medlist,
@@ -429,7 +429,7 @@ int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *ta
         return -1;
     }
     BUFPRINT("INSERT INTO kamailio.acc_%s " \
-        "(sip_code,sip_reason,method,callid,time,time_hires,src_leg,dst_leg) VALUES ",
+        "(sip_code,sip_reason,method,callid,time,time_hires,src_leg,dst_leg,branch_id) VALUES ",
          table);
     
     for (uint64_t i = 0; i < count; ++i) {
@@ -454,6 +454,8 @@ int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *ta
 	BUFPRINT("','");
 	BUFESCAPE(e->dst_leg);
 	BUFPRINT("'),");
+    BUFESCAPE(e->branch_id);
+    BUFPRINT("'),");
 
 	entries++;
     }
@@ -606,6 +608,7 @@ int medmysql_fetch_records(med_callid_t *callid,
         e->unix_timestamp = atof(row[5]);
         g_strlcpy(e->src_leg, row[6], sizeof(e->src_leg));
         g_strlcpy(e->dst_leg, row[7], sizeof(e->dst_leg));
+        g_strlcpy(e->branch_id, row[8], sizeof(e->branch_id));
         e->valid = 1;
 
         if (check_shutdown())
