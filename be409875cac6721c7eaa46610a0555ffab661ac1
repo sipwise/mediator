@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a016987_8348062f",
+        "filename": "medredis.c",
+        "patchSetId": 5
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2019-04-09T11:54:36Z",
+      "side": 1,
+      "message": "\"branch_id\" ?",
+      "range": {
+        "startLine": 370,
+        "startChar": 64,
+        "endLine": 370,
+        "endChar": 73
+      },
+      "revId": "be409875cac6721c7eaa46610a0555ffab661ac1",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
