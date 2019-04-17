@@ -1,0 +1,10 @@
+Verified+1: Jenkins Jenkins
+Code-Review+1: Alexander Lutay <alutay@sipwise.com>
+Code-Review+1: Michael Prokop <mprokop@sipwise.com>
+Code-Review+1: Manuel Montecelo <mmontecelo@sipwise.com>
+Code-Review+2: Kirill Solomko <ksolomko@sipwise.com>
+Submitted-by: Guillem Jover <gjover@sipwise.com>
+Submitted-at: Wed, 17 Apr 2019 21:17:07 +0200
+Reviewed-on: http://gerrit.mgm.sipwise.com/29207
+Project: mediator
+Branch: refs/heads/master
