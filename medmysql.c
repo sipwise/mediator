@@ -1073,14 +1073,14 @@ int medmysql_load_maps(GHashTable *ip_table, GHashTable *host_table, GHashTable 
         if(ip_table != NULL)
         {
             if(g_hash_table_lookup(ip_table, row[0]) != NULL)
-                L_WARNING("Skipping duplicate IP '%s'", row[0]);
+                L_DEBUG("Skipping duplicate IP '%s'", row[0]);
             else
                 g_hash_table_insert(ip_table, strdup(row[0]), strdup(row[2]));
         }
         if(host_table != NULL && row[1] != NULL) // host column is optional
         {
             if(g_hash_table_lookup(host_table, row[1]) != NULL)
-                L_WARNING("Skipping duplicate host '%s'", row[1]);
+                L_DEBUG("Skipping duplicate host '%s'", row[1]);
             else
                 g_hash_table_insert(host_table, strdup(row[1]), strdup(row[2]));
         }
