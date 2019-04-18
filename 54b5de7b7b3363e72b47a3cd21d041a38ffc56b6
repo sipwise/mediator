@@ -16,6 +16,24 @@
       "revId": "54b5de7b7b3363e72b47a3cd21d041a38ffc56b6",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5afe65bd_aed09bca",
+        "filename": "medmysql.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 586,
+      "author": {
+        "id": 1000013
+      },
+      "writtenOn": "2019-04-18T12:20:50Z",
+      "side": 1,
+      "message": "turns out this happens only if REFER acc records approach mediator.",
+      "parentUuid": "5afe65bd_ee0453c7",
+      "revId": "54b5de7b7b3363e72b47a3cd21d041a38ffc56b6",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
     }
   ]
 }
