@@ -1,3 +1,12 @@
+ngcp-mediator (7.2.1.2+0~mr7.2.1.2) unstable; urgency=medium
+
+  [ Marco Capetta ]
+  * [44fdb2b] TT#56008 Add branch_id reading in acc parsing
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Wed, 24 Apr 2019 12:29:19 +0200
+
 ngcp-mediator (7.2.1.1+0~mr7.2.1.1) unstable; urgency=medium
 
   * New release.
