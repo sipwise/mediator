@@ -1,3 +1,22 @@
+ngcp-mediator (7.3.1.0+0~mr7.3.1.0) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [f15a292] TT#54554 add support for new cdr_group table
+
+  [ Michael Prokop ]
+  * [ba5da32] TT#55204 Support building against mariadb 10.3.13
+
+  [ Marco Capetta ]
+  * [8676220] TT#56008 Add branch_id reading in acc parsing
+
+  [ Guillem Jover ]
+  * [a328c5a] TT#54955 Use a symbolic macro for the default log level
+  * [54b5de7] TT#54955 Reduce verbosity for skipping duplicate log messages to debug
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 25 Apr 2019 14:28:27 +0200
+
 ngcp-mediator (7.3.0.0+0~mr7.3.0.0) unstable; urgency=medium
 
   [ Guillem Jover ]
