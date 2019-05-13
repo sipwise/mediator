@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a41bdd9_0e9a1315",
+        "filename": "medredis.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 1000013
+      },
+      "writtenOn": "2019-05-13T10:35:01Z",
+      "side": 1,
+      "message": "i would rather add a \"optional\" flag argument to this function, as seen in other place in mediator",
+      "range": {
+        "startLine": 374,
+        "startChar": 8,
+        "endLine": 374,
+        "endChar": 35
+      },
+      "revId": "0e20fb3a6f093988ed97e7b2d857b56c68a980d1",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
