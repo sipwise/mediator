@@ -315,12 +315,14 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, 
     med_entry_t *entry;
     uint8_t all_null = 1;
 
+    L_ERROR("Number of redis reply elements for acc record with cid '%s' and key '%s': %lu\n", cid, key, reply->elements);
+
     if (reply->elements != 9) {
-        L_ERROR("Invalid number of redis reply elements for acc record with cid '%s' and key '%s', expected 8, got %lu, trashing record\n",
+        L_ERROR("Invalid number of redis reply elements for acc record with cid '%s' and key '%s', expected 9, got %lu, trashing record\n",
             cid, key, reply->elements);
-        medredis_remove_mappings(cid, key);
-        medredis_remove_entry(key);
-        return NULL;
+//        medredis_remove_mappings(cid, key);
+//        medredis_remove_entry(key);
+//        return NULL;
     }
 
     // check for all fields being null, as this is a special case where the entry
@@ -367,7 +369,16 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, 
     }
     medredis_check_reply_string(entry, reply, entry->src_leg, "src_leg", sizeof(entry->src_leg), 6, cid, key);
     medredis_check_reply_string(entry, reply, entry->dst_leg, "dst_leg", sizeof(entry->dst_leg), 7, cid, key);
-    medredis_check_reply_string(entry, reply, entry->branch_id, "branch_id", sizeof(entry->branch_id), 8, cid, key);
+
+
+    if (reply->element[8]->type != REDIS_REPLY_STRING) {
+        L_ERROR("Received Redis reply type %i instead of %i (string) for branch_id field of cid '%s' using key '%s'\n",
+                reply->element[5]->type, REDIS_REPLY_STRING, cid, key);
+        entry->branch_id = "";
+    } else {
+        medredis_check_reply_string(entry, reply, entry->branch_id, "branch_id", sizeof(entry->branch_id), 8, cid, key);
+    }
+    
 
     L_DEBUG("Converted record with cid '%s' and method '%s'\n", entry->callid, entry->sip_method);
 
