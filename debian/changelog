@@ -1,3 +1,12 @@
+ngcp-mediator (6.5.4.3+0~mr6.5.4.3) unstable; urgency=medium
+
+  [ Marco Capetta ]
+  * [ebc1db8] TT#58586 Fix parsing of acc records without branch_id
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 16 May 2019 10:01:01 +0200
+
 ngcp-mediator (6.5.4.2+0~mr6.5.4.2) unstable; urgency=medium
 
   [ Marco Capetta ]
