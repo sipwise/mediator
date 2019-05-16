@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a41bdd9_0b1200b5",
+        "filename": "medredis.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 1000001
+      },
+      "writtenOn": "2019-05-16T07:57:18Z",
+      "side": 1,
+      "message": "oups.",
+      "revId": "ebc1db82653a031e696fec7ce26842b0a3ab705e",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
