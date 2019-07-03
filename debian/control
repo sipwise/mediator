@@ -3,7 +3,7 @@ Section: utils
 Priority: optional
 Maintainer: Sipwise Development Team <support@sipwise.com>
 Build-Depends:
- debhelper (>= 10),
+ debhelper-compat (= 12),
  default-libmysqlclient-dev,
  libglib2.0-dev,
  libhiredis-dev,
