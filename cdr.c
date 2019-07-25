@@ -464,6 +464,16 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     g_strlcpy(cdr->group, tmp2, sizeof(cdr->group));
     tmp2 = ++tmp1;
 
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
+        L_WARNING("Call-Id '%s' has no separated User-to-User header, '%s'", cdr->call_id, tmp2);
+        return -1;
+    }
+    *tmp1 = '\0';
+    g_strlcpy(cdr->header_u2u, tmp2, sizeof(cdr->header_u2u));
+    tmp2 = ++tmp1;
+
     return 0;
 }
 

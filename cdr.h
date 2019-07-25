@@ -79,6 +79,7 @@ typedef struct {
     char furnished_charging_info[256];
     char header_diversion[2048];
     char header_pai[2048];
+    char header_u2u[256];
 
     char group[256];
 
