@@ -962,6 +962,19 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
                 return -1;
         }
 
+        if(strnlen(e->header_u2u, sizeof(e->header_u2u)) > 0)
+        {
+            if ((tag_id = g_hash_table_lookup(med_cdr_tag_table, "header=User-to-User")) == NULL) {
+                L_WARNING("Call-Id '%s' has no cdr tag type 'header=User-to-User', '%s'",
+                            e->call_id, e->header_u2u);
+                return -1;
+            }
+            if (medmysql_tag_record(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_customer,
+                    medmysql_tag_direction_source, e->header_u2u, e->start_time,
+                    GPOINTER_TO_UINT(tag_id)))
+                return -1;
+        }
+
         // entries for the CDR tags table
 //        if (medmysql_tag_record(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_carrier,
 //                medmysql_tag_direction_source, "foobar", e->start_time, 1))
