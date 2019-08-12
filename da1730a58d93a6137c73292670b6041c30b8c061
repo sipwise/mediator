@@ -16,6 +16,24 @@
       "revId": "da1730a58d93a6137c73292670b6041c30b8c061",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eed77463_a2821eaa",
+        "filename": "medmysql.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1000004
+      },
+      "writtenOn": "2019-08-12T15:59:25Z",
+      "side": 1,
+      "message": "I moved it from this function into medmysql_fetch_records where the callid values are escaped and used only in the sprintf(s), which is now safe.",
+      "parentUuid": "b8776bf1_324801b7",
+      "revId": "da1730a58d93a6137c73292670b6041c30b8c061",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
     }
   ]
 }
