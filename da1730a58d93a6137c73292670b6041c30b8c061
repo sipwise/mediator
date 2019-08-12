@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b8776bf1_324801b7",
+        "filename": "medmysql.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2019-08-12T15:32:25Z",
+      "side": 1,
+      "message": "This is still not sufficient because the string in row[0] can be longer than this.\n\nI would suggest to remove the definition of esc_callid here, and move it to below, into the loop, as:\n\nchar esc_callid[strlen(row[0])*2+1];\n\nAssuming this is C99 code...\n\nAlternatively, go with a static length esc_callid but check the strlen to see if the string actually fits.",
+      "revId": "da1730a58d93a6137c73292670b6041c30b8c061",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
