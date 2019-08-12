@@ -560,12 +560,16 @@ int medmysql_fetch_records(med_callid_t *callid,
     int ret = 0;
     int len;
 
+    char esc_callid[sizeof(((med_callid_t*)0)->value)*2+1];
+
     *count = 0;
 
+    mysql_real_escape_string(med_handler->m, esc_callid, callid->value, strlen(callid->value));
+
     len = snprintf(query, sizeof(query), MED_FETCH_QUERY,
-        callid->value,
-        callid->value, callid->value,
-        callid->value, callid->value);
+        esc_callid,
+        esc_callid, esc_callid,
+        esc_callid, esc_callid);
 
     assert(len > 0 && (size_t)len < sizeof(query)); /* truncated - internal bug */
 
@@ -655,21 +659,29 @@ static int medmysql_batch_prepare(struct medmysql_batches *batches,
 /**********************************************************************/
 int medmysql_trash_entries(const char *callid, struct medmysql_batches *batches)
 {
+    char esc_callid[strlen(callid)*2+1];
+
+    mysql_real_escape_string(med_handler->m, esc_callid, callid, strlen(callid));
+
     if (medmysql_batch_prepare(batches, &batches->acc_trash, &medmysql_trash_def))
         return -1;
-    batches->acc_trash.len += sprintf(batches->acc_trash.str + batches->acc_trash.len, "'%s',", callid);
+    batches->acc_trash.len += sprintf(batches->acc_trash.str + batches->acc_trash.len, "'%s',", esc_callid);
 
-    return medmysql_delete_entries(callid, batches);
+    return medmysql_delete_entries(esc_callid, batches);
 }
 
 /**********************************************************************/
 int medmysql_backup_entries(const char *callid, struct medmysql_batches *batches)
 {
+    char esc_callid[strlen(callid)*2+1];
+
+    mysql_real_escape_string(med_handler->m, esc_callid, callid, strlen(callid));
+
     if (medmysql_batch_prepare(batches, &batches->acc_backup, &medmysql_backup_def))
         return -1;
-    batches->acc_backup.len += sprintf(batches->acc_backup.str + batches->acc_backup.len, "'%s',", callid);
+    batches->acc_backup.len += sprintf(batches->acc_backup.str + batches->acc_backup.len, "'%s',", esc_callid);
 
-    return medmysql_delete_entries(callid, batches);
+    return medmysql_delete_entries(esc_callid, batches);
 }
 
 
