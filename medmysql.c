@@ -560,12 +560,18 @@ int medmysql_fetch_records(med_callid_t *callid,
     int ret = 0;
     int len;
 
+    char esc_callid[sizeof(((med_callid_t*)0)->value)*2+1];
+    unsigned long esc_len;
+
     *count = 0;
 
+    esc_len = mysql_real_escape_string(med_handler->m, esc_callid, callid->value, strlen(callid->value));
+    esc_callid[esc_len] = '\0';
+
     len = snprintf(query, sizeof(query), MED_FETCH_QUERY,
-        callid->value,
-        callid->value, callid->value,
-        callid->value, callid->value);
+        esc_callid,
+        esc_callid, esc_callid,
+        esc_callid, esc_callid);
 
     assert(len > 0 && (size_t)len < sizeof(query)); /* truncated - internal bug */
 
@@ -574,7 +580,7 @@ int medmysql_fetch_records(med_callid_t *callid,
     if(medmysql_query_wrapper(med_handler, query, len) != 0)
     {
         L_CRITICAL("Error getting acc records for callid '%s': %s",
-                callid->value, mysql_error(med_handler->m));
+                esc_callid, mysql_error(med_handler->m));
         return -1;
     }
 
@@ -584,7 +590,7 @@ int medmysql_fetch_records(med_callid_t *callid,
     {
         if (warn_empty)
             L_CRITICAL("No records found for callid '%s'!",
-                    callid->value);
+                    esc_callid);
         ret = -1;
         goto out;
     }
@@ -655,21 +661,33 @@ static int medmysql_batch_prepare(struct medmysql_batches *batches,
 /**********************************************************************/
 int medmysql_trash_entries(const char *callid, struct medmysql_batches *batches)
 {
+    char esc_callid[sizeof(((med_callid_t*)0)->value)*2+1];
+    unsigned long esc_len;
+
+    esc_len = mysql_real_escape_string(med_handler->m, esc_callid, callid, strlen(callid));
+    esc_callid[esc_len] = '\0';
+
     if (medmysql_batch_prepare(batches, &batches->acc_trash, &medmysql_trash_def))
         return -1;
-    batches->acc_trash.len += sprintf(batches->acc_trash.str + batches->acc_trash.len, "'%s',", callid);
+    batches->acc_trash.len += sprintf(batches->acc_trash.str + batches->acc_trash.len, "'%s',", esc_callid);
 
-    return medmysql_delete_entries(callid, batches);
+    return medmysql_delete_entries(esc_callid, batches);
 }
 
 /**********************************************************************/
 int medmysql_backup_entries(const char *callid, struct medmysql_batches *batches)
 {
+    char esc_callid[sizeof(((med_callid_t*)0)->value)*2+1];
+    unsigned long esc_len;
+
+    esc_len = mysql_real_escape_string(med_handler->m, esc_callid, callid, strlen(callid));
+    esc_callid[esc_len] = '\0';
+
     if (medmysql_batch_prepare(batches, &batches->acc_backup, &medmysql_backup_def))
         return -1;
-    batches->acc_backup.len += sprintf(batches->acc_backup.str + batches->acc_backup.len, "'%s',", callid);
+    batches->acc_backup.len += sprintf(batches->acc_backup.str + batches->acc_backup.len, "'%s',", esc_callid);
 
-    return medmysql_delete_entries(callid, batches);
+    return medmysql_delete_entries(esc_callid, batches);
 }
 
 
