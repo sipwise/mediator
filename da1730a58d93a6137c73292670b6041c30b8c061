@@ -34,6 +34,24 @@
       "revId": "da1730a58d93a6137c73292670b6041c30b8c061",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "09914331_edd6f2dd",
+        "filename": "medmysql.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2019-08-12T16:05:54Z",
+      "side": 1,
+      "message": "That\u0027s better but still a bit iffy since there\u0027s no guarantee that these functions only get called with strings coming from a med_callid_t type.\n\nI\u0027ll upload an updated commit.",
+      "parentUuid": "eed77463_a2821eaa",
+      "revId": "da1730a58d93a6137c73292670b6041c30b8c061",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
     }
   ]
 }
