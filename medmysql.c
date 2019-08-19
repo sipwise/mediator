@@ -712,10 +712,14 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *batches
 static int medmysql_tag_record(GQueue *q, unsigned long cdr_id, unsigned long provider_id,
         unsigned long direction_id, const char *value, double start_time, unsigned long tag_id)
 {
+    char esc_value[strlen(value)*2+1];
+
+    mysql_real_escape_string(med_handler->m, esc_value, value, strlen(value));
+
     cdr_tag_record *record = malloc(sizeof(*record));
     record->cdr_id = cdr_id;
     if (asprintf(&record->sql_record, "%lu, %lu, %lu, '%s', %f",
-        provider_id, direction_id, tag_id, value, start_time) <= 0)
+        provider_id, direction_id, tag_id, esc_value, start_time) <= 0)
     {
         free(record);
         return -1;
@@ -742,20 +746,17 @@ static int medmysql_mos_record(GQueue *q, unsigned long cdr_id, double avg_score
 
 static int medmysql_group_record(MYSQL *m, GQueue *q, unsigned long cdr_id, const char *group, double start_time)
 {
+    char esc_group[strlen(group)*2+1];
+
+    mysql_real_escape_string(med_handler->m, esc_group, group, strlen(group));
+
     cdr_tag_record *record = malloc(sizeof(*record));
-    size_t len = strlen(group);
-    if (!len)
-        return 0;
-    char *escaped = malloc(len * 2 + 1);
-    mysql_real_escape_string(m, escaped, group, len);
     record->cdr_id = cdr_id;
-    if (asprintf(&record->sql_record, "'%s', %.3f", escaped, start_time) <= 0)
+    if (asprintf(&record->sql_record, "'%s', %.3f", esc_group, start_time) <= 0)
     {
-        free(escaped);
         free(record);
         return -1;
     }
-    free(escaped);
     g_queue_push_tail(q, record);
     return 0;
 }
