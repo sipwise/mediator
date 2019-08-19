@@ -16,6 +16,24 @@
       "revId": "024994e45e82ec33bcc55a1d6fc17042a1d0187e",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4f98d25_d2bd1032",
+        "filename": "medmysql.c",
+        "patchSetId": 4
+      },
+      "lineNbr": 567,
+      "author": {
+        "id": 1000004
+      },
+      "writtenOn": "2019-08-19T12:37:18Z",
+      "side": 1,
+      "message": "check below\nint medmysql_insert_cdrs",
+      "parentUuid": "37c802ad_f8ca3c50",
+      "revId": "024994e45e82ec33bcc55a1d6fc17042a1d0187e",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
     }
   ]
 }
