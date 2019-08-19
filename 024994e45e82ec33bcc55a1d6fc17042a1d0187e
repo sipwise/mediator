@@ -34,6 +34,24 @@
       "revId": "024994e45e82ec33bcc55a1d6fc17042a1d0187e",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39b4e4a2_6048c39c",
+        "filename": "medmysql.c",
+        "patchSetId": 4
+      },
+      "lineNbr": 567,
+      "author": {
+        "id": 1000004
+      },
+      "writtenOn": "2019-08-19T12:46:37Z",
+      "side": 1,
+      "message": "actually, as I can see \"insert into cdr\" entries are correctly escated, but when writing into cdr_tag the value is not escaped, I will make sure it is escaped.",
+      "parentUuid": "f4f98d25_d2bd1032",
+      "revId": "024994e45e82ec33bcc55a1d6fc17042a1d0187e",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
     }
   ]
 }
