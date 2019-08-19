@@ -707,10 +707,14 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *batches
 static int medmysql_tag_record(GQueue *q, unsigned long cdr_id, unsigned long provider_id,
         unsigned long direction_id, const char *value, double start_time, unsigned long tag_id)
 {
+    char esc_value[strlen(value)*2+1];
+
+    mysql_real_escape_string(med_handler->m, esc_value, value, strlen(value));
+
     cdr_tag_record *record = malloc(sizeof(*record));
     record->cdr_id = cdr_id;
     if (asprintf(&record->sql_record, "%lu, %lu, %lu, '%s', %f",
-        provider_id, direction_id, tag_id, value, start_time) <= 0)
+        provider_id, direction_id, tag_id, esc_value, start_time) <= 0)
     {
         free(record);
         return -1;
@@ -734,7 +738,6 @@ static int medmysql_mos_record(GQueue *q, unsigned long cdr_id, double avg_score
     g_queue_push_tail(q, record);
     return 0;
 }
-
 
 int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_batches *batches)
 {
