@@ -1,0 +1,7 @@
+Verified+1: Jenkins Jenkins
+Code-Review+2: Sergii Kipot <skipot@sipwise.com>
+Submitted-by: Kirill Solomko <ksolomko@sipwise.com>
+Submitted-at: Wed, 21 Aug 2019 14:00:25 +0200
+Reviewed-on: http://gerrit.mgm.sipwise.com/c/mediator/+/32560
+Project: mediator
+Branch: refs/heads/mr7.4.1
