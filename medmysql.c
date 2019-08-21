@@ -380,12 +380,16 @@ int medmysql_fetch_records(med_callid_t *callid,
 	int ret = 0;
 	int len;
 
+	char esc_callid[sizeof(((med_callid_t*)0)->value)*2+1];
+
 	*count = 0;
 
+	mysql_real_escape_string(med_handler->m, esc_callid, callid->value, strlen(callid->value));
+
 	len = snprintf(query, sizeof(query), MED_FETCH_QUERY,
-		callid->value,
-		callid->value, callid->value,
-		callid->value, callid->value);
+		esc_callid,
+		esc_callid, esc_callid,
+		esc_callid, esc_callid);
 
 	assert(len < sizeof(query)); /* truncated - internal bug */
 
@@ -446,6 +450,10 @@ out:
 /**********************************************************************/
 int medmysql_trash_entries(const char *callid, struct medmysql_batches *batches)
 {
+	char esc_callid[strlen(callid)*2+1];
+
+	mysql_real_escape_string(med_handler->m, esc_callid, callid, strlen(callid));
+
 	if (batches->acc_trash.len > (PACKET_SIZE - 1024)) {
 		if (medmysql_flush_medlist(&batches->acc_trash))
 			return -1;
@@ -454,14 +462,18 @@ int medmysql_trash_entries(const char *callid, struct medmysql_batches *batches)
 	if (batches->acc_trash.len == 0)
 		batches->acc_trash.len = sprintf(batches->acc_trash.str, "insert into acc_trash (method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain) select method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain from acc where callid in (");
 
-	batches->acc_trash.len += sprintf(batches->acc_trash.str + batches->acc_trash.len, "'%s',", callid);
+	batches->acc_trash.len += sprintf(batches->acc_trash.str + batches->acc_trash.len, "'%s',", esc_callid);
 
-	return medmysql_delete_entries(callid, batches);
+	return medmysql_delete_entries(esc_callid, batches);
 }
 
 /**********************************************************************/
 int medmysql_backup_entries(const char *callid, struct medmysql_batches *batches)
 {
+	char esc_callid[strlen(callid)*2+1];
+
+	mysql_real_escape_string(med_handler->m, esc_callid, callid, strlen(callid));
+
 	if (batches->acc_backup.len > (PACKET_SIZE - 1024)) {
 		if (medmysql_flush_medlist(&batches->acc_backup))
 			return -1;
@@ -470,9 +482,9 @@ int medmysql_backup_entries(const char *callid, struct medmysql_batches *batches
 	if (batches->acc_backup.len == 0)
 		batches->acc_backup.len = sprintf(batches->acc_backup.str, "insert into acc_backup (method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain) select method, from_tag, to_tag, callid, sip_code, sip_reason, time, time_hires, src_leg, dst_leg, dst_user, dst_ouser, dst_domain, src_user, src_domain from acc where callid in (");
 
-	batches->acc_backup.len += sprintf(batches->acc_backup.str + batches->acc_backup.len, "'%s',", callid);
+	batches->acc_backup.len += sprintf(batches->acc_backup.str + batches->acc_backup.len, "'%s',", esc_callid);
 
-	return medmysql_delete_entries(callid, batches);
+	return medmysql_delete_entries(esc_callid, batches);
 }
 
 
