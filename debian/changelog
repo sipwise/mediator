@@ -1,3 +1,13 @@
+ngcp-mediator (6.5.5.2+0~mr6.5.5.2) unstable; urgency=medium
+
+  [ Kirill Solomko ]
+  * [152390c] TT#59353 escape callid in sql statements
+  * [cc3e1f7] TT#65058 escape cdr_tag_data value
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Wed, 21 Aug 2019 14:10:25 +0200
+
 ngcp-mediator (6.5.5.1+0~mr6.5.5.1) unstable; urgency=medium
 
   [ Marco Capetta ]
