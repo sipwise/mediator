@@ -212,6 +212,7 @@ int main(int argc, char **argv)
 
     if (config_maintenance) {
         L_INFO("Maintenance mode active, going to sleep");
+        sd_notify(0, "READY=1\n");
         while (!mediator_shutdown)
             sleep(1);
         exit(0);
