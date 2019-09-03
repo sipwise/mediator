@@ -1,3 +1,12 @@
+ngcp-mediator (7.4.1.3+0~mr7.4.1.3) unstable; urgency=medium
+
+  [ Alexander Lutay ]
+  * [d42592a] TT#66150 TT#42910 Fix 4818ac638: send systemd READY=1 when maintenance mode is enabled
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 03 Sep 2019 11:51:24 +0200
+
 ngcp-mediator (7.4.1.2+0~mr7.4.1.2) unstable; urgency=medium
 
   [ Kirill Solomko ]
