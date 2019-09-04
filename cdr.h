@@ -86,6 +86,8 @@ typedef struct {
     uint8_t split;
 
     mos_data_t mos;
+
+    int intermediate:1;
 } cdr_entry_t;
 
 int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *cdr_count, struct medmysql_batches *);

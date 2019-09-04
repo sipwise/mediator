@@ -124,11 +124,13 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
                             /* cdr_log_records(cdrs, cdr_count); */
                         }
 
-                        if(medmysql_insert_cdrs(cdrs, cdr_count, batches) != 0)
+                        int insert_ret = medmysql_insert_cdrs(cdrs, cdr_count, batches);
+
+                        if(insert_ret < 0)
                         {
                             goto error;
                         }
-                        else
+                        else if (insert_ret == 0)
                         {
                             if (has_redis)
                             {
@@ -140,7 +142,16 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
                                 if(medmysql_backup_entries(callid, batches) != 0)
                                     goto error;
                             }
+                            if (config_intermediate_interval)
+                            {
+                                if(medmysql_delete_intermediate(cdrs, cdr_count, batches) != 0)
+                                    goto error;
+                            }
                         }
+                        else if (insert_ret == 1)
+                            ; // do nothing - intermediate CDR has been created
+                        else
+                            goto error;
 
                     }
                     else
@@ -824,6 +835,11 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
             else
             {
                 tmp_unix_endtime = unix_endtime;
+                if (!tmp_unix_endtime) {
+                    L_DEBUG("CDR %lu is an intermediate record\n", cdr_index);
+                    tmp_unix_endtime = time(NULL);
+                    cdr->intermediate = 1;
+                }
             }
 
             g_strlcpy(cdr->call_id, e->callid, sizeof(cdr->call_id));
