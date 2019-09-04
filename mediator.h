@@ -87,6 +87,7 @@ typedef struct {
     med_method_t method;
     char sip_method[32];
     uint8_t redis;
+    char acc_ref[256];
 } med_entry_t;
 
 typedef struct {
