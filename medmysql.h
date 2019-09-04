@@ -10,16 +10,21 @@
 
 #define STAT_PERIOD_SIZE 30
 
+struct _medmysql_batch_definition;
+struct medmysql_batches;
+struct medmysql_cdr_batch;
+
 struct medmysql_str {
     char str[PACKET_SIZE];
     unsigned int len;
+    const struct _medmysql_batch_definition *def;
+    struct medmysql_batches *batches;
+    struct medmysql_cdr_batch *cdr_batch;
+    GQueue *q;
 };
 
-struct medmysql_batches {
+struct medmysql_cdr_batch {
     struct medmysql_str cdrs;
-    struct medmysql_str acc_backup;
-    struct medmysql_str acc_trash;
-    struct medmysql_str to_delete;
     struct medmysql_str tags;
     struct medmysql_str mos;
     struct medmysql_str group;
@@ -27,6 +32,14 @@ struct medmysql_batches {
     GQueue cdr_tags;
     GQueue cdr_mos;
     GQueue cdr_group;
+};
+
+struct medmysql_batches {
+    struct medmysql_cdr_batch cdr_batch;
+
+    struct medmysql_str acc_backup;
+    struct medmysql_str acc_trash;
+    struct medmysql_str to_delete;
 };
 
 struct medmysql_call_stat_info_t {
