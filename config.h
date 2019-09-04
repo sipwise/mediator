@@ -44,6 +44,7 @@ extern uint8_t config_dumpcdr;
 extern int config_maintenance;
 extern int strict_leg_tokens;
 extern int config_max_acc_age;
+extern int config_intermediate_interval;
 
 extern med_loglevel_t config_loglevel;
 

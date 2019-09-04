@@ -35,8 +35,10 @@ int records_complete(med_entry_t *records, uint64_t count)
     // if our records are old enough, we always consider them complete
     if (count && config_max_acc_age)
     {
-        if (time(NULL) - records[0].unix_timestamp > config_max_acc_age)
+        if (time(NULL) - records[0].unix_timestamp > config_max_acc_age) {
+            records[0].timed_out = 1;
             return 1;
+        }
     }
 
     for (uint64_t i = 0; i < count; i++)
