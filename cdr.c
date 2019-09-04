@@ -8,7 +8,7 @@
 #include "mediator.h"
 
 static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
-        cdr_entry_t **cdrs, uint64_t *cdr_count, uint8_t *trash);
+        cdr_entry_t **cdrs, uint64_t *cdr_count, uint8_t *trash, int do_intermediate);
 
 static const char* cdr_map_status(const char *sip_status)
 {
@@ -40,11 +40,13 @@ static const char* cdr_map_status(const char *sip_status)
     return CDR_STATUS_UNKNOWN;
 }
 
-int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_count, struct medmysql_batches *batches)
+int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_count,
+        struct medmysql_batches *batches, int do_intermediate)
 {
     int ret = 0;
     uint8_t trash = 0;
     uint64_t i;
+    int timed_out = 0;
 
     uint16_t msg_invites = 0;
     uint16_t msg_byes = 0;
@@ -63,6 +65,10 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
     for(i = 0; i < count; ++i)
     {
         med_entry_t *e = &(records[i]);
+
+        if (e->timed_out)
+            timed_out = 1;
+
         if(!e->valid)
         {
             ++msg_unknowns;
@@ -102,7 +108,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 
     if(msg_invites > 0)
     {
-        if(msg_byes > 0 || invite_200 == 0)
+        if(msg_byes > 0 || do_intermediate || timed_out || invite_200 == 0)
         {
             if(/*msg_byes > 2*/ 0)
             {
@@ -112,7 +118,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
             }
             else
             {
-                if(cdr_create_cdrs(records, count, &cdrs, &cdr_count, &trash) != 0)
+                if(cdr_create_cdrs(records, count, &cdrs, &cdr_count, &trash, do_intermediate) != 0)
                     goto error;
                 else
                 {
@@ -124,11 +130,13 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
                             /* cdr_log_records(cdrs, cdr_count); */
                         }
 
-                        if(medmysql_insert_cdrs(cdrs, cdr_count, batches) != 0)
+                        int insert_ret = medmysql_insert_cdrs(cdrs, cdr_count, batches);
+
+                        if(insert_ret < 0)
                         {
                             goto error;
                         }
-                        else
+                        else if (insert_ret == 0)
                         {
                             if (has_redis)
                             {
@@ -140,7 +148,16 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
                                 if(medmysql_backup_entries(callid, batches) != 0)
                                     goto error;
                             }
+                            if (config_intermediate_interval)
+                            {
+                                if(medmysql_delete_intermediate(cdrs, cdr_count, batches) != 0)
+                                    goto error;
+                            }
                         }
+                        else if (insert_ret == 1)
+                            ; // do nothing - intermediate CDR has been created
+                        else
+                            goto error;
 
                     }
                     else
@@ -741,11 +758,12 @@ err:
 
 
 static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
-        cdr_entry_t **cdrs, uint64_t *cdr_count, uint8_t *trash)
+        cdr_entry_t **cdrs, uint64_t *cdr_count, uint8_t *trash, int do_intermediate)
 {
     uint64_t i = 0, cdr_index = 0;
     uint32_t invites = 0;
     size_t cdr_size;
+    int timed_out = 0;
 
     char *endtime = NULL;
     double unix_endtime = 0, tmp_unix_endtime = 0;
@@ -760,6 +778,9 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
     for(i = 0; i < count; ++i)
     {
         med_entry_t *e = &(records[i]);
+        if (e->timed_out)
+            timed_out = 1;
+
         if(e->valid && e->method == MED_INVITE)
         {
             ++invites;
@@ -810,6 +831,9 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
         L_DEBUG("create cdr %lu of %lu in batch\n", i, count);
 
         call_status = cdr_map_status(e->sip_code);
+        if (timed_out)
+            call_status = CDR_STATUS_FAILED;
+
         if(e->method == MED_INVITE && call_status != NULL)
         {
             ++cdr_index;
@@ -824,6 +848,16 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
             else
             {
                 tmp_unix_endtime = unix_endtime;
+                if (!tmp_unix_endtime) {
+                    if (do_intermediate && !timed_out) {
+                        L_DEBUG("CDR %lu is an intermediate record\n", cdr_index);
+                        cdr->intermediate = 1;
+                    }
+                    else {
+                        L_DEBUG("CDR %lu is an expired record\n", cdr_index);
+                    }
+                    tmp_unix_endtime = time(NULL);
+                }
             }
 
             g_strlcpy(cdr->call_id, e->callid, sizeof(cdr->call_id));
@@ -841,13 +875,13 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
             cdr->destination_reseller_cost = 0;
             cdr->destination_customer_cost = 0;
 
-            if(cdr_parse_srcleg(e->src_leg, cdr) < 0)
+            if(cdr_parse_srcleg(e->src_leg, cdr) < 0 && !cdr->intermediate)
             {
                 *trash = 1;
                 return 0;
             }
 
-            if(cdr_parse_dstleg(e->dst_leg, cdr) < 0)
+            if(cdr_parse_dstleg(e->dst_leg, cdr) < 0 && !cdr->intermediate && !timed_out)
             {
                 *trash = 1;
                 return 0;
@@ -859,6 +893,7 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
             }
 
             cdr->mos = mos_data;
+            g_strlcpy(cdr->acc_ref, e->acc_ref, sizeof(cdr->acc_ref));
 
             L_DEBUG("Created CDR index %lu\n", cdr_index);
         }

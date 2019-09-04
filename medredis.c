@@ -382,6 +382,7 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, 
     } else {
         medredis_check_reply_string(entry, reply, entry->branch_id, "branch_id", sizeof(entry->branch_id), 8, cid, key);
     }
+    g_strlcpy(entry->acc_ref, key, sizeof(entry->acc_ref));
     
     L_DEBUG("Converted record with cid '%s' and method '%s'\n", entry->callid, entry->sip_method);
 
