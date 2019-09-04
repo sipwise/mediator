@@ -23,6 +23,7 @@
 sig_atomic_t mediator_shutdown = 0;
 int mediator_lockfd = -1;
 uint64_t mediator_count = 0;
+static time_t next_intermediate_run = 0;
 
 GHashTable *med_peer_ip_table = NULL;
 GHashTable *med_peer_host_table = NULL;
@@ -271,6 +272,18 @@ int main(int argc, char **argv)
         if (0)
             mediator_print_maps();
 
+        // process intermediate CDRs this round?
+        int do_intermediate = 0;
+        if (config_intermediate_interval > 0) {
+            if (loop_tv_start.tv_sec >= next_intermediate_run) {
+                L_DEBUG("Processing intermediate CDRs in this iteration\n");
+                do_intermediate = 1;
+                if (next_intermediate_run == 0)
+                    next_intermediate_run = loop_tv_start.tv_sec;
+                next_intermediate_run += config_intermediate_interval;
+            }
+        }
+
         mysql_id_count = redis_id_count = mysql_rec_count = redis_rec_count = cdr_count = 0;
         last_count = mediator_count;
 
@@ -326,14 +339,16 @@ int main(int argc, char **argv)
                 records_sort(mysql_records, mysql_rec_count);
             }
 
-            if (!records_complete(mysql_records, mysql_rec_count))
+            int are_records_complete = records_complete(mysql_records, mysql_rec_count);
+
+            if (!are_records_complete && !do_intermediate)
             {
                 L_DEBUG("Found incomplete call with cid '%s', skipping...\n", mysql_callids[i].value);
                 free(mysql_records);
                 continue;
             }
 
-            if(cdr_process_records(mysql_records, mysql_rec_count, &cdr_count, batches) != 0)
+            if(cdr_process_records(mysql_records, mysql_rec_count, &cdr_count, batches, do_intermediate) != 0)
                 goto out;
 
             if(mysql_rec_count > 0)
@@ -384,7 +399,9 @@ int main(int argc, char **argv)
 	    // always sort records from Redis, regardless of whether records from MySQL were merged
             records_sort(redis_records, redis_rec_count);
 
-            if (!records_complete(redis_records, redis_rec_count))
+            int are_records_complete =  records_complete(redis_records, redis_rec_count);
+
+            if (!are_records_complete && !do_intermediate)
             {
                 L_DEBUG("Found incomplete call with cid '%s', skipping...\n", redis_callids[i].value);
                 free(redis_records);
@@ -394,7 +411,7 @@ int main(int argc, char **argv)
             L_DEBUG("process cdr with cid '%s' and %"PRIu64" records\n", redis_callids[i].value, redis_rec_count);
 
             if (redis_rec_count) {
-                if(cdr_process_records(redis_records, redis_rec_count, &cdr_count, batches) != 0) {
+                if(cdr_process_records(redis_records, redis_rec_count, &cdr_count, batches, do_intermediate) != 0) {
                     free(redis_records);
                     goto out;
                 }
