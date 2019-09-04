@@ -43,6 +43,7 @@ med_stats_period_t config_stats_period = MEDIATOR_DEFAULT_STATSPERIOD;
 int config_maintenance = 0;
 int strict_leg_tokens = 0;
 int config_max_acc_age = 0;
+int config_intermediate_interval = 0;
 
 med_loglevel_t config_loglevel = MEDIATOR_DEFAULT_LOGLEVEL;
 
@@ -81,9 +82,10 @@ enum config_option {
     OPT_MAINTENANCE = 'm',
     OPT_LEG_TOKENS = 's',
     OPT_MAX_ACC_AGE = 'M',
+    OPT_INTERMEDIATE_INTERVAL = 'I',
 };
 
-static const char options[] = "?a:c:e:D:i:dlL:h:u:p:b:o:H:U:P:B:O:S:t:T:r:R:A:N:Z:z:W:w:X:x:msM:";
+static const char options[] = "?a:c:e:D:i:dlL:h:u:p:b:o:H:U:P:B:O:S:t:T:r:R:A:N:Z:z:W:w:X:x:msM:I:";
 
 struct option long_options[] = {
     { "configfile", required_argument, NULL, OPT_CONFIGFILE },
@@ -120,6 +122,7 @@ struct option long_options[] = {
     { "maintenance", no_argument, NULL, OPT_MAINTENANCE },
     { "leg-tokens", no_argument, NULL, OPT_LEG_TOKENS },
     { "max-acc-age", required_argument, NULL, OPT_MAX_ACC_AGE },
+    { "intermediate-interval", required_argument, NULL, OPT_INTERMEDIATE_INTERVAL },
     { NULL, 0, NULL, 0 },
 };
 
@@ -164,6 +167,7 @@ static void config_help(const char *self, int rc)
 "  -m, --maintenance\tMaintenance mode (do nothing, just sleep).\n" \
 "  -s, --leg-tokens\tStrict acc fields (move to trash otherwise).\n" \
 "  -M, --max-acc-age\tMaximum age of acc records before trashing them (default = disabled).\n" \
+"  -I, --intermediate-interval\tHow often to write/update intermediate CDRs (default = disabled).\n" \
 "  -?, --help\t\tDisplays this message.\n",
         MEDIATOR_VERSION, self, MEDIATOR_DEFAULT_CONFIG_FILE,
         MEDIATOR_DEFAULT_PIDPATH, MEDIATOR_DEFAULT_LOGLEVEL,
@@ -302,6 +306,9 @@ static void config_set_option(enum config_option option, const char *value)
         break;
     case OPT_MAX_ACC_AGE:
         config_max_acc_age = atoi(value);
+        break;
+    case OPT_INTERMEDIATE_INTERVAL:
+        config_intermediate_interval = atoi(value);
         break;
     }
 }
