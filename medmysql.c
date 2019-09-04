@@ -13,16 +13,16 @@
    " group by a.callid limit 0,200000"
 
 #define MED_FETCH_QUERY "(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
-    "src_leg, dst_leg, branch_id " \
+    "src_leg, dst_leg, branch_id, id " \
     "from acc where method = 'INVITE' and callid = '%s' order by time_hires asc) " \
     "union all " \
     "(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
-    "src_leg, dst_leg, branch_id " \
+    "src_leg, dst_leg, branch_id, id " \
     "from acc where method = 'BYE' and callid in ('%s', '%s"PBXSUFFIX"') " \
     "order by length(callid) asc, time_hires asc) " \
     "union all " \
     "(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
-    "src_leg, dst_leg, branch_id " \
+    "src_leg, dst_leg, branch_id, id " \
     "from acc where method = 'BYE' and callid in ('%s', '%s"XFERSUFFIX"') " \
     "order by length(callid) asc, time_hires asc)"
 
@@ -72,6 +72,7 @@ static unsigned long medmysql_tag_direction_source;
 static unsigned long medmysql_tag_direction_destination;
 
 static int medmysql_flush_cdr(struct medmysql_batches *);
+static int medmysql_flush_int_cdr(struct medmysql_batches *);
 static int medmysql_flush_all_med(struct medmysql_batches *);
 static int medmysql_flush_med_str(struct medmysql_str *);
 static int medmysql_flush_medlist(struct medmysql_str *);
@@ -133,9 +134,91 @@ static const medmysql_batch_definition medmysql_cdr_def = {
     .min_string_tail_room = 6000,
     .handler_ptr = &cdr_handler,
 };
+static const medmysql_batch_definition medmysql_int_cdr_def = {
+    .sql_init_string = "insert into int_cdr (id, update_time, " \
+        "source_user_id, source_provider_id, source_external_subscriber_id, "\
+        "source_external_contract_id, source_account_id, source_user, source_domain, " \
+        "source_cli, source_clir, source_ip, "\
+        "destination_user_id, destination_provider_id, destination_external_subscriber_id, "\
+        "destination_external_contract_id, destination_account_id, destination_user, destination_domain, " \
+        "destination_user_in, destination_domain_in, destination_user_dialed, " \
+        "peer_auth_user, peer_auth_realm, call_type, call_status, call_code, init_time, start_time, "\
+        "duration, call_id, " \
+        "source_carrier_cost, source_reseller_cost, source_customer_cost, " \
+        "destination_carrier_cost, destination_reseller_cost, destination_customer_cost, " \
+        "split, " \
+        "source_gpp0, source_gpp1, source_gpp2, source_gpp3, source_gpp4, " \
+        "source_gpp5, source_gpp6, source_gpp7, source_gpp8, source_gpp9, " \
+        "destination_gpp0, destination_gpp1, destination_gpp2, destination_gpp3, destination_gpp4, " \
+        "destination_gpp5, destination_gpp6, destination_gpp7, destination_gpp8, destination_gpp9, " \
+        "source_lnp_prefix, destination_lnp_prefix, " \
+        "source_user_out, destination_user_out, " \
+        "source_lnp_type, destination_lnp_type, acc_ref" \
+        ") values ",
+    .sql_finish_string = " on duplicate key update "
+        "update_time = values(update_time), source_user_id = values(source_user_id), " \
+        "source_provider_id = values(source_provider_id), source_external_subscriber_id " \
+        "= values(source_external_subscriber_id), source_external_contract_id = " \
+        "values(source_external_contract_id), source_account_id = " \
+        "values(source_account_id), source_user = values(source_user), source_domain = " \
+        "values(source_domain), source_cli = values(source_cli), source_clir = " \
+        "values(source_clir), source_ip = values(source_ip), destination_user_id = " \
+        "values(destination_user_id), destination_provider_id = " \
+        "values(destination_provider_id), destination_external_subscriber_id = " \
+        "values(destination_external_subscriber_id), destination_external_contract_id = " \
+        "values(destination_external_contract_id), destination_account_id = " \
+        "values(destination_account_id), destination_user = values(destination_user), " \
+        "destination_domain = values(destination_domain), destination_user_in = " \
+        "values(destination_user_in), destination_domain_in = " \
+        "values(destination_domain_in), destination_user_dialed = " \
+        "values(destination_user_dialed), peer_auth_user = values(peer_auth_user), " \
+        "peer_auth_realm = values(peer_auth_realm), call_type = values(call_type), " \
+        "call_status = values(call_status), call_code = values(call_code), init_time = " \
+        "values(init_time), start_time = values(start_time), duration = " \
+        "values(duration), call_id = values(call_id), source_carrier_cost = " \
+        "values(source_carrier_cost), source_reseller_cost = " \
+        "values(source_reseller_cost), source_customer_cost = " \
+        "values(source_customer_cost), destination_carrier_cost = " \
+        "values(destination_carrier_cost), destination_reseller_cost = " \
+        "values(destination_reseller_cost), destination_customer_cost = " \
+        "values(destination_customer_cost), split = values(split), source_gpp0 = " \
+        "values(source_gpp0), source_gpp1 = values(source_gpp1), source_gpp2 = " \
+        "values(source_gpp2), source_gpp3 = values(source_gpp3), source_gpp4 = " \
+        "values(source_gpp4), source_gpp5 = values(source_gpp5), source_gpp6 = " \
+        "values(source_gpp6), source_gpp7 = values(source_gpp7), source_gpp8 = " \
+        "values(source_gpp8), source_gpp9 = values(source_gpp9), destination_gpp0 = " \
+        "values(destination_gpp0), destination_gpp1 = values(destination_gpp1), " \
+        "destination_gpp2 = values(destination_gpp2), destination_gpp3 = " \
+        "values(destination_gpp3), destination_gpp4 = values(destination_gpp4), " \
+        "destination_gpp5 = values(destination_gpp5), destination_gpp6 = " \
+        "values(destination_gpp6), destination_gpp7 = values(destination_gpp7), " \
+        "destination_gpp8 = values(destination_gpp8), destination_gpp9 = " \
+        "values(destination_gpp9), source_lnp_prefix = values(source_lnp_prefix), " \
+        "destination_lnp_prefix = values(destination_lnp_prefix), source_user_out = " \
+        "values(source_user_out), destination_user_out = values(destination_user_out), " \
+        "source_lnp_type = values(source_lnp_type), destination_lnp_type = " \
+        "values(destination_lnp_type), export_status = 'unexported'",
+    .full_flush_func = medmysql_flush_int_cdr,
+    .min_string_tail_room = 9000,
+    .handler_ptr = &cdr_handler,
+};
+static const medmysql_batch_definition medmysql_del_int_cdr_def = {
+    .sql_init_string = "delete from int_cdr where call_id in (",
+    .sql_finish_string = ")",
+    .single_flush_func = medmysql_flush_med_str,
+    .handler_ptr = &cdr_handler,
+};
 static const medmysql_batch_definition medmysql_tag_def = {
     .sql_init_string = "insert into cdr_tag_data (cdr_id, provider_id, direction_id, tag_id, " \
                 "val, cdr_start_time) values ",
+    .single_flush_func = medmysql_flush_med_str,
+    .handler_ptr = &cdr_handler,
+};
+static const medmysql_batch_definition medmysql_int_tag_def = {
+    .sql_init_string = "insert into int_cdr_tag_data (cdr_id, provider_id, direction_id, tag_id, " \
+                "val, cdr_start_time) values ",
+    .sql_finish_string = " on duplicate key update "
+        "val = values(val)",
     .single_flush_func = medmysql_flush_med_str,
     .handler_ptr = &cdr_handler,
 };
@@ -149,6 +232,13 @@ static const medmysql_batch_definition medmysql_mos_def = {
 };
 static const medmysql_batch_definition medmysql_group_def = {
     .sql_init_string = "insert into cdr_group (" \
+                "cdr_id, call_id, cdr_start_time" \
+                ") values ",
+    .single_flush_func = medmysql_flush_med_str,
+    .handler_ptr = &cdr_handler,
+};
+static const medmysql_batch_definition medmysql_int_group_def = {
+    .sql_init_string = "insert ignore into int_cdr_group (" \
                 "cdr_id, call_id, cdr_start_time" \
                 ") values ",
     .single_flush_func = medmysql_flush_med_str,
@@ -618,6 +708,7 @@ int medmysql_fetch_records(med_callid_t *callid,
         g_strlcpy(e->src_leg, row[6], sizeof(e->src_leg));
         g_strlcpy(e->dst_leg, row[7], sizeof(e->dst_leg));
         g_strlcpy(e->branch_id, row[8], sizeof(e->branch_id));
+        g_strlcpy(e->acc_ref, row[9], sizeof(e->acc_ref));
         e->valid = 1;
 
         if (check_shutdown())
@@ -769,12 +860,17 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
     uint64_t i;
     int gpp;
     gpointer tag_id;
+    int ret = 1; // default to intermediate
 
     for(i = 0; i < count; ++i)
     {
         cdr_entry_t *e = &(entries[i]);
 
         struct medmysql_cdr_batch *batch = &batches->cdr_batch;
+        if (e->intermediate)
+            batch = &batches->int_cdr_batch;
+        else
+            ret = 0; // if at least one record is not intermediate, we delete
 
         if (medmysql_batch_prepare(&batch->cdrs))
             return -1;
@@ -939,6 +1035,12 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
             CDRPRINT(",NULL");
         }
 
+        if (batch == &batches->int_cdr_batch) {
+            CDRPRINT(",'");
+            CDRESCAPE(e->acc_ref);
+            CDRPRINT("'");
+        }
+
         CDRPRINT("),");
 
         if(strnlen(e->furnished_charging_info, sizeof(e->furnished_charging_info)) > 0)
@@ -993,7 +1095,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
                 return -1;
         }
 
-        if (e->mos.filled) {
+        if (e->mos.filled && batch->mos.def) {
             if (medmysql_mos_record(&batch->cdr_mos, batch->num_cdrs, e->mos.avg_score,
                         e->mos.avg_packetloss, e->mos.avg_jitter, e->mos.avg_rtt,
                         e->start_time))
@@ -1015,7 +1117,27 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
 
     /*L_DEBUG("q='%s'", query);*/
 
+    return ret;
+}
 
+/**********************************************************************/
+int medmysql_delete_intermediate(cdr_entry_t *entries, uint64_t count, struct medmysql_batches *batches)
+{
+    uint64_t i;
+
+    for(i = 0; i < count; ++i)
+    {
+        cdr_entry_t *e = &(entries[i]);
+        char *callid = e->call_id;
+        char esc_callid[strlen(callid)*2+1];
+
+        mysql_real_escape_string(cdr_handler->m, esc_callid, callid, strlen(callid));
+
+        if (medmysql_batch_prepare(&batches->int_cdr_delete))
+            return -1;
+        batches->int_cdr_delete.len += sprintf(batches->int_cdr_delete.str + batches->int_cdr_delete.len,
+                "'%s',", esc_callid);
+    }
     return 0;
 }
 
@@ -1286,9 +1408,18 @@ int medmysql_batch_start(struct medmysql_batches *batches) {
     medmysql_str_init(&batches->cdr_batch.group, &medmysql_group_def, batches, &batches->cdr_batch,
             &batches->cdr_batch.cdr_group);
 
+    medmysql_str_init(&batches->int_cdr_batch.cdrs, &medmysql_int_cdr_def, batches, &batches->int_cdr_batch, NULL);
+    medmysql_str_init(&batches->int_cdr_batch.tags, &medmysql_int_tag_def, batches, &batches->int_cdr_batch,
+            &batches->int_cdr_batch.cdr_tags);
+    medmysql_str_init(&batches->int_cdr_batch.mos, NULL, batches, &batches->int_cdr_batch,
+            &batches->int_cdr_batch.cdr_mos);
+    medmysql_str_init(&batches->int_cdr_batch.group, &medmysql_int_group_def, batches, &batches->int_cdr_batch,
+            &batches->int_cdr_batch.cdr_group);
+
     medmysql_str_init(&batches->acc_backup, &medmysql_backup_def, batches, NULL, NULL);
     medmysql_str_init(&batches->acc_trash, &medmysql_trash_def, batches, NULL, NULL);
     medmysql_str_init(&batches->to_delete, &medmysql_delete_def, batches, NULL, NULL);
+    medmysql_str_init(&batches->int_cdr_delete, &medmysql_del_int_cdr_def, batches, NULL, NULL);
 
     return 0;
 }
@@ -1296,6 +1427,8 @@ int medmysql_batch_start(struct medmysql_batches *batches) {
 
 static int medmysql_flush_med_str(struct medmysql_str *str) {
     const medmysql_batch_definition *def = str->def;
+    if (!def)
+        return 0;
 
     if (str->len == 0)
         return 0;
@@ -1305,11 +1438,11 @@ static int medmysql_flush_med_str(struct medmysql_str *str) {
     str->len--;
     str->str[str->len] = '\0';
 
-    L_DEBUG("SQL flush med str\n");
-    L_DEBUG("SQL: %.*s\n", str->len, str->str);
-
     if (def->sql_finish_string)
         str->len += sprintf(str->str + str->len, "%s", def->sql_finish_string);
+
+    L_DEBUG("SQL flush med str\n");
+    L_DEBUG("SQL: %.*s\n", str->len, str->str);
 
     if (medmysql_query_wrapper_tx(*def->handler_ptr, str->str, str->len) != 0) {
         str->len = 0;
@@ -1329,6 +1462,8 @@ static int medmysql_flush_med_str(struct medmysql_str *str) {
 
 static int medmysql_write_tag_records(struct medmysql_str *str, unsigned long long auto_id)
 {
+    if (!str->def)
+        return 0;
     cdr_tag_record *record;
     GQueue *q = str->q;
     while ((record = g_queue_pop_head(q))) {
@@ -1401,7 +1536,13 @@ static int medmysql_flush_cdr_batch(struct medmysql_cdr_batch *batch) {
 }
 
 static int medmysql_flush_cdr(struct medmysql_batches *batches) {
+    if (medmysql_flush_med_str(&batches->int_cdr_delete))
+        return -1;
     return medmysql_flush_cdr_batch(&batches->cdr_batch);
+}
+
+static int medmysql_flush_int_cdr(struct medmysql_batches *batches) {
+    return medmysql_flush_cdr_batch(&batches->int_cdr_batch);
 }
 
 static int medmysql_flush_medlist(struct medmysql_str *str) {
@@ -1463,6 +1604,8 @@ static int medmysql_flush_call_stat_info() {
 
 int medmysql_batch_end(struct medmysql_batches *batches) {
     if (medmysql_flush_cdr(batches) || check_shutdown())
+        return -1;
+    if (medmysql_flush_int_cdr(batches) || check_shutdown())
         return -1;
     if (medmysql_flush_all_med(batches) || check_shutdown())
         return -1;
