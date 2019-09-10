@@ -122,6 +122,24 @@
       "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a09704ed_8ed96a3c",
+        "filename": "medmysql.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 1414,
+      "author": {
+        "id": 1000004
+      },
+      "writtenOn": "2019-09-10T13:45:20Z",
+      "side": 1,
+      "message": "is there also an option that defines the call_state in the final cdr in that case ? as there should be supported either \"failed\" or \"ok\", so a customer can define their strategy, either they charge customers for such long bugged calls or not.",
+      "parentUuid": "141f19b9_d409c801",
+      "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
     }
   ]
 }
