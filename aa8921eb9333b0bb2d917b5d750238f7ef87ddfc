@@ -50,6 +50,24 @@
       "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4bc7792a_ef365331",
+        "filename": "medmysql.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 1414,
+      "author": {
+        "id": 1000004
+      },
+      "writtenOn": "2019-09-10T12:56:53Z",
+      "side": 1,
+      "message": "according to the AC, there should be an option that for all intermediate cdrs that are longer than the \"max_call_duration\" config.yml option it will create either an \"ok\" or a \"failed\" final cdr, based on a new mediator option:\n* define that an automatically closed call based on \"max_call_duration\" is created as \"ok\" or \"expired\"",
+      "parentUuid": "1d860b1c_717cc9fd",
+      "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
     }
   ]
 }
