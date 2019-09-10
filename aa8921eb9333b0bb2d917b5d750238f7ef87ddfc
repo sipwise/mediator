@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "727cb295_ddbe213e",
+        "filename": "medmysql.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1000013
+      },
+      "writtenOn": "2019-09-10T12:09:01Z",
+      "side": 1,
+      "message": "allthough its unlikely they change, but worth to add the \"update val \u003d values(val)\" here also",
+      "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
+    }
+  ]
+}
