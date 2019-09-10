@@ -33,6 +33,23 @@
       "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d860b1c_717cc9fd",
+        "filename": "medmysql.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 1414,
+      "author": {
+        "id": 1000013
+      },
+      "writtenOn": "2019-09-10T12:52:05Z",
+      "side": 1,
+      "message": "leftover intermediate cdrs will be sticky (reexported on and on), so it could be worth to add another delete query here to drop anything older than eg.24h, what you think?",
+      "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
     }
   ]
 }
