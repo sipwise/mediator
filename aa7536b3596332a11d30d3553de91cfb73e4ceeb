@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3da48190_c3efbcd2",
+        "filename": "medmysql.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 1286,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2019-09-10T21:46:03Z",
+      "side": 0,
+      "message": "Hmm, I don\u0027t see anything doing the g_queue_init() now for the batches queues? I guess I\u0027m probably missing some context.",
+      "range": {
+        "startLine": 1284,
+        "startChar": 3,
+        "endLine": 1286,
+        "endChar": 38
+      },
+      "revId": "aa7536b3596332a11d30d3553de91cfb73e4ceeb",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
