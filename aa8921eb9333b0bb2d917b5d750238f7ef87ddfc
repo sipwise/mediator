@@ -16,6 +16,23 @@
       "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ccce1e4_02f2a89f",
+        "filename": "medmysql.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 1122,
+      "author": {
+        "id": 1000013
+      },
+      "writtenOn": "2019-09-10T12:26:41Z",
+      "side": 1,
+      "message": "int_cdr table will get a dedicated column for the \"invite\" kamailio.acc id/redis key",
+      "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
     }
   ]
 }
