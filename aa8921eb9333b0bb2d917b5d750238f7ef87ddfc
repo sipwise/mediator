@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "b88466d9_a978bf46",
+        "filename": "medmysql.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2019-09-10T13:10:26Z",
+      "side": 1,
+      "message": "missed that column, thanks",
+      "parentUuid": "727cb295_ddbe213e",
+      "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1ccce1e4_02f2a89f",
         "filename": "medmysql.c",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2019-09-10T12:26:41Z",
       "side": 1,
       "message": "int_cdr table will get a dedicated column for the \"invite\" kamailio.acc id/redis key",
+      "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4583127f_acefe44c",
+        "filename": "medmysql.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 1122,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2019-09-10T13:10:26Z",
+      "side": 1,
+      "message": "ok I see `acc_ref`",
+      "parentUuid": "1ccce1e4_02f2a89f",
       "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": true
@@ -65,6 +101,24 @@
       "side": 1,
       "message": "according to the AC, there should be an option that for all intermediate cdrs that are longer than the \"max_call_duration\" config.yml option it will create either an \"ok\" or a \"failed\" final cdr, based on a new mediator option:\n* define that an automatically closed call based on \"max_call_duration\" is created as \"ok\" or \"expired\"",
       "parentUuid": "1d860b1c_717cc9fd",
+      "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "141f19b9_d409c801",
+        "filename": "medmysql.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 1414,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2019-09-10T13:10:26Z",
+      "side": 1,
+      "message": "This already happens through the `config_max_acc_age` switch so there was no need to change anything. When the mac_acc_age is hit, the CDR will be written and intermediate CDR deleted.",
+      "parentUuid": "4bc7792a_ef365331",
       "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": true
