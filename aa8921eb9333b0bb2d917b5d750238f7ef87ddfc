@@ -140,6 +140,24 @@
       "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a41e022a_34b5115b",
+        "filename": "medmysql.c",
+        "patchSetId": 7
+      },
+      "lineNbr": 1414,
+      "author": {
+        "id": 1000013
+      },
+      "writtenOn": "2019-09-11T14:38:18Z",
+      "side": 1,
+      "message": "we still need a frequent total cleanup for failsafe, eg. like ratomat does it for prepaid costs.\n\nscenario:\n1. mediator wrote a intermediate record of longer call\n2. mediator got stopped and redis is cleared ig. in the course of some incident mitigation\n3. mediator starts again, but never drops the intermediate leftover -\u003e it will be re-exported every time.\n\nif we dont do this cleanup here, i can add a condition for cdr exporter to completely exclude any intermediate records older than eg. 84600 secs.",
+      "parentUuid": "a09704ed_8ed96a3c",
+      "revId": "aa8921eb9333b0bb2d917b5d750238f7ef87ddfc",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
     }
   ]
 }
