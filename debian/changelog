@@ -1,3 +1,15 @@
+ngcp-mediator (6.5.6.1+0~mr6.5.6.1) unstable; urgency=medium
+
+  [ Kirill Solomko ]
+  * [1561408] TT#59353 escape callid in sql statements
+
+  [ Alexander Lutay ]
+  * [161d1ce] TT#66150 TT#42910 Fix 4818ac638: send systemd READY=1 when maintenance mode is enabled
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 19 Sep 2019 18:00:47 +0200
+
 ngcp-mediator (6.5.6.0+0~mr6.5.6.0) unstable; urgency=medium
 
   [ Marco Capetta ]
