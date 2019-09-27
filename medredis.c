@@ -26,6 +26,8 @@
     } \
 } while(0)
 
+#define SREM_KEY_LUA "redis.call('SREM', KEYS[1], KEYS[3]); if redis.call('SCARD', KEYS[1]) == 0 then redis.call('SREM', KEYS[2], KEYS[1]) end"
+
 typedef struct {
     char **argv;
     size_t argc;
@@ -43,6 +45,7 @@ typedef struct {
 } medredis_cidlist_t;
 
 static medredis_con_t *con = NULL;
+static char medredis_srem_key_lua[41]; // sha-1 hex string
 
 /**********************************************************************/
 static void medredis_free_reply(redisReply **reply) {
@@ -256,30 +259,36 @@ err:
 
 /**********************************************************************/
 static int medredis_remove_mappings(const char* cid, char* key) {
-    char *argv[3];
+    char *argv[6];
     char buffer[512];
 
     snprintf(buffer, sizeof(buffer), "acc:cid::%s", cid);
 
-    // delete cid from acc:cid::$cid mapping
-    argv[0] = "SREM";
-    argv[1] = buffer;
-    argv[2] = key;
-    if (medredis_append_command_argv(3, argv, 1) != 0) {
+    // delete cid from acc:cid::$cid mapping and handle acc::index::cid mapping
+    argv[0] = "EVALSHA";
+    argv[1] = medredis_srem_key_lua;
+    argv[2] = "3";
+    argv[3] = buffer;
+    argv[4] = "acc::index::cid";
+    argv[5] = key;
+    if (medredis_append_command_argv(6, argv, 1) != 0) {
         L_ERROR("Failed to append redis command to remove mapping key '%s' from '%s'\n", key, argv[1]);
         goto err;
     }
 
-    // delete cid from acc:meth::INVITE and acc:meth::BYE
-    argv[0] = "SREM";
-    argv[1] = "acc:meth::INVITE";
-    argv[2] = key;
-    if (medredis_append_command_argv(3, argv, 1) != 0) {
+    // delete cid from acc:meth::INVITE and acc:meth::BYE and handle acc::index::meth mappings
+    argv[0] = "EVALSHA";
+    argv[1] = medredis_srem_key_lua;
+    argv[2] = "3";
+    argv[3] = "acc:meth::INVITE";
+    argv[4] = "acc::index::meth";
+    argv[5] = key;
+    if (medredis_append_command_argv(6, argv, 1) != 0) {
         L_ERROR("Failed to append redis command to remove mapping key '%s' from '%s'\n", key, argv[1]);
         goto err;
     }
-    argv[1] = "acc:meth::BYE";
-    if (medredis_append_command_argv(3, argv, 1) != 0) {
+    argv[3] = "acc:meth::BYE";
+    if (medredis_append_command_argv(6, argv, 1) != 0) {
         L_ERROR("Failed to append redis command to remove mapping key '%s' from '%s'\n", key, argv[1]);
         goto err;
     }
@@ -429,6 +438,15 @@ int medredis_init() {
 
     reply = redisCommand(con->ctx, "SELECT %i", config_redis_db);
     medredis_check_reply("SELECT", reply, err);
+    medredis_free_reply(&reply);
+
+    reply = redisCommand(con->ctx, "SCRIPT LOAD %s", SREM_KEY_LUA);
+    medredis_check_reply("SELECT", reply, err);
+    if (reply->type != REDIS_REPLY_STRING || reply->len >= sizeof(medredis_srem_key_lua)) {
+        L_ERROR("Invalid reply from SCRIPT LOAD: %i/%lu\n", reply->type, (unsigned long) reply->len);
+        goto err;
+    }
+    strcpy(medredis_srem_key_lua, reply->str);
     medredis_free_reply(&reply);
     
     L_DEBUG("Redis connection opened to %s:%d/%d\n",
