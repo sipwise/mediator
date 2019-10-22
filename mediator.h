@@ -20,7 +20,7 @@
 #define MEDIATOR_DEFAULT_CONFIG_FILE "/etc/ngcp-mediator/ngcp-mediator.conf"
 #define MEDIATOR_DEFAULT_DAEMONIZE 0
 #define MEDIATOR_DEFAULT_DUMPCDR 0
-#define MEDIATOR_DEFAULT_PIDPATH "/var/run/mediator.pid"
+#define MEDIATOR_DEFAULT_PIDPATH "/run/mediator.pid"
 
 #define MEDIATOR_DEFAULT_ACCHOST "localhost"
 #define MEDIATOR_DEFAULT_ACCUSER "mediator"
