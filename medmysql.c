@@ -705,9 +705,9 @@ int medmysql_fetch_records(med_callid_t *callid,
         g_strlcpy(e->callid, row[3], sizeof(e->callid));
         g_strlcpy(e->timestamp, row[4], sizeof(e->timestamp));
         e->unix_timestamp = atof(row[5]);
-        g_strlcpy(e->src_leg, row[6], sizeof(e->src_leg));
-        g_strlcpy(e->dst_leg, row[7], sizeof(e->dst_leg));
-        g_strlcpy(e->branch_id, row[8], sizeof(e->branch_id));
+        g_strlcpy(e->src_leg, row[6] ? : "", sizeof(e->src_leg));
+        g_strlcpy(e->dst_leg, row[7] ? : "", sizeof(e->dst_leg));
+        g_strlcpy(e->branch_id, row[8] ? : "", sizeof(e->branch_id));
         g_strlcpy(e->acc_ref, row[9], sizeof(e->acc_ref));
         e->valid = 1;
 
