@@ -807,21 +807,35 @@ static int medredis_cleanup_entries(med_entry_t *records, uint64_t count, const 
         if (!e->redis)
             continue;
 
-        if (strlen(e->branch_id) == 0) {
-            // Old ACC record version: it doesn't have branch_id
-            snprintf(buffer, sizeof(buffer), "acc:entry::%s:%f", e->callid, e->unix_timestamp);
-        }
-        else {
-            snprintf(buffer, sizeof(buffer), "acc:entry::%s:%f:%s", e->callid, e->unix_timestamp, e->branch_id);
-        }
+        const char *branch_id = e->branch_id;
 
-        L_DEBUG("Cleaning up redis entry for %s\n", buffer);
-        if (medredis_remove_mappings(e->callid, buffer) != 0) {
-            goto err;
+        // do this at most twice: once with an empty branch ID, and once without a branch ID at all
+        do {
+            if (branch_id == NULL) {
+                // Old ACC record version: it doesn't have branch_id
+                snprintf(buffer, sizeof(buffer), "acc:entry::%s:%f", e->callid, e->unix_timestamp);
+            }
+            else {
+                snprintf(buffer, sizeof(buffer), "acc:entry::%s:%f:%s", e->callid, e->unix_timestamp, branch_id);
+            }
+
+            L_DEBUG("Cleaning up redis entry for %s\n", buffer);
+            if (medredis_remove_mappings(e->callid, buffer) != 0) {
+                goto err;
+            }
+            if (medredis_remove_entry(buffer) != 0) {
+                goto err;
+            }
+
+            // exit condition: if the branch ID is non-NULL but an empty string, try again with
+            // a NULL branch ID.
+            // otherwise we break.
+            if (branch_id != NULL && strlen(branch_id) == 0) {
+                branch_id = NULL;
+                continue;
+            }
         }
-        if (medredis_remove_entry(buffer) != 0) {
-            goto err;
-        }
+        while (0);
     }
 
     return 0;
