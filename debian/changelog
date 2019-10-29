@@ -1,3 +1,13 @@
+ngcp-mediator (8.0.1.2+0~mr8.0.1.2) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [673ea0f] TT#69550 fix possible leftover redis acc records
+  * [1506457] TT#69550 silence stray warnings
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 29 Oct 2019 18:11:51 +0100
+
 ngcp-mediator (8.0.1.1+0~mr8.0.1.1) unstable; urgency=medium
 
   * New release.
