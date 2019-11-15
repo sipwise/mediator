@@ -474,6 +474,16 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     tmp1 = strchr(tmp2, MED_SEP);
     if(tmp1 == NULL)
     {
+        L_WARNING("Call-Id '%s' has no separated source lcr id, '%s'", cdr->call_id, tmp2);
+        return -1;
+    }
+    *tmp1 = '\0';
+    cdr->source_lcr_id = atoll(tmp2);
+    tmp2 = ++tmp1;
+
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
         L_WARNING("Call-Id '%s' has no separated group info, '%s'", cdr->call_id, tmp2);
         return -1;
     }
@@ -937,6 +947,12 @@ void cdr_set_provider(cdr_entry_t *cdr)
         {
             g_strlcpy(cdr->source_provider_id, "0", sizeof(cdr->source_provider_id));
         }
+    }
+    else if (cdr->source_lcr_id) {
+        snprintf(cdr->source_provider_id, sizeof(cdr->source_provider_id),
+                "%llu", (unsigned long long) cdr->source_lcr_id);
+        val = g_hash_table_lookup(med_peer_id_table, cdr->source_provider_id);
+        g_strlcpy(cdr->source_provider_id, val ? : "0", sizeof(cdr->source_provider_id));
     }
     else if((val = g_hash_table_lookup(med_peer_ip_table, cdr->source_domain)) != NULL)
     {

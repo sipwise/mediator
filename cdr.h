@@ -38,6 +38,7 @@ typedef struct {
     char source_cli[65];
     char source_ip[65];
     uint8_t source_clir;
+    uint64_t source_lcr_id;
     char source_gpp[10][255];
     char source_lnp_prefix[256];
     char source_user_out[256];
