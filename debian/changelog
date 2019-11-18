@@ -1,3 +1,17 @@
+ngcp-mediator (7.5.3.0+0~mr7.5.3.0) unstable; urgency=medium
+
+  [ Alexander Lutay ]
+  * [453ce25] TT#66150 TT#42910 Fix 4818ac638: send systemd READY=1 when maintenance mode is enabled
+
+  [ Richard Fuchs ]
+  * [0d7ccc8] TT#63000 support non-unique db_redis keys
+  * [7fbbe2b] TT#69550 fix possible leftover redis acc records
+  * [59a0434] TT#69550 silence stray warnings
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 18 Nov 2019 14:44:21 +0100
+
 ngcp-mediator (7.5.2.0+0~mr7.5.2.0) unstable; urgency=medium
 
   [ Kirill Solomko ]
