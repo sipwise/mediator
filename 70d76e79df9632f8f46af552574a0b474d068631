@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "331b2a9a_df1f08ef",
+        "filename": "cdr.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 472,
+      "author": {
+        "id": 1000001
+      },
+      "writtenOn": "2019-11-20T16:28:49Z",
+      "side": 1,
+      "message": "Did somebody create tattoo with reminder here? ;-)",
+      "range": {
+        "startLine": 472,
+        "startChar": 8,
+        "endLine": 472,
+        "endChar": 63
+      },
+      "revId": "70d76e79df9632f8f46af552574a0b474d068631",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
