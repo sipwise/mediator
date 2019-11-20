@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "724f0f16_2f9531d7",
+        "filename": "cdr.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1000013
+      },
+      "writtenOn": "2019-11-20T14:16:48Z",
+      "side": 1,
+      "message": "well, there are no tokens after this.\n\nto support processing both old and new srcleg string formats (but not skip old ones without source_lcr_id), 0 should be returned here.",
+      "revId": "87ec80a5533b4c46f29a2c19722c76692bb146ef",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
+    }
+  ]
+}
