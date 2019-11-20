@@ -467,8 +467,10 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     tmp1 = strchr(tmp2, MED_SEP);
     if(tmp1 == NULL)
     {
-        L_WARNING("Call-Id '%s' has no separated User-to-User header, '%s'", cdr->call_id, tmp2);
-        return -1;
+        L_DEBUG("Call-Id '%s' has no separated User-to-User header, '%s'", cdr->call_id, tmp2);
+        /// Simply return 0 in order to avoid issues with ACC records in the OLD format during an upgrade
+        /// Added in mr8.1, it should be changed to -1 in mr9.+
+        return 0;
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->header_u2u, tmp2, sizeof(cdr->header_u2u));
