@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "20c0f71d_09ce81ac",
+        "filename": "cdr.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 497,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2019-11-20T15:07:46Z",
+      "side": 1,
+      "message": "Should probably defuse the warning too, since this is an expected condition in some cases.",
+      "range": {
+        "startLine": 497,
+        "startChar": 8,
+        "endLine": 497,
+        "endChar": 17
+      },
+      "revId": "7972460ec7b9b257c1281d229d6ab13b8ba5996e",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
