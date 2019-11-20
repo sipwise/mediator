@@ -22,6 +22,30 @@
       "revId": "7972460ec7b9b257c1281d229d6ab13b8ba5996e",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f8d5a197_bb22a2af",
+        "filename": "cdr.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 497,
+      "author": {
+        "id": 1000021
+      },
+      "writtenOn": "2019-11-20T15:12:50Z",
+      "side": 1,
+      "message": "WARNING changed in DEBUG log line",
+      "parentUuid": "20c0f71d_09ce81ac",
+      "range": {
+        "startLine": 497,
+        "startChar": 8,
+        "endLine": 497,
+        "endChar": 17
+      },
+      "revId": "7972460ec7b9b257c1281d229d6ab13b8ba5996e",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
     }
   ]
 }
