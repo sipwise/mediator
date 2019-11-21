@@ -1,3 +1,12 @@
+ngcp-mediator (7.5.2.2+0~mr7.5.2.2) unstable; urgency=medium
+
+  [ Marco Capetta ]
+  * [d9756b7] TT#58502 Don't skip the ACC if user-to-user field is missing
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 21 Nov 2019 17:49:25 +0100
+
 ngcp-mediator (7.5.2.1+0~mr7.5.2.1) unstable; urgency=medium
 
   [ Alexander Lutay ]
