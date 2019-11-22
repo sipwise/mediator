@@ -1,3 +1,13 @@
+ngcp-mediator (7.5.2.3+0~mr7.5.2.3) unstable; urgency=medium
+
+  [ Marco Capetta ]
+  * [f660ea6] TT#70855 Read source_lcr_id from acc record and use it to generate CDR
+  * [7847aae] TT#70855 Don't skip the ACC if source_lcr_id filed is missing
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Fri, 22 Nov 2019 08:28:12 +0100
+
 ngcp-mediator (7.5.2.2+0~mr7.5.2.2) unstable; urgency=medium
 
   [ Marco Capetta ]
