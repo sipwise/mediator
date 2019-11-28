@@ -1,3 +1,12 @@
+ngcp-mediator (7.5.2.4+0~mr7.5.2.4) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [3970a8a] TT#71551 don't allocate zero-length memory blocks
+
+  [ Sipwise Jenkins Builder ]
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 28 Nov 2019 17:56:20 +0100
+
 ngcp-mediator (7.5.2.3+0~mr7.5.2.3) unstable; urgency=medium
 
   [ Marco Capetta ]
