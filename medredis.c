@@ -769,6 +769,9 @@ int medredis_fetch_records(med_callid_t *callid,
         (*count)++;
     }
 
+    if (!*count)
+        goto no_entries;
+
     *entries = (med_entry_t*)malloc(*count * sizeof(med_entry_t));
     if (!*entries) {
         L_ERROR("Failed to allocate memory for entries (cid '%s')\n", callid->value);
@@ -788,6 +791,7 @@ int medredis_fetch_records(med_callid_t *callid,
         L_DEBUG("Added entry with cid '%s' and method '%s'\n", d->callid, d->sip_method);
     }
 
+no_entries:
     g_list_free(records);
     g_list_free_full(keys, medredis_free_keys_list);
 
