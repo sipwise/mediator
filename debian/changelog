@@ -1,3 +1,16 @@
+ngcp-mediator (8.0.2.1+0~mr8.0.2.1) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [b11d21a] TT#69550 fix possible leftover redis acc records
+  * [9ec6849] TT#69550 silence stray warnings
+  * [a4b4869] TT#71551 don't allocate zero-length memory blocks
+
+  [ Marco Capetta ]
+  * [8445507] TT#70855 Read source_lcr_id from acc record and use it to generate CDR
+  * [899fd10] TT#70855 Don't skip the ACC if source_lcr_id filed is missing
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 13 Jan 2020 15:18:21 +0100
+
 ngcp-mediator (8.0.2.0+0~mr8.0.2.0) unstable; urgency=medium
 
   * New release.
