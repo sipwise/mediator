@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "b018d135_7f287f9d",
+        "filename": "cdr.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1000021
+      },
+      "writtenOn": "2020-01-30T16:55:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0798e688_d8a79c91",
+      "revId": "c760a8d52bdf7b293944d7ac01603e13d2b061b0",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b9c40c82_c6b58acc",
         "filename": "cdr.c",
         "patchSetId": 1
@@ -30,6 +48,30 @@
       "writtenOn": "2020-01-30T14:07:41Z",
       "side": 1,
       "message": "We should take the opportunity and refactor these into a function, as we did with cdr_parse_json_get_int() etc elsewhere in the file",
+      "range": {
+        "startLine": 263,
+        "startChar": 0,
+        "endLine": 270,
+        "endChar": 0
+      },
+      "revId": "c760a8d52bdf7b293944d7ac01603e13d2b061b0",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46b66a9c_66f45277",
+        "filename": "cdr.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1000021
+      },
+      "writtenOn": "2020-01-30T16:55:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b9c40c82_c6b58acc",
       "range": {
         "startLine": 263,
         "startChar": 0,
