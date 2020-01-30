@@ -6,6 +6,7 @@
 #include "medredis.h"
 #include "config.h"
 #include "mediator.h"
+#include "json-c/json.h"
 
 static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
         cdr_entry_t **cdrs, uint64_t *cdr_count, uint8_t *trash, int do_intermediate);
@@ -254,442 +255,376 @@ copy:
 
 static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 {
-    char *tmp1, *tmp2;
+    struct json_object *parsed_json;
+    struct json_object *temp_value;
 
-    tmp2 = srcleg;
+    parsed_json = json_tokener_parse(srcleg);
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // source_user_id
+    if(!json_object_object_get_ex(parsed_json, "uuid", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated source user id, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no source user id (uuid), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->source_user_id, tmp2, sizeof(cdr->source_user_id));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->source_user_id, json_object_get_string(temp_value), sizeof(cdr->source_user_id));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // source_user
+    if(!json_object_object_get_ex(parsed_json, "u", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated source user, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated source user (u), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->source_user, tmp2, sizeof(cdr->source_user));
-    uri_unescape(cdr->source_user);
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->source_user, json_object_get_string(temp_value), sizeof(cdr->source_user));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // source_domain
+    if(!json_object_object_get_ex(parsed_json, "d", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated source domain, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated source domain (d), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->source_domain, tmp2, sizeof(cdr->source_domain));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->source_domain, json_object_get_string(temp_value), sizeof(cdr->source_domain));
 
-
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // source_cli
+    if(!json_object_object_get_ex(parsed_json, "cli", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated source cli, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated source cli (cli), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->source_cli, tmp2, sizeof(cdr->source_cli));
-    uri_unescape(cdr->source_cli);
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->source_cli, json_object_get_string(temp_value), sizeof(cdr->source_cli));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // source_ext_subscriber_id
+    if(!json_object_object_get_ex(parsed_json, "s_id", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated source external subscriber id, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated source external subscriber id (s_id), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->source_ext_subscriber_id, tmp2, sizeof(cdr->source_ext_subscriber_id));
+    g_strlcpy(cdr->source_ext_subscriber_id, json_object_get_string(temp_value), sizeof(cdr->source_ext_subscriber_id));
     uri_unescape(cdr->source_ext_subscriber_id);
-    tmp2 = ++tmp1;
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // source_ext_contract_id
+    if(!json_object_object_get_ex(parsed_json, "c_id", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated source external contract id, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated source external contract id (c_id), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->source_ext_contract_id, tmp2, sizeof(cdr->source_ext_contract_id));
+    g_strlcpy(cdr->source_ext_contract_id, json_object_get_string(temp_value), sizeof(cdr->source_ext_contract_id));
     uri_unescape(cdr->source_ext_contract_id);
-    tmp2 = ++tmp1;
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // source_account_id
+    if(!json_object_object_get_ex(parsed_json, "a_id", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated source account id, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated source account id (a_id), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    cdr->source_account_id = atoll(tmp2);
-    tmp2 = ++tmp1;
+    cdr->source_account_id = json_object_get_int(temp_value);
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // peer_auth_user
+    if(!json_object_object_get_ex(parsed_json, "pau", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated peer auth user, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated peer auth user (pau), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->peer_auth_user, tmp2, sizeof(cdr->peer_auth_user));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->peer_auth_user, json_object_get_string(temp_value), sizeof(cdr->peer_auth_user));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // peer_auth_realm
+    if(!json_object_object_get_ex(parsed_json, "par", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated peer auth realm, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated peer auth realm (par), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->peer_auth_realm, tmp2, sizeof(cdr->peer_auth_realm));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->peer_auth_realm, json_object_get_string(temp_value), sizeof(cdr->peer_auth_realm));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // source_clir
+    if(!json_object_object_get_ex(parsed_json, "clir", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated source clir status, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated source clir status (clir), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    cdr->source_clir = atoi(tmp2);
-    tmp2 = ++tmp1;
+    cdr->source_clir = json_object_get_int(temp_value);
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // call_type
+    if(!json_object_object_get_ex(parsed_json, "s", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated call type, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated call type (s), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->call_type, tmp2, sizeof(cdr->call_type));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->call_type, json_object_get_string(temp_value), sizeof(cdr->call_type));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // source_ip
+    if(!json_object_object_get_ex(parsed_json, "ip", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated source ip, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated source ip (ip), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->source_ip, tmp2, sizeof(cdr->source_ip));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->source_ip, json_object_get_string(temp_value), sizeof(cdr->source_ip));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // init_time
+    if(!json_object_object_get_ex(parsed_json, "t", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated source init time, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated source init time (t), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    cdr->init_time = g_strtod(tmp2, NULL);
-    tmp2 = ++tmp1;
+    cdr->init_time = json_object_get_double(temp_value);
 
+    // source_gpp
+    if(!json_object_object_get_ex(parsed_json, "gpp", &temp_value))
+    {
+        L_WARNING("Call-Id '%s' has no separated source gpp list (gpp), '%s'", cdr->call_id, srcleg);
+        return -1;
+    }
+    if(json_object_array_length(temp_value) != 10)
+    {
+        L_WARNING("Call-Id '%s' has only '%d' source gpp fields, they should be 10, '%s'", cdr->call_id, json_object_array_length(temp_value), srcleg);
+        return -1;
+    }    
     int i;
     for(i = 0; i < 10; ++i)
     {
-        tmp1 = strchr(tmp2, MED_SEP);
-        if(tmp1 == NULL)
-        {
-            L_WARNING("Call-Id '%s' has no separated source gpp %d, '%s'", cdr->call_id, i, tmp2);
-            return -1;
-        }
-        *tmp1 = '\0';
-        g_strlcpy(cdr->source_gpp[i], tmp2, sizeof(cdr->source_gpp[i]));
-        tmp2 = ++tmp1;
+        g_strlcpy(cdr->source_gpp[i], json_object_get_string(json_object_array_get_idx(temp_value, i)), sizeof(cdr->source_gpp[i]));
     }
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // source_lnp_prefix
+    if(!json_object_object_get_ex(parsed_json, "lnp_p", &temp_value))
     {
         if (strict_leg_tokens) {
-            L_WARNING("Call-Id '%s' has no separated source lnp prefix, '%s'", cdr->call_id, tmp2);
+            L_WARNING("Call-Id '%s' has no separated source lnp prefix (lnp_p), '%s'", cdr->call_id, srcleg);
             return -1;
         } else {
             cdr->source_lnp_prefix[0] = '\0';
             cdr->source_user_out[0] = '\0';
-            L_WARNING("Call-Id '%s' src leg has missing tokens (using empty lnp prefix, user out) '%s'", cdr->call_id, tmp2);
+            L_WARNING("Call-Id '%s' src leg has missing tokens (using empty lnp prefix, user out) '%s'", cdr->call_id, srcleg);
             return 0;
         }
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->source_lnp_prefix, tmp2, sizeof(cdr->source_lnp_prefix));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->source_lnp_prefix, json_object_get_string(temp_value), sizeof(cdr->source_lnp_prefix));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // source_user_out
+    if(!json_object_object_get_ex(parsed_json, "cli_out", &temp_value))
     {
         if (strict_leg_tokens) {
-            L_WARNING("Call-Id '%s' has no separated source user out, '%s'", cdr->call_id, tmp2);
+            L_WARNING("Call-Id '%s' has no separated source user out (cli_out), '%s'", cdr->call_id, srcleg);
             return -1;
         } else {
             cdr->source_user_out[0] = '\0';
-            L_WARNING("Call-Id '%s' src leg has missing tokens (using empty user out) '%s'", cdr->call_id, tmp2);
+            L_WARNING("Call-Id '%s' src leg has missing tokens (using empty user out) '%s'", cdr->call_id, srcleg);
             return 0;
         }
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->source_user_out, tmp2, sizeof(cdr->source_user_out));
+    g_strlcpy(cdr->source_user_out, json_object_get_string(temp_value), sizeof(cdr->source_user_out));
     uri_unescape(cdr->source_user_out);
-    tmp2 = ++tmp1;
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // source_lnp_type
+    if(!json_object_object_get_ex(parsed_json, "lnp_t", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated source lnp type, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated source lnp type (lnp_t), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->source_lnp_type, tmp2, sizeof(cdr->source_lnp_type));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->source_lnp_type, json_object_get_string(temp_value), sizeof(cdr->source_lnp_type));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // header_pai
+    if(!json_object_object_get_ex(parsed_json, "pai", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated P-Asserted-Identity header, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated P-Asserted-Identity header (pai), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->header_pai, tmp2, sizeof(cdr->header_pai));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->header_pai, json_object_get_string(temp_value), sizeof(cdr->header_pai));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // header_diversion
+    if(!json_object_object_get_ex(parsed_json, "div", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated Diversion header, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated source Diversion header (div), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->header_diversion, tmp2, sizeof(cdr->header_diversion));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->header_diversion, json_object_get_string(temp_value), sizeof(cdr->header_diversion));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // group
+    if(!json_object_object_get_ex(parsed_json, "cid", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated group info, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated group info (cid), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->group, tmp2, sizeof(cdr->group));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->group, json_object_get_string(temp_value), sizeof(cdr->group));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // header_u2u
+    if(!json_object_object_get_ex(parsed_json, "u2u", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated User-to-User header, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated User-to-User header (u2u), '%s'", cdr->call_id, srcleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->header_u2u, tmp2, sizeof(cdr->header_u2u));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->header_u2u, json_object_get_string(temp_value), sizeof(cdr->header_u2u));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // source_lcr_id
+    if(!json_object_object_get_ex(parsed_json, "lcr", &temp_value))
     {
-        L_DEBUG("Call-Id '%s' has no separated source lcr id, '%s'", cdr->call_id, tmp2);
+        L_DEBUG("Call-Id '%s' has no separated source lcr id (lcr), '%s'", cdr->call_id, srcleg);
         /// Simply return 0 in order to avoid issues with ACC records in the OLD format during an upgrade
         /// Added in mr8.1, it should be changed to -1 in mr9.+
         return 0;
     }
-    *tmp1 = '\0';
-    cdr->source_lcr_id = atoll(tmp2);
-    tmp2 = ++tmp1;
+    cdr->source_lcr_id = json_object_get_int(temp_value);
 
     return 0;
 }
 
 static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
 {
-    char *tmp1, *tmp2;
+    struct json_object *parsed_json;
+    struct json_object *temp_value;
 
-    tmp2 = dstleg;
+    parsed_json = json_tokener_parse(dstleg);
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // split
+    if(!json_object_object_get_ex(parsed_json, "plu", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated split flag, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated split flag (plu), '%s'", cdr->call_id, dstleg);
         return -1;
     }
-    *tmp1 = '\0';
-    cdr->split = atoi(tmp2);
-    tmp2 = ++tmp1;
+    cdr->split = json_object_get_int(temp_value);
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // destination_ext_subscriber_id
+    if(!json_object_object_get_ex(parsed_json, "s_id", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated destination external subscriber id, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated destination external subscriber id (s_id), '%s'", cdr->call_id, dstleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->destination_ext_subscriber_id, tmp2, sizeof(cdr->destination_ext_subscriber_id));
+    g_strlcpy(cdr->destination_ext_subscriber_id, json_object_get_string(temp_value), sizeof(cdr->destination_ext_subscriber_id));
     uri_unescape(cdr->destination_ext_subscriber_id);
-    tmp2 = ++tmp1;
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // destination_ext_contract_id
+    if(!json_object_object_get_ex(parsed_json, "c_id", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated destination external contract id, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated destination external contract id (c_id), '%s'", cdr->call_id, dstleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->destination_ext_contract_id, tmp2, sizeof(cdr->destination_ext_contract_id));
+    g_strlcpy(cdr->destination_ext_contract_id, json_object_get_string(temp_value), sizeof(cdr->destination_ext_contract_id));
     uri_unescape(cdr->destination_ext_contract_id);
-    tmp2 = ++tmp1;
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // destination_account_id
+    if(!json_object_object_get_ex(parsed_json, "a_id", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated destination account id, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated destination account id (a_id), '%s'", cdr->call_id, dstleg);
         return -1;
     }
-    *tmp1 = '\0';
-    cdr->destination_account_id = atoll(tmp2);
-    tmp2 = ++tmp1;
+    cdr->destination_account_id = json_object_get_int(temp_value);
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // destination_dialed
+    if(!json_object_object_get_ex(parsed_json, "dialed", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated dialed digits", cdr->call_id);
+        L_WARNING("Call-Id '%s' has no separated dialed digits (dialed), '%s'", cdr->call_id, dstleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->destination_dialed, tmp2, sizeof(cdr->destination_dialed));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->destination_dialed, json_object_get_string(temp_value), sizeof(cdr->destination_dialed));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // destination_user_id
+    if(!json_object_object_get_ex(parsed_json, "uuid", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated destination user id", cdr->call_id);
+        L_WARNING("Call-Id '%s' has no separated destination user id (uuid), '%s'", cdr->call_id, dstleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->destination_user_id, tmp2, sizeof(cdr->destination_user_id));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->destination_user_id, json_object_get_string(temp_value), sizeof(cdr->destination_user_id));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // destination_user
+    if(!json_object_object_get_ex(parsed_json, "u", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated destination user", cdr->call_id);
+        L_WARNING("Call-Id '%s' has no separated destination user (u), '%s'", cdr->call_id, dstleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->destination_user, tmp2, sizeof(cdr->destination_user));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->destination_user, json_object_get_string(temp_value), sizeof(cdr->destination_user));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // destination_domain
+    if(!json_object_object_get_ex(parsed_json, "d", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated destination domain", cdr->call_id);
+        L_WARNING("Call-Id '%s' has no separated destination domain (d), '%s'", cdr->call_id, dstleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->destination_domain, tmp2, sizeof(cdr->destination_domain));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->destination_domain, json_object_get_string(temp_value), sizeof(cdr->destination_domain));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // destination_user_in
+    if(!json_object_object_get_ex(parsed_json, "u_in", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated incoming destination user", cdr->call_id);
+        L_WARNING("Call-Id '%s' has no separated incoming destination user (u_in), '%s'", cdr->call_id, dstleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->destination_user_in, tmp2, sizeof(cdr->destination_user_in));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->destination_user_in, json_object_get_string(temp_value), sizeof(cdr->destination_user_in));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // destination_domain_in
+    if(!json_object_object_get_ex(parsed_json, "d_in", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated incoming destination domain", cdr->call_id);
+        L_WARNING("Call-Id '%s' has no separated incoming destination domain (d_in), '%s'", cdr->call_id, dstleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->destination_domain_in, tmp2, sizeof(cdr->destination_domain_in));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->destination_domain_in, json_object_get_string(temp_value), sizeof(cdr->destination_domain_in));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // destination_lcr_id
+    if(!json_object_object_get_ex(parsed_json, "lcr", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated destination lcr id, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated destination lcr id (lcr), '%s'", cdr->call_id, dstleg);
         return -1;
     }
-    *tmp1 = '\0';
-    cdr->destination_lcr_id = atoll(tmp2);
-    tmp2 = ++tmp1;
+    cdr->destination_lcr_id = json_object_get_int(temp_value);
 
+    // destination_gpp
+    if(!json_object_object_get_ex(parsed_json, "gpp", &temp_value))
+    {
+        L_WARNING("Call-Id '%s' has no separated destination gpp list (gpp), '%s'", cdr->call_id, dstleg);
+        return -1;
+    }
+    if(json_object_array_length(temp_value) != 10)
+    {
+        L_WARNING("Call-Id '%s' has only '%d' destination gpp fields, they should be 10, '%s'", cdr->call_id, json_object_array_length(temp_value), dstleg);
+        return -1;
+    }    
     int i;
     for(i = 0; i < 10; ++i)
     {
-        tmp1 = strchr(tmp2, MED_SEP);
-        if(tmp1 == NULL)
-        {
-            L_WARNING("Call-Id '%s' has no separated destination gpp %d, '%s'", cdr->call_id, i, tmp2);
-            return -1;
-        }
-        *tmp1 = '\0';
-        g_strlcpy(cdr->destination_gpp[i], tmp2, sizeof(cdr->destination_gpp[i]));
-        tmp2 = ++tmp1;
+        g_strlcpy(cdr->destination_gpp[i], json_object_get_string(json_object_array_get_idx(temp_value, i)), sizeof(cdr->destination_gpp[i]));
     }
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // destination_lnp_prefix
+    if(!json_object_object_get_ex(parsed_json, "lnp_p", &temp_value))
     {
         if (strict_leg_tokens) {
-            L_WARNING("Call-Id '%s' has no separated destination lnp prefix, '%s'", cdr->call_id, tmp2);
+            L_WARNING("Call-Id '%s' has no separated destination lnp prefix (lnp_p), '%s'", cdr->call_id, dstleg);
             return -1;
         } else {
             cdr->destination_lnp_prefix[0] = '\0';
             cdr->destination_user_out[0] = '\0';
-            L_WARNING("Call-Id '%s' dst leg has missing tokens (using empty lnp prefix, user out) '%s'", cdr->call_id, tmp2);
+            L_WARNING("Call-Id '%s' dst leg has missing tokens (using empty lnp prefix, user out) '%s'", cdr->call_id, dstleg);
             return 0;
         }
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->destination_lnp_prefix, tmp2, sizeof(cdr->destination_lnp_prefix));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->destination_lnp_prefix, json_object_get_string(temp_value), sizeof(cdr->destination_lnp_prefix));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // destination_user_out
+    if(!json_object_object_get_ex(parsed_json, "u_out", &temp_value))
     {
         if (strict_leg_tokens) {
-            L_WARNING("Call-Id '%s' has no separated destination user out, '%s'", cdr->call_id, tmp2);
+            L_WARNING("Call-Id '%s' has no separated destination user out (u_out), '%s'", cdr->call_id, dstleg);
             return -1;
         } else {
             cdr->destination_user_out[0] = '\0';
-            L_WARNING("Call-Id '%s' dst leg has missing tokens (using empty user out) '%s'", cdr->call_id, tmp2);
+            L_WARNING("Call-Id '%s' dst leg has missing tokens (using empty user out) '%s'", cdr->call_id, dstleg);
             return 0;
         }
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->destination_user_out, tmp2, sizeof(cdr->destination_user_out));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->destination_user_out, json_object_get_string(temp_value), sizeof(cdr->destination_user_out));
+    uri_unescape(cdr->destination_user_out);
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // destination_lnp_type
+    if(!json_object_object_get_ex(parsed_json, "lnp_t", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated destination lnp type, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated destination lnp type (lnp_t), '%s'", cdr->call_id, dstleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->destination_lnp_type, tmp2, sizeof(cdr->destination_lnp_type));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->destination_lnp_type, json_object_get_string(temp_value), sizeof(cdr->destination_lnp_type));
 
-    tmp1 = strchr(tmp2, MED_SEP);
-    if(tmp1 == NULL)
+    // furnished_charging_info
+    if(!json_object_object_get_ex(parsed_json, "fci", &temp_value))
     {
-        L_WARNING("Call-Id '%s' has no separated furnished charging info, '%s'", cdr->call_id, tmp2);
+        L_WARNING("Call-Id '%s' has no separated furnished charging info (fci), '%s'", cdr->call_id, dstleg);
         return -1;
     }
-    *tmp1 = '\0';
-    g_strlcpy(cdr->furnished_charging_info, tmp2, sizeof(cdr->furnished_charging_info));
-    tmp2 = ++tmp1;
+    g_strlcpy(cdr->furnished_charging_info, json_object_get_string(temp_value), sizeof(cdr->furnished_charging_info));
 
     return 0;
 }
