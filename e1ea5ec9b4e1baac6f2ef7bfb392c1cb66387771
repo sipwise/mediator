@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a901186b_486fbf7f",
+        "filename": "cdr.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2020-01-30T17:13:13Z",
+      "side": 1,
+      "message": "No no, this doesn\u0027t work :)\noutp is a char*, so the sizeof() will always return 8 (or 4 on 32-bit).\nYou\u0027ll need to pass down the sizeof() from the calling function. You can create a convenience macro for that, e.g.\n\nstatic int cdr_parse_json_get_string(json_object *obj, const char *key, char *outp, size_t len) { ...\n\nand\n\n#define cdr_parse_json_get_strbuf(obj, key, outp) cdr_parse_json_get_string(obj, key, outp, sizeof(outp))\n\nC is awesome like that.",
+      "range": {
+        "startLine": 290,
+        "startChar": 52,
+        "endLine": 290,
+        "endChar": 65
+      },
+      "revId": "e1ea5ec9b4e1baac6f2ef7bfb392c1cb66387771",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ad8e6b4_e1b7bb67",
+        "filename": "cdr.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2020-01-30T17:13:13Z",
+      "side": 1,
+      "message": "cdr_parse_json_get_int() silently caps the resulting value to the min/max provided. Should this rather be an error instead if the value here isn\u0027t right? Or maybe it should assume a safe default if the value is out of range? Or maybe not do any capping at all, which is what the original code does?",
+      "range": {
+        "startLine": 365,
+        "startChar": 62,
+        "endLine": 365,
+        "endChar": 71
+      },
+      "revId": "e1ea5ec9b4e1baac6f2ef7bfb392c1cb66387771",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46845d17_3ca19eaa",
+        "filename": "cdr.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2020-01-30T17:13:13Z",
+      "side": 1,
+      "message": "Also here I don\u0027t think there should be any capping at all, or at least only a lower cap. I think it would be appropriate to split up the _get_int/double functions into more generic ones that don\u0027t do any capping, and then special-case on top of that. Just a suggestion, anyway.",
+      "range": {
+        "startLine": 383,
+        "startChar": 61,
+        "endLine": 383,
+        "endChar": 85
+      },
+      "revId": "e1ea5ec9b4e1baac6f2ef7bfb392c1cb66387771",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
+    }
+  ]
+}
