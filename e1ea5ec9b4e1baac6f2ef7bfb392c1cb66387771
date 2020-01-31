@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "65a17fd8_d96c6026",
+        "filename": "cdr.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1000021
+      },
+      "writtenOn": "2020-01-31T10:57:14Z",
+      "side": 1,
+      "message": "Argh! you are right!\nAs you have noticed I\u0027m not a C expert :-(",
+      "parentUuid": "a901186b_486fbf7f",
+      "range": {
+        "startLine": 290,
+        "startChar": 52,
+        "endLine": 290,
+        "endChar": 65
+      },
+      "revId": "e1ea5ec9b4e1baac6f2ef7bfb392c1cb66387771",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7ad8e6b4_e1b7bb67",
         "filename": "cdr.c",
         "patchSetId": 2
@@ -59,6 +83,30 @@
       "writtenOn": "2020-01-30T17:13:13Z",
       "side": 1,
       "message": "Also here I don\u0027t think there should be any capping at all, or at least only a lower cap. I think it would be appropriate to split up the _get_int/double functions into more generic ones that don\u0027t do any capping, and then special-case on top of that. Just a suggestion, anyway.",
+      "range": {
+        "startLine": 383,
+        "startChar": 61,
+        "endLine": 383,
+        "endChar": 85
+      },
+      "revId": "e1ea5ec9b4e1baac6f2ef7bfb392c1cb66387771",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b16f7d08_9fcbae7e",
+        "filename": "cdr.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1000021
+      },
+      "writtenOn": "2020-01-31T10:57:14Z",
+      "side": 1,
+      "message": "Yes I was thinking the same.\nSome values need to be limited and substituted, but others not.",
+      "parentUuid": "46845d17_3ca19eaa",
       "range": {
         "startLine": 383,
         "startChar": 61,
