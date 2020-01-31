@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "628daaed_b857e2f1",
+        "filename": "cdr.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-01-31T15:37:36Z",
+      "side": 1,
+      "message": "nit: This does not seem to follow the previous contention of just not including t (from the _t), I\u0027d leave it out here and in the other refactored functions. :)",
+      "range": {
+        "startLine": 255,
+        "startChar": 35,
+        "endLine": 255,
+        "endChar": 36
+      },
+      "revId": "10130d4a8df98ad3609ffc7219570c8e6a76567a",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f8954c87_3dddd5bd",
+        "filename": "cdr.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-01-31T15:37:36Z",
+      "side": 1,
+      "message": "nit: I\u0027d perhaps call this _clamped or similar, which might make it more clear we are limiting on both sides, and that we are not getting an uint limit/clamp, but clamping the result.",
+      "range": {
+        "startLine": 265,
+        "startChar": 36,
+        "endLine": 265,
+        "endChar": 42
+      },
+      "revId": "10130d4a8df98ad3609ffc7219570c8e6a76567a",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "60889567_5c749da7",
+        "filename": "cdr.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 716,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-01-31T15:37:36Z",
+      "side": 1,
+      "message": "I\u0027d do the refactoring in one commit, and the behavior change in another.",
+      "revId": "10130d4a8df98ad3609ffc7219570c8e6a76567a",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1540f16d_cd551e4a",
+        "filename": "mediator.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-01-31T15:37:36Z",
+      "side": 1,
+      "message": "What\u0027s the purpose of this change? Maybe split it into another commit?",
+      "revId": "10130d4a8df98ad3609ffc7219570c8e6a76567a",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    }
+  ]
+}
