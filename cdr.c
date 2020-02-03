@@ -252,6 +252,46 @@ copy:
     *d = 0;
 }
 
+static int cdr_parse_json_get_int(json_object *obj, const char *key, int *outp) {
+    json_object *int_obj;
+    if (!json_object_object_get_ex(obj, key, &int_obj))
+        return 0;
+    if (!json_object_is_type(int_obj, json_type_int))
+        return 0;
+    *outp = json_object_get_int64(int_obj);
+    return 1;
+}
+
+static int cdr_parse_json_get_int_clamped(json_object *obj, const char *key, int *outp, int min, int max) {
+    if(!cdr_parse_json_get_int(obj, key, outp))
+        return 0;
+    if (*outp > max)
+        *outp = max;
+    else if (*outp < min)
+        *outp = min;
+    return 1;
+}
+
+static int cdr_parse_json_get_double(json_object *obj, const char *key, double *outp) {
+    json_object *int_obj;
+    if (!json_object_object_get_ex(obj, key, &int_obj))
+        return 0;
+    if (!json_object_is_type(int_obj, json_type_double))
+        return 0;
+    *outp = json_object_get_double(int_obj);
+    return 1;
+}
+
+static int cdr_parse_json_get_double_clamped(json_object *obj, const char *key, double *outp, double min, double max) {
+    if(!cdr_parse_json_get_double(obj, key, outp))
+        return 0;
+    if (*outp > max)
+        *outp = max;
+    else if (*outp < min)
+        *outp = min;
+    return 1;
+}
+
 static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 {
     char *tmp1, *tmp2;
@@ -694,35 +734,6 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     return 0;
 }
 
-
-static int cdr_parse_json_get_int(json_object *obj, const char *key, int *outp, int min, int max) {
-    json_object *int_obj;
-    if (!json_object_object_get_ex(obj, key, &int_obj))
-        return 0;
-    if (!json_object_is_type(int_obj, json_type_int))
-        return 0;
-    *outp = json_object_get_int64(int_obj);
-    if (*outp > max)
-        *outp = max;
-    else if (*outp < min)
-        *outp = min;
-    return 1;
-}
-
-static int cdr_parse_json_get_double(json_object *obj, const char *key, double *outp, double min, double max) {
-    json_object *int_obj;
-    if (!json_object_object_get_ex(obj, key, &int_obj))
-        return 0;
-    if (!json_object_is_type(int_obj, json_type_double))
-        return 0;
-    *outp = json_object_get_double(int_obj);
-    if (*outp > max)
-        *outp = max;
-    else if (*outp < min)
-        *outp = min;
-    return 1;
-}
-
 static int cdr_parse_bye_dstleg(char *dstleg, mos_data_t *mos_data) {
     L_DEBUG("Parsing JSON: '%s'", dstleg);
 
@@ -742,19 +753,19 @@ static int cdr_parse_bye_dstleg(char *dstleg, mos_data_t *mos_data) {
         L_ERROR("JSON object does not contain 'mos' key: '%s'", dstleg);
         goto err;
     }
-    if (!cdr_parse_json_get_double(mos, "avg_score", &mos_data->avg_score, 0, 99)) {
+    if (!cdr_parse_json_get_double_clamped(mos, "avg_score", &mos_data->avg_score, 0, 99)) {
         L_ERROR("JSON object does not contain 'mos.avg_score' key: '%s'", dstleg);
         goto err;
     }
-    if (!cdr_parse_json_get_int(mos, "avg_packetloss", &mos_data->avg_packetloss, 0, 100)) {
+    if (!cdr_parse_json_get_int_clamped(mos, "avg_packetloss", &mos_data->avg_packetloss, 0, 100)) {
         L_ERROR("JSON object does not contain 'mos.avg_packetloss' key: '%s'", dstleg);
         goto err;
     }
-    if (!cdr_parse_json_get_int(mos, "avg_jitter", &mos_data->avg_jitter, 0, 9999)) {
+    if (!cdr_parse_json_get_int_clamped(mos, "avg_jitter", &mos_data->avg_jitter, 0, 9999)) {
         L_ERROR("JSON object does not contain 'mos.avg_jitter' key: '%s'", dstleg);
         goto err;
     }
-    if (!cdr_parse_json_get_int(mos, "avg_rtt", &mos_data->avg_rtt, 0, 9999)) {
+    if (!cdr_parse_json_get_int_clamped(mos, "avg_rtt", &mos_data->avg_rtt, 0, 9999)) {
         L_ERROR("JSON object does not contain 'mos.avg_rtt' key: '%s'", dstleg);
         goto err;
     }
