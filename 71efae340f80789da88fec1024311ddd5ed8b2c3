@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4aa720c5_aa6292b7",
+        "filename": "cdr.c",
+        "patchSetId": 6
+      },
+      "lineNbr": 1139,
+      "author": {
+        "id": 1000008
+      },
+      "writtenOn": "2020-02-03T15:16:59Z",
+      "side": 1,
+      "message": "This would cause the JSON string to be always parsed twice (once here and then again in the processing function). I suggest passing the `json` object into the processing functions to avoid that.",
+      "revId": "71efae340f80789da88fec1024311ddd5ed8b2c3",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
+    }
+  ]
+}
