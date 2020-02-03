@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e884bd5a_c0290165",
+        "filename": "cdr.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1000021
+      },
+      "writtenOn": "2020-02-03T08:12:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "628daaed_b857e2f1",
+      "range": {
+        "startLine": 255,
+        "startChar": 35,
+        "endLine": 255,
+        "endChar": 36
+      },
+      "revId": "10130d4a8df98ad3609ffc7219570c8e6a76567a",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f8954c87_3dddd5bd",
         "filename": "cdr.c",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2020-01-31T15:37:36Z",
       "side": 1,
       "message": "nit: I\u0027d perhaps call this _clamped or similar, which might make it more clear we are limiting on both sides, and that we are not getting an uint limit/clamp, but clamping the result.",
+      "range": {
+        "startLine": 265,
+        "startChar": 36,
+        "endLine": 265,
+        "endChar": 42
+      },
+      "revId": "10130d4a8df98ad3609ffc7219570c8e6a76567a",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7b817d8c_acd2d4c6",
+        "filename": "cdr.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1000021
+      },
+      "writtenOn": "2020-02-03T08:12:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f8954c87_3dddd5bd",
       "range": {
         "startLine": 265,
         "startChar": 36,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "10852547_9b09e6d6",
+        "filename": "cdr.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 716,
+      "author": {
+        "id": 1000021
+      },
+      "writtenOn": "2020-02-03T08:12:20Z",
+      "side": 1,
+      "message": "I\u0027ll do it.",
+      "parentUuid": "60889567_5c749da7",
+      "revId": "10130d4a8df98ad3609ffc7219570c8e6a76567a",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1540f16d_cd551e4a",
         "filename": "mediator.h",
         "patchSetId": 3
@@ -76,6 +142,24 @@
       "writtenOn": "2020-01-31T15:37:36Z",
       "side": 1,
       "message": "What\u0027s the purpose of this change? Maybe split it into another commit?",
+      "revId": "10130d4a8df98ad3609ffc7219570c8e6a76567a",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fd596cd6_8949454e",
+        "filename": "mediator.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1000021
+      },
+      "writtenOn": "2020-02-03T08:12:20Z",
+      "side": 1,
+      "message": "Switching to json, src_leg and dst_leg will increase their length because of the keys (even if I tried to keep the keys name as shorter as possible).\nProbably 512 would be fine as well, but I remember some cases in the past of too long ACC records that caused mediator to fail, so I overestimated the size.\nLet me know if you think that this is too much.",
+      "parentUuid": "1540f16d_cd551e4a",
       "revId": "10130d4a8df98ad3609ffc7219570c8e6a76567a",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": false
