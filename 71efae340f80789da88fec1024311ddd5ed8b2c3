@@ -16,6 +16,24 @@
       "revId": "71efae340f80789da88fec1024311ddd5ed8b2c3",
       "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c61a1fc2_1b1b719f",
+        "filename": "cdr.c",
+        "patchSetId": 6
+      },
+      "lineNbr": 1139,
+      "author": {
+        "id": 1000021
+      },
+      "writtenOn": "2020-02-04T14:41:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4aa720c5_aa6292b7",
+      "revId": "71efae340f80789da88fec1024311ddd5ed8b2c3",
+      "serverId": "85315e57-5f03-49c3-83f8-201ae2313a75",
+      "unresolved": true
     }
   ]
 }
