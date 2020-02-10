@@ -1,3 +1,15 @@
+ngcp-mediator (7.5.4.0+0~mr7.5.4.0) unstable; urgency=medium
+
+  [ Marco Capetta ]
+  * [70d76e7] TT#58502 Don't skip the ACC if user-to-user field is missing
+  * [5b3ee7c] TT#70855 Read source_lcr_id from acc record and use it to generate CDR
+  * [5eae600] TT#70855 Don't skip the ACC if source_lcr_id filed is missing
+
+  [ Richard Fuchs ]
+  * [4e0870b] TT#71551 don't allocate zero-length memory blocks
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 10 Feb 2020 16:34:19 +0100
+
 ngcp-mediator (7.5.3.0+0~mr7.5.3.0) unstable; urgency=medium
 
   [ Alexander Lutay ]
