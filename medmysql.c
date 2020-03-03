@@ -60,6 +60,7 @@ typedef struct _medmysql_batch_definition {
 } medmysql_batch_definition;
 
 static medmysql_handler *cdr_handler;
+static medmysql_handler *int_cdr_handler;
 static medmysql_handler *med_handler;
 static medmysql_handler *prov_handler;
 static medmysql_handler *stats_handler;
@@ -200,13 +201,13 @@ static const medmysql_batch_definition medmysql_int_cdr_def = {
         "values(destination_lnp_type), export_status = 'unexported'",
     .full_flush_func = medmysql_flush_int_cdr,
     .min_string_tail_room = 9000,
-    .handler_ptr = &cdr_handler,
+    .handler_ptr = &int_cdr_handler,
 };
 static const medmysql_batch_definition medmysql_del_int_cdr_def = {
     .sql_init_string = "delete from int_cdr where call_id in (",
     .sql_finish_string = ")",
     .single_flush_func = medmysql_flush_med_str,
-    .handler_ptr = &cdr_handler,
+    .handler_ptr = &int_cdr_handler,
 };
 static const medmysql_batch_definition medmysql_tag_def = {
     .sql_init_string = "insert into cdr_tag_data (cdr_id, provider_id, direction_id, tag_id, " \
@@ -220,7 +221,7 @@ static const medmysql_batch_definition medmysql_int_tag_def = {
     .sql_finish_string = " on duplicate key update "
         "val = values(val)",
     .single_flush_func = medmysql_flush_med_str,
-    .handler_ptr = &cdr_handler,
+    .handler_ptr = &int_cdr_handler,
 };
 static const medmysql_batch_definition medmysql_mos_def = {
     .sql_init_string = "insert into cdr_mos_data (" \
@@ -242,7 +243,7 @@ static const medmysql_batch_definition medmysql_int_group_def = {
                 "cdr_id, call_id, cdr_start_time" \
                 ") values ",
     .single_flush_func = medmysql_flush_med_str,
-    .handler_ptr = &cdr_handler,
+    .handler_ptr = &int_cdr_handler,
 };
 
 
@@ -454,6 +455,12 @@ int medmysql_init()
     if (!cdr_handler)
         goto err;
 
+    int_cdr_handler = medmysql_handler_init("INT-CDR",
+                config_intermediate_cdr_host, config_cdr_user, config_cdr_pass,
+                config_cdr_db, config_intermediate_cdr_port);
+    if (!int_cdr_handler)
+        goto err;
+
     med_handler = medmysql_handler_init("ACC",
                 config_med_host, config_med_user, config_med_pass,
                 config_med_db, config_med_port);
@@ -499,6 +506,7 @@ static void medmysql_handler_close(medmysql_handler **h) {
 void medmysql_cleanup()
 {
     medmysql_handler_close(&cdr_handler);
+    medmysql_handler_close(&int_cdr_handler);
     medmysql_handler_close(&med_handler);
     medmysql_handler_close(&prov_handler);
     medmysql_handler_close(&stats_handler);
@@ -1131,7 +1139,7 @@ int medmysql_delete_intermediate(cdr_entry_t *entries, uint64_t count, struct me
         char *callid = e->call_id;
         char esc_callid[strlen(callid)*2+1];
 
-        mysql_real_escape_string(cdr_handler->m, esc_callid, callid, strlen(callid));
+        mysql_real_escape_string(int_cdr_handler->m, esc_callid, callid, strlen(callid));
 
         if (medmysql_batch_prepare(&batches->int_cdr_delete))
             return -1;
@@ -1396,6 +1404,8 @@ static void medmysql_str_init(struct medmysql_str *str, const medmysql_batch_def
 int medmysql_batch_start(struct medmysql_batches *batches) {
     if (medmysql_handler_transaction(cdr_handler))
         return -1;
+    if (medmysql_handler_transaction(int_cdr_handler))
+        return -1;
     if (medmysql_handler_transaction(med_handler))
         return -1;
 
@@ -1619,6 +1629,8 @@ int medmysql_batch_end(struct medmysql_batches *batches) {
         return -1;
 
     if (medmysql_handler_commit(cdr_handler))
+        return -1;
+    if (medmysql_handler_commit(int_cdr_handler))
         return -1;
     if (medmysql_handler_commit(med_handler))
         return -1;
