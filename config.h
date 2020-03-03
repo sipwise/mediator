@@ -24,6 +24,8 @@ extern unsigned int config_cdr_port;
 extern char *config_cdr_user;
 extern char *config_cdr_pass;
 extern char *config_cdr_db;
+extern char *config_intermediate_cdr_host;
+extern unsigned int config_intermediate_cdr_port;
 
 extern char *config_prov_host;
 extern unsigned int config_prov_port;
