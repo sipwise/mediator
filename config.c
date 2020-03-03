@@ -26,6 +26,8 @@ char *config_cdr_user;
 char *config_cdr_pass;
 char *config_cdr_db;
 unsigned int config_cdr_port = MEDIATOR_DEFAULT_CDRPORT;
+char *config_intermediate_cdr_host;
+unsigned int config_intermediate_cdr_port = MEDIATOR_DEFAULT_CDRPORT;
 
 char *config_prov_host;
 char *config_prov_user;
@@ -64,6 +66,8 @@ enum config_option {
     OPT_CDR_USER = 'U',
     OPT_CDR_PASS = 'P',
     OPT_CDR_DB = 'B',
+    OPT_INTERMEDIATE_CDR_HOST = 'y',
+    OPT_INTERMEDIATE_CDR_PORT = 'Y',
     OPT_PROV_HOST = 'S',
     OPT_PROV_PORT = 'T',
     OPT_PROV_USER = 'R',
@@ -85,7 +89,7 @@ enum config_option {
     OPT_INTERMEDIATE_INTERVAL = 'I',
 };
 
-static const char options[] = "?a:c:e:D:i:dlL:h:u:p:b:o:H:U:P:B:O:S:t:T:r:R:A:N:Z:z:W:w:X:x:msM:I:";
+static const char options[] = "?a:c:e:D:i:dlL:h:u:p:b:o:H:U:P:B:O:S:t:T:r:R:A:N:Z:z:W:w:X:x:msM:I:y:Y:";
 
 struct option long_options[] = {
     { "configfile", required_argument, NULL, OPT_CONFIGFILE },
@@ -104,6 +108,8 @@ struct option long_options[] = {
     { "cdr-user", required_argument, NULL, OPT_CDR_USER },
     { "cdr-pass", required_argument, NULL, OPT_CDR_PASS },
     { "cdr-db", required_argument, NULL, OPT_CDR_DB },
+    { "intermediate-cdr-host", required_argument, NULL, OPT_INTERMEDIATE_CDR_HOST },
+    { "intermediate-cdr-port", required_argument, NULL, OPT_INTERMEDIATE_CDR_PORT },
     { "prov-host", required_argument, NULL, OPT_PROV_HOST },
     { "prov-port", required_argument, NULL, OPT_PROV_PORT },
     { "prov-user", required_argument, NULL, OPT_PROV_USER },
@@ -149,6 +155,8 @@ static void config_help(const char *self, int rc)
 "  -U, --cdr-user USER\tThe CDR db user (default = '%s').\n" \
 "  -P, --cdr-pass PASS\tThe CDR db pass (default = '%s').\n" \
 "  -B, --cdr-db DB\tThe CDR db name (default = '%s').\n" \
+"  -y, --intermediate-cdr-host HOST\tThe CDR db host (default = '%s').\n" \
+"  -Y, --intermediate-cdr-port PORT\tThe CDR db port (default = '%d').\n" \
 "  -S, --prov-host HOST\tThe prov db host (default = '%s').\n" \
 "  -T, --prov-port PORT\tThe prov db port (default = '%d').\n" \
 "  -R, --prov-user USER\tThe prov db user (default = '%s').\n" \
@@ -178,6 +186,7 @@ static void config_help(const char *self, int rc)
         MEDIATOR_DEFAULT_CDRHOST, MEDIATOR_DEFAULT_CDRPORT,
         MEDIATOR_DEFAULT_CDRUSER, MEDIATOR_DEFAULT_CDRPASS,
         MEDIATOR_DEFAULT_CDRDB,
+        MEDIATOR_DEFAULT_CDRHOST, MEDIATOR_DEFAULT_CDRPORT,
         MEDIATOR_DEFAULT_PROVHOST, MEDIATOR_DEFAULT_PROVPORT,
         MEDIATOR_DEFAULT_PROVUSER, MEDIATOR_DEFAULT_PROVPASS,
         MEDIATOR_DEFAULT_PROVDB,
@@ -253,6 +262,12 @@ static void config_set_option(enum config_option option, const char *value)
     case OPT_CDR_PORT:
         config_cdr_port = atoi(value);
         break;
+    case OPT_INTERMEDIATE_CDR_HOST:
+        config_set_string_option(&config_intermediate_cdr_host, value);
+        break;
+    case OPT_INTERMEDIATE_CDR_PORT:
+        config_intermediate_cdr_port = atoi(value);
+        break;
     case OPT_PROV_HOST:
         config_set_string_option(&config_prov_host, value);
         break;
@@ -325,6 +340,7 @@ static void config_set_defaults(void)
     config_set_string_default(&config_cdr_user, MEDIATOR_DEFAULT_CDRUSER);
     config_set_string_default(&config_cdr_pass, MEDIATOR_DEFAULT_CDRPASS);
     config_set_string_default(&config_cdr_db, MEDIATOR_DEFAULT_CDRDB);
+    config_set_string_default(&config_intermediate_cdr_host, MEDIATOR_DEFAULT_CDRHOST);
     config_set_string_default(&config_prov_host, MEDIATOR_DEFAULT_PROVHOST);
     config_set_string_default(&config_prov_user, MEDIATOR_DEFAULT_PROVUSER);
     config_set_string_default(&config_prov_pass, MEDIATOR_DEFAULT_PROVPASS);
@@ -446,6 +462,7 @@ void config_cleanup()
     free(config_cdr_user);
     free(config_cdr_pass);
     free(config_cdr_db);
+    free(config_intermediate_cdr_host);
     free(config_med_host);
     free(config_med_user);
     free(config_med_pass);
