@@ -1,0 +1,8 @@
+Verified+1: Jenkins Jenkins
+Code-Review+1: Rene Krenn <rkrenn@sipwise.com>
+Code-Review+2: Guillem Jover <gjover@sipwise.com>
+Submitted-by: Richard Fuchs <rfuchs@sipwise.com>
+Submitted-at: Wed, 04 Mar 2020 15:10:03 +0100
+Reviewed-on: http://gerrit.mgm.sipwise.com/c/mediator/+/38230
+Project: mediator
+Branch: refs/heads/master
