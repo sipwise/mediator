@@ -1,3 +1,11 @@
+ngcp-mediator (8.2.1.2+0~mr8.2.1.2) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [acbb84b] TT#76900 use the appropriate SQL handler
+  * [44e3e2f] TT#76900 use separate host/port config for intermediate CDRs
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 05 Mar 2020 14:56:35 +0100
+
 ngcp-mediator (8.2.1.1+0~mr8.2.1.1) unstable; urgency=medium
 
   * New release.
