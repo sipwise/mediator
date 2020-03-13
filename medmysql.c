@@ -970,16 +970,26 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
                     "header=User-to-User", e->header_u2u, e))
             return -1;
 
-        // entries for the CDR tags table
-//        if (medmysql_tag_record(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_carrier,
-//                medmysql_tag_direction_source, "foobar", e->start_time, 1))
-//            return -1;
-//        if (medmysql_tag_record(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_customer,
-//                medmysql_tag_direction_source, "fodgfd", e->start_time, 1))
-//            return -1;
-//        if (medmysql_tag_record(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_reseller,
-//                medmysql_tag_direction_destination, "fdfhgs", e->start_time, 1))
-//            return -1;
+	if (medmysql_tag_cdr(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_customer, medmysql_tag_direction_source,
+                    "concurrent_calls_quota", e->source_concurrent_calls_quota, e))
+            return -1;
+        if (medmysql_tag_cdr(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_customer, medmysql_tag_direction_source,
+                    "concurrent_calls_count", e->source_concurrent_calls_count, e))
+            return -1;
+        if (medmysql_tag_cdr(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_customer, medmysql_tag_direction_source,
+                    "concurrent_calls_count_customer", e->source_concurrent_calls_count_customer, e))
+            return -1;
+
+        if (medmysql_tag_cdr(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_customer, medmysql_tag_direction_destination,
+                    "concurrent_calls_quota", e->destination_concurrent_calls_quota, e))
+            return -1;
+        if (medmysql_tag_cdr(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_customer, medmysql_tag_direction_destination,
+                    "concurrent_calls_count", e->destination_concurrent_calls_count, e))
+            return -1;
+        if (medmysql_tag_cdr(&batches->cdr_tags, batches->num_cdrs, medmysql_tag_provider_customer, medmysql_tag_direction_destination,
+                    "concurrent_calls_count_customer", e->destination_concurrent_calls_count_customer, e))
+            return -1;
+
         if (e->mos.filled) {
             if (medmysql_mos_record(&batches->cdr_mos, batches->num_cdrs, e->mos.avg_score,
                         e->mos.avg_packetloss, e->mos.avg_jitter, e->mos.avg_rtt,
