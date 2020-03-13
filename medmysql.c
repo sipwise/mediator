@@ -855,11 +855,32 @@ static int medmysql_group_record(MYSQL *m, GQueue *q, unsigned long cdr_id, cons
 }
 
 
+static int medmysql_tag_cdr(struct medmysql_cdr_batch *batch, unsigned long provider_id,
+		unsigned long direction_id, const char *tag_name, const char *tag_value,
+		const cdr_entry_t *e)
+{
+    gpointer tag_id;
+
+    if (!strlen(tag_value))
+        return 0;
+
+    if ((tag_id = g_hash_table_lookup(med_cdr_tag_table, tag_name)) == NULL) {
+        L_WARNING("Call-Id '%s' has no cdr tag type '%s', '%s'",
+                    e->call_id, tag_name, tag_value);
+        return -1;
+    }
+    if (medmysql_tag_record(&batch->cdr_tags, batch->num_cdrs, provider_id,
+            direction_id, tag_value, e->start_time,
+            GPOINTER_TO_UINT(tag_id)))
+        return -1;
+    return 0;
+}
+
+
 int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_batches *batches)
 {
     uint64_t i;
     int gpp;
-    gpointer tag_id;
     int ret = 1; // default to intermediate
 
     for(i = 0; i < count; ++i)
@@ -1043,57 +1064,18 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
 
         CDRPRINT("),");
 
-        if(strnlen(e->furnished_charging_info, sizeof(e->furnished_charging_info)) > 0)
-        {
-            if ((tag_id = g_hash_table_lookup(med_cdr_tag_table, "furnished_charging_info")) == NULL) {
-                L_WARNING("Call-Id '%s' has no cdr tag type 'furnished_charging_info', '%s'",
-                            e->call_id, e->header_diversion);
-                return -1;
-            }
-            if (medmysql_tag_record(&batch->cdr_tags, batch->num_cdrs, medmysql_tag_provider_customer,
-                    medmysql_tag_direction_destination, e->furnished_charging_info, e->start_time,
-                    GPOINTER_TO_UINT(tag_id)))
-                return -1;
-        }
-
-        if(strnlen(e->header_pai, sizeof(e->header_pai)) > 0)
-        {
-            if ((tag_id = g_hash_table_lookup(med_cdr_tag_table, "header=P-Asserted-Identity")) == NULL) {
-                L_WARNING("Call-Id '%s' has no cdr tag type 'header=P-Asserted-Identity', '%s'",
-                            e->call_id, e->header_diversion);
-                return -1;
-            }
-            if (medmysql_tag_record(&batch->cdr_tags, batch->num_cdrs, medmysql_tag_provider_customer,
-                    medmysql_tag_direction_source, e->header_pai, e->start_time,
-                    GPOINTER_TO_UINT(tag_id)))
-                return -1;
-        }
-
-        if(strnlen(e->header_diversion, sizeof(e->header_diversion)) > 0)
-        {
-            if ((tag_id = g_hash_table_lookup(med_cdr_tag_table, "header=Diversion")) == NULL) {
-                L_WARNING("Call-Id '%s' has no cdr tag type 'header=Diversion', '%s'",
-                            e->call_id, e->header_diversion);
-                return -1;
-            }
-            if (medmysql_tag_record(&batch->cdr_tags, batch->num_cdrs, medmysql_tag_provider_customer,
-                    medmysql_tag_direction_source, e->header_diversion, e->start_time,
-                    GPOINTER_TO_UINT(tag_id)))
-                return -1;
-        }
-
-        if(strnlen(e->header_u2u, sizeof(e->header_u2u)) > 0)
-        {
-            if ((tag_id = g_hash_table_lookup(med_cdr_tag_table, "header=User-to-User")) == NULL) {
-                L_WARNING("Call-Id '%s' has no cdr tag type 'header=User-to-User', '%s'",
-                            e->call_id, e->header_u2u);
-                return -1;
-            }
-            if (medmysql_tag_record(&batch->cdr_tags, batch->num_cdrs, medmysql_tag_provider_customer,
-                    medmysql_tag_direction_source, e->header_u2u, e->start_time,
-                    GPOINTER_TO_UINT(tag_id)))
-                return -1;
-        }
+        if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_destination,
+                    "furnished_charging_info", e->furnished_charging_info, e))
+            return -1;
+        if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_source,
+                    "header=P-Asserted-Identity", e->header_pai, e))
+            return -1;
+        if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_source,
+                    "header=Diversion", e->header_diversion, e))
+            return -1;
+        if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_source,
+                    "header=User-to-User", e->header_u2u, e))
+            return -1;
 
         if (e->mos.filled && batch->mos.def) {
             if (medmysql_mos_record(&batch->cdr_mos, batch->num_cdrs, e->mos.avg_score,
