@@ -89,6 +89,13 @@ typedef struct {
 
     mos_data_t mos;
 
+    char source_concurrent_calls_quota[32];
+    char source_concurrent_calls_count[32];
+    char source_concurrent_calls_count_customer[32];
+    char destination_concurrent_calls_quota[32];
+    char destination_concurrent_calls_count[32];
+    char destination_concurrent_calls_count_customer[32];
+
     char acc_ref[256];
     int intermediate:1;
 } cdr_entry_t;
