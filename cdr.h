@@ -86,6 +86,19 @@ typedef struct {
     uint8_t split;
 
     mos_data_t mos;
+<<<<<<< HEAD   (18b2df Release new version 7.5.1.4+0~mr7.5.1.4)
+=======
+
+    char source_concurrent_calls_quota[32];
+    char source_concurrent_calls_count[32];
+    char source_concurrent_calls_count_customer[32];
+    char destination_concurrent_calls_quota[32];
+    char destination_concurrent_calls_count[32];
+    char destination_concurrent_calls_count_customer[32];
+
+    char acc_ref[256];
+    int intermediate:1;
+>>>>>>> CHANGE (899ae5 TT#76674 add support for concurrent calls tags)
 } cdr_entry_t;
 
 int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *cdr_count, struct medmysql_batches *);

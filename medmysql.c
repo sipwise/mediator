@@ -949,6 +949,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
                 return -1;
         }
 
+<<<<<<< HEAD   (18b2df Release new version 7.5.1.4+0~mr7.5.1.4)
         if(strnlen(e->header_pai, sizeof(e->header_pai)) > 0)
         {
             if ((tag_id = g_hash_table_lookup(med_cdr_tag_table, "header=P-Asserted-Identity")) == NULL) {
@@ -1000,6 +1001,30 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
 //            return -1;
         if (e->mos.filled) {
             if (medmysql_mos_record(&batches->cdr_mos, batches->num_cdrs, e->mos.avg_score,
+=======
+        if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_source,
+                    "concurrent_calls_quota", e->source_concurrent_calls_quota, e))
+            return -1;
+        if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_source,
+                    "concurrent_calls_count", e->source_concurrent_calls_count, e))
+            return -1;
+        if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_source,
+                    "concurrent_calls_count_customer", e->source_concurrent_calls_count_customer, e))
+            return -1;
+
+        if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_destination,
+                    "concurrent_calls_quota", e->destination_concurrent_calls_quota, e))
+            return -1;
+        if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_destination,
+                    "concurrent_calls_count", e->destination_concurrent_calls_count, e))
+            return -1;
+        if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_destination,
+                    "concurrent_calls_count_customer", e->destination_concurrent_calls_count_customer, e))
+            return -1;
+
+        if (e->mos.filled && batch->mos.def) {
+            if (medmysql_mos_record(&batch->cdr_mos, batch->num_cdrs, e->mos.avg_score,
+>>>>>>> CHANGE (899ae5 TT#76674 add support for concurrent calls tags)
                         e->mos.avg_packetloss, e->mos.avg_jitter, e->mos.avg_rtt,
                         e->start_time))
                 return -1;

@@ -474,6 +474,54 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     g_strlcpy(cdr->header_u2u, tmp2, sizeof(cdr->header_u2u));
     tmp2 = ++tmp1;
 
+<<<<<<< HEAD   (18b2df Release new version 7.5.1.4+0~mr7.5.1.4)
+=======
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
+        L_DEBUG("Call-Id '%s' has no separated source lcr id, '%s'", cdr->call_id, tmp2);
+        /// Simply return 0 in order to avoid issues with ACC records in the OLD format during an upgrade
+        /// Added in mr8.1, it should be changed to -1 in mr9.+
+        return 0;
+    }
+    *tmp1 = '\0';
+    cdr->source_lcr_id = atoll(tmp2);
+    tmp2 = ++tmp1;
+
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
+        L_DEBUG("Call-Id '%s' has no separated source concurrent calls quota, '%s'", cdr->call_id, tmp2);
+        /// Added in mr8.3, it should be changed to -1 in mr9.+
+        return 0;
+    }
+    *tmp1 = '\0';
+    g_strlcpy(cdr->source_concurrent_calls_quota, tmp2, sizeof(cdr->source_concurrent_calls_quota));
+    tmp2 = ++tmp1;
+
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
+        L_DEBUG("Call-Id '%s' has no separated source concurrent calls count, '%s'", cdr->call_id, tmp2);
+        /// Added in mr8.3, it should be changed to -1 in mr9.+
+        return 0;
+    }
+    *tmp1 = '\0';
+    g_strlcpy(cdr->source_concurrent_calls_count, tmp2, sizeof(cdr->source_concurrent_calls_count));
+    tmp2 = ++tmp1;
+
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
+        L_DEBUG("Call-Id '%s' has no separated source concurrent calls customer count, '%s'", cdr->call_id, tmp2);
+        /// Added in mr8.3, it should be changed to -1 in mr9.+
+        return 0;
+    }
+    *tmp1 = '\0';
+    g_strlcpy(cdr->source_concurrent_calls_count_customer, tmp2, sizeof(cdr->source_concurrent_calls_count_customer));
+    tmp2 = ++tmp1;
+
+>>>>>>> CHANGE (899ae5 TT#76674 add support for concurrent calls tags)
     return 0;
 }
 
@@ -660,6 +708,39 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->furnished_charging_info, tmp2, sizeof(cdr->furnished_charging_info));
+    tmp2 = ++tmp1;
+
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
+        L_DEBUG("Call-Id '%s' has no separated destination concurrent calls quota, '%s'", cdr->call_id, tmp2);
+        /// Added in mr8.3, it should be changed to -1 in mr9.+
+        return 0;
+    }
+    *tmp1 = '\0';
+    g_strlcpy(cdr->destination_concurrent_calls_quota, tmp2, sizeof(cdr->destination_concurrent_calls_quota));
+    tmp2 = ++tmp1;
+
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
+        L_DEBUG("Call-Id '%s' has no separated destination concurrent calls count, '%s'", cdr->call_id, tmp2);
+        /// Added in mr8.3, it should be changed to -1 in mr9.+
+        return 0;
+    }
+    *tmp1 = '\0';
+    g_strlcpy(cdr->destination_concurrent_calls_count, tmp2, sizeof(cdr->destination_concurrent_calls_count));
+    tmp2 = ++tmp1;
+
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
+        L_DEBUG("Call-Id '%s' has no separated destination concurrent calls customer count, '%s'", cdr->call_id, tmp2);
+        /// Added in mr8.3, it should be changed to -1 in mr9.+
+        return 0;
+    }
+    *tmp1 = '\0';
+    g_strlcpy(cdr->destination_concurrent_calls_count_customer, tmp2, sizeof(cdr->destination_concurrent_calls_count_customer));
     tmp2 = ++tmp1;
 
     return 0;
