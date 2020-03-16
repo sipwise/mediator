@@ -1,3 +1,14 @@
+ngcp-mediator (8.4.0.0+0~mr8.4.0.0) unstable; urgency=medium
+
+  [ Marco Capetta ]
+  * [6b2f741] TT#75111 Refactor json handling functions
+
+  [ Richard Fuchs ]
+  * [2e0b98f] TT#76900 use the appropriate SQL handler
+  * [3354a97] TT#76900 use separate host/port config for intermediate CDRs
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 16 Mar 2020 11:14:07 +0100
+
 ngcp-mediator (8.3.0.0+0~mr8.3.0.0) unstable; urgency=medium
 
   [ Richard Fuchs ]
