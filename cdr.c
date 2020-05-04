@@ -292,7 +292,397 @@ static int cdr_parse_json_get_double_clamped(json_object *obj, const char *key, 
     return 1;
 }
 
+<<<<<<< HEAD   (23de1e Release new version 8.3.2.0+0~mr8.3.2.0)
 static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
+=======
+#define cdr_parse_json_get_strbuf(obj, key, outp) cdr_parse_json_get_string(obj, key, outp, sizeof(outp))
+
+static int cdr_parse_json_get_string(json_object *obj, const char *key, char *outp, size_t len) {
+    json_object *str_obj;
+    if (!json_object_object_get_ex(obj, key, &str_obj))
+        return 0;
+    if (!json_object_is_type(str_obj, json_type_string))
+        return 0;
+    // TODO: if string equals to <null>, null or NULL set it to an empty string '\0'
+    g_strlcpy(outp, json_object_get_string(str_obj), len);
+    return 1;
+}
+
+static int cdr_parse_srcleg_json(json_object *json, cdr_entry_t *cdr)
+{
+    // source_user_id
+    if (!cdr_parse_json_get_strbuf(json, "uuid", cdr->source_user_id)) {
+        L_ERROR("Call-Id '%s' does not contain 'uuid' key (source user id), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // source_user
+    if (!cdr_parse_json_get_strbuf(json, "u", cdr->source_user)) {
+        L_ERROR("Call-Id '%s' does not contain 'u' key (source user), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // source_domain
+    if (!cdr_parse_json_get_strbuf(json, "d", cdr->source_domain)) {
+        L_ERROR("Call-Id '%s' does not contain 'd' key (source domain), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // source_cli
+    if (!cdr_parse_json_get_strbuf(json, "cli", cdr->source_cli)) {
+        L_ERROR("Call-Id '%s' does not contain 'cli' key (source cli), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // source_ext_subscriber_id
+    if (!cdr_parse_json_get_strbuf(json, "s_id", cdr->source_ext_subscriber_id)) {
+        L_ERROR("Call-Id '%s' does not contain 's_id' key (source external subscriber id), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+    uri_unescape(cdr->source_ext_subscriber_id);
+
+    // source_ext_contract_id
+    if (!cdr_parse_json_get_strbuf(json, "c_id", cdr->source_ext_contract_id)) {
+        L_ERROR("Call-Id '%s' does not contain 'c_id' key (source external contract id), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+    uri_unescape(cdr->source_ext_contract_id);
+
+    // source_account_id
+    if (!cdr_parse_json_get_uint64(json, "a_id", &cdr->source_account_id)) {
+        L_ERROR("Call-Id '%s' does not contain 'a_id' key (source account id), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // peer_auth_user
+    if (!cdr_parse_json_get_strbuf(json, "pau", cdr->peer_auth_user)) {
+        L_ERROR("Call-Id '%s' does not contain 'pau' key (peer auth user), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // peer_auth_realm
+    if (!cdr_parse_json_get_strbuf(json, "par", cdr->peer_auth_realm)) {
+        L_ERROR("Call-Id '%s' does not contain 'par' key (peer auth realm), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // source_clir
+    if (!cdr_parse_json_get_uint8_clamped(json, "clir", &cdr->source_clir, 0, 1)) {
+        L_ERROR("Call-Id '%s' does not contain 'clir' key (source account id), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // call_type
+    if (!cdr_parse_json_get_strbuf(json, "s", cdr->call_type)) {
+        L_ERROR("Call-Id '%s' does not contain 's' key (call type), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // source_ip
+    if (!cdr_parse_json_get_strbuf(json, "ip", cdr->source_ip)) {
+        L_ERROR("Call-Id '%s' does not contain 'ip' key (source ip), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // init_time
+    if (!cdr_parse_json_get_double(json, "t", &cdr->init_time)) {
+        L_ERROR("Call-Id '%s' does not contain 't' key (source init time), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    json_object *temp_value;
+    // source_gpp
+    if(!json_object_object_get_ex(json, "gpp", &temp_value))
+    {
+        L_ERROR("Call-Id '%s' does not contain 'gpp' key (source gpp list), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+    if (!json_object_is_type(temp_value, json_type_array)) {
+        L_ERROR("Call-Id '%s' key 'gpp' doesn't contain an array, '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+    if(json_object_array_length(temp_value) != 10)
+    {
+        L_ERROR("Call-Id '%s' has only '%d' source gpp fields, they should be 10, '%s'", cdr->call_id, json_object_array_length(temp_value), json_object_get_string(json));
+        goto err;
+    }
+    int i;
+    for(i = 0; i < 10; ++i)
+    {
+        g_strlcpy(cdr->source_gpp[i], json_object_get_string(json_object_array_get_idx(temp_value, i)) ? : "", sizeof(cdr->source_gpp[i]));
+    }
+
+    // source_lnp_prefix
+    if(!json_object_object_get_ex(json, "lnp_p", &temp_value))
+    {
+        if (strict_leg_tokens) {    // TODO: "Strict acc fields (move to trash otherwise)" What is the meaning of this param??? is it still necessary
+            L_ERROR("Call-Id '%s' does not contain 'lnp_p' key (source lnp prefix), '%s'", cdr->call_id, json_object_get_string(json));
+            goto err;
+        } else {
+            cdr->source_lnp_prefix[0] = '\0';
+            cdr->source_user_out[0] = '\0';
+            L_WARNING("Call-Id '%s' does not contain 'lnp_p' key, using empty source lnp prefix and source user out '%s'", cdr->call_id, json_object_get_string(json));
+            goto ret;
+        }
+    }
+    g_strlcpy(cdr->source_lnp_prefix, json_object_get_string(temp_value), sizeof(cdr->source_lnp_prefix));
+
+    // source_user_out
+    if(!json_object_object_get_ex(json, "cli_out", &temp_value))
+    {
+        if (strict_leg_tokens) {    // TODO: "Strict acc fields (move to trash otherwise)" What is the meaning of this param??? is it still necessary
+            L_ERROR("Call-Id '%s' does not contain 'cli_out' key (source user out), '%s'", cdr->call_id, json_object_get_string(json));
+            goto err;
+        } else {
+            cdr->source_user_out[0] = '\0';
+            L_WARNING("Call-Id '%s' does not contain 'cli_out' key, using empty source user out '%s'", cdr->call_id, json_object_get_string(json));
+            goto ret;
+        }
+    }
+    g_strlcpy(cdr->source_user_out, json_object_get_string(temp_value), sizeof(cdr->source_user_out));
+    uri_unescape(cdr->source_user_out);
+
+    // source_lnp_type
+    if (!cdr_parse_json_get_strbuf(json, "lnp_t", cdr->source_lnp_type)) {
+        L_ERROR("Call-Id '%s' does not contain 'lnp_t' key (source lnp type), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // header_pai
+    if (!cdr_parse_json_get_strbuf(json, "pai", cdr->header_pai)) {
+        L_ERROR("Call-Id '%s' does not contain 'pai' key (P-Asserted-Identity header), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // header_diversion
+    if (!cdr_parse_json_get_strbuf(json, "div", cdr->header_diversion)) {
+        L_ERROR("Call-Id '%s' does not contain 'div' key (Diversion header), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // group
+    if (!cdr_parse_json_get_strbuf(json, "cid", cdr->group)) {
+        L_ERROR("Call-Id '%s' does not contain 'cid' key (group info), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // header_u2u
+    if (!cdr_parse_json_get_strbuf(json, "u2u", cdr->header_u2u)) {
+        L_ERROR("Call-Id '%s' does not contain 'u2u' key (User-to-User header), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // source_lcr_id
+    if (!cdr_parse_json_get_uint64(json, "lcr", &cdr->source_lcr_id)) {
+        L_DEBUG("Call-Id '%s' does not contain 'lcr' key (source lcr id), '%s'", cdr->call_id, json_object_get_string(json));
+        /// Simply return 0 in order to avoid issues with ACC records in the OLD format during an upgrade
+        /// Added in mr8.1, it should be changed to -1 in mr9.+
+        /// goto err;
+        goto ret;
+    }
+
+    // source_concurrent_calls_quota
+    if (!cdr_parse_json_get_strbuf(json, "cc_quota", cdr->source_concurrent_calls_quota)) {
+        L_DEBUG("Call-Id '%s' does not contain 'cc_quota' key (source concurrent calls quota), '%s'", cdr->call_id, json_object_get_string(json));
+        /// Added in mr8.3, it should be changed to -1 in mr9.+
+        /// goto err;
+        goto ret;
+    }
+
+    // source_concurrent_calls_count
+    if (!cdr_parse_json_get_strbuf(json, "cc_sub", cdr->source_concurrent_calls_count)) {
+        L_DEBUG("Call-Id '%s' does not contain 'cc_sub' key (source concurrent calls count), '%s'", cdr->call_id, json_object_get_string(json));
+        /// Added in mr8.3, it should be changed to -1 in mr9.+
+        /// goto err;
+        goto ret;
+    }
+
+    // source_concurrent_calls_count_customer
+    if (!cdr_parse_json_get_strbuf(json, "cc_cust", cdr->source_concurrent_calls_count_customer)) {
+        L_DEBUG("Call-Id '%s' does not contain 'cc_cust' key (source concurrent calls count customer), '%s'", cdr->call_id, json_object_get_string(json));
+        /// Added in mr8.3, it should be changed to -1 in mr9.+
+        /// goto err;
+        goto ret;
+    }
+
+ret:
+    json_object_put(json);
+    return 0;
+
+err:
+    json_object_put(json);
+    return -1;
+}
+
+static int cdr_parse_dstleg_json(json_object *json, cdr_entry_t *cdr)
+{
+    // split
+    if (!cdr_parse_json_get_uint8(json, "plu", &cdr->split)) {
+        L_ERROR("Call-Id '%s' does not contain 'plu' key (split flag), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // destination_ext_subscriber_id
+    if (!cdr_parse_json_get_strbuf(json, "s_id", cdr->destination_ext_subscriber_id)) {
+        L_ERROR("Call-Id '%s' does not contain 's_id' key (destination external subscriber id), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+    uri_unescape(cdr->destination_ext_subscriber_id);
+
+    // destination_ext_contract_id
+    if (!cdr_parse_json_get_strbuf(json, "c_id", cdr->destination_ext_contract_id)) {
+        L_ERROR("Call-Id '%s' does not contain 'c_id' key (destination external contract id), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+    uri_unescape(cdr->destination_ext_contract_id);
+
+    // destination_account_id
+    if (!cdr_parse_json_get_uint64(json, "a_id", &cdr->destination_account_id)) {
+        L_ERROR("Call-Id '%s' does not contain 'a_id' key (destination account id), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // destination_dialed
+    if (!cdr_parse_json_get_strbuf(json, "dialed", cdr->destination_dialed)) {
+        L_ERROR("Call-Id '%s' does not contain 'dialed' key (dialed digit), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // destination_user_id
+    if (!cdr_parse_json_get_strbuf(json, "uuid", cdr->destination_user_id)) {
+        L_ERROR("Call-Id '%s' does not contain 'uuid' key (destination user id), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // destination_user
+    if (!cdr_parse_json_get_strbuf(json, "u", cdr->destination_user)) {
+        L_ERROR("Call-Id '%s' does not contain 'u' key (destination user), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // destination_domain
+    if (!cdr_parse_json_get_strbuf(json, "d", cdr->destination_domain)) {
+        L_ERROR("Call-Id '%s' does not contain 'd' key (destination domain), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // destination_user_in
+    if (!cdr_parse_json_get_strbuf(json, "u_in", cdr->destination_user_in)) {
+        L_ERROR("Call-Id '%s' does not contain 'u_in' key (incoming destination user), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // destination_domain_in
+    if (!cdr_parse_json_get_strbuf(json, "d_in", cdr->destination_domain_in)) {
+        L_ERROR("Call-Id '%s' does not contain 'd_in' key (incoming destination domain), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // destination_lcr_id
+    if (!cdr_parse_json_get_uint64(json, "lcr", &cdr->destination_lcr_id)) {
+        L_ERROR("Call-Id '%s' does not contain 'lcr' key (lcr id), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    json_object *temp_value;
+    // destination_gpp
+    if(!json_object_object_get_ex(json, "gpp", &temp_value))
+    {
+        L_ERROR("Call-Id '%s' does not contain 'gpp' key (source gpp list), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+    if (!json_object_is_type(temp_value, json_type_array)) {
+        L_ERROR("Call-Id '%s' key 'gpp' doesn't contain an array, '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+    if(json_object_array_length(temp_value) != 10)
+    {
+        L_ERROR("Call-Id '%s' has only '%d' destination gpp fields, they should be 10, '%s'", cdr->call_id, json_object_array_length(temp_value), json_object_get_string(json));
+        goto err;
+    }
+    int i;
+    for(i = 0; i < 10; ++i)
+    {
+        g_strlcpy(cdr->destination_gpp[i], json_object_get_string(json_object_array_get_idx(temp_value, i)) ? : "", sizeof(cdr->destination_gpp[i]));
+    }
+
+    // destination_lnp_prefix
+    if(!json_object_object_get_ex(json, "lnp_p", &temp_value))
+    {
+        if (strict_leg_tokens) {    // TODO: "Strict acc fields (move to trash otherwise)" What is the meaning of this param??? is it still necessary
+            L_ERROR("Call-Id '%s' does not contain 'lnp_p' key (destination lnp prefix), '%s'", cdr->call_id, json_object_get_string(json));
+            goto err;
+        } else {
+            cdr->destination_lnp_prefix[0] = '\0';
+            cdr->destination_user_out[0] = '\0';
+            L_WARNING("Call-Id '%s' does not contain 'lnp_p' key, using empty destination lnp prefix and destination user out '%s'", cdr->call_id, json_object_get_string(json));
+            goto ret;
+        }
+    }
+    g_strlcpy(cdr->destination_lnp_prefix, json_object_get_string(temp_value), sizeof(cdr->destination_lnp_prefix));
+
+    // destination_user_out
+    if(!json_object_object_get_ex(json, "u_out", &temp_value))
+    {
+        if (strict_leg_tokens) {    // TODO: "Strict acc fields (move to trash otherwise)" What is the meaning of this param??? is it still necessary
+            L_ERROR("Call-Id '%s' does not contain 'cli_out' key (source user out), '%s'", cdr->call_id, json_object_get_string(json));
+            goto err;
+        } else {
+            cdr->destination_user_out[0] = '\0';
+            L_WARNING("Call-Id '%s' does not contain 'cli_out' key, using empty destination user out '%s'", cdr->call_id, json_object_get_string(json));
+            goto ret;
+        }
+    }
+    g_strlcpy(cdr->destination_user_out, json_object_get_string(temp_value), sizeof(cdr->destination_user_out));
+    uri_unescape(cdr->destination_user_out);
+
+    // destination_lnp_type
+    if (!cdr_parse_json_get_strbuf(json, "lnp_t", cdr->destination_lnp_type)) {
+        L_ERROR("Call-Id '%s' does not contain 'lnp_t' key (destination lnp type), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // furnished_charging_info
+    if (!cdr_parse_json_get_strbuf(json, "fci", cdr->furnished_charging_info)) {
+        L_ERROR("Call-Id '%s' does not contain 'fci' key (furnished charging info), '%s'", cdr->call_id, json_object_get_string(json));
+        goto err;
+    }
+
+    // destination_concurrent_calls_quota
+    if (!cdr_parse_json_get_strbuf(json, "cc_quota", cdr->destination_concurrent_calls_quota)) {
+        L_DEBUG("Call-Id '%s' does not contain 'cc_quota' key (destination concurrent calls quota), '%s'", cdr->call_id, json_object_get_string(json));
+        /// Added in mr8.3, it should be changed to -1 in mr9.+
+        /// goto err;
+        goto ret;
+    }
+
+    // destination_concurrent_calls_count
+    if (!cdr_parse_json_get_strbuf(json, "cc_sub", cdr->destination_concurrent_calls_count)) {
+        L_DEBUG("Call-Id '%s' does not contain 'cc_sub' key (destination concurrent calls count), '%s'", cdr->call_id, json_object_get_string(json));
+        /// Added in mr8.3, it should be changed to -1 in mr9.+
+        /// goto err;
+        goto ret;
+    }
+
+    // destination_concurrent_calls_count_customer
+    if (!cdr_parse_json_get_strbuf(json, "cc_cust", cdr->destination_concurrent_calls_count_customer)) {
+        L_DEBUG("Call-Id '%s' does not contain 'cc_cust' key (destination concurrent calls count customer), '%s'", cdr->call_id, json_object_get_string(json));
+        /// Added in mr8.3, it should be changed to -1 in mr9.+
+        /// goto err;
+        goto ret;
+    }
+
+ret:
+    json_object_put(json);
+    return 0;
+
+err:
+    json_object_put(json);
+    return -1;
+}
+
+static int cdr_parse_srcleg_list(char *srcleg, cdr_entry_t *cdr)
+>>>>>>> CHANGE (c6fc98 TT#75111 allow null fields for gpp fields)
 {
     char *tmp1, *tmp2;
 
