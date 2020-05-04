@@ -446,7 +446,7 @@ static int cdr_parse_srcleg_json(json_object *json, cdr_entry_t *cdr)
     int i;
     for(i = 0; i < 10; ++i)
     {
-        g_strlcpy(cdr->source_gpp[i], json_object_get_string(json_object_array_get_idx(temp_value, i)), sizeof(cdr->source_gpp[i]));
+        g_strlcpy(cdr->source_gpp[i], json_object_get_string(json_object_array_get_idx(temp_value, i)) ? : "", sizeof(cdr->source_gpp[i]));
     }
 
     // source_lnp_prefix
