@@ -1,3 +1,15 @@
+ngcp-mediator (8.5.0.0+0~mr8.5.0.0) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [8fb275b] TT#76674 streamline CDR tagging routine
+  * [899ae5c] TT#76674 add support for concurrent calls tags
+  * [c6fc98e] TT#75111 allow null fields for gpp fields
+
+  [ Marco Capetta ]
+  * [a59714b] TT#75111 Store ACCs in json format
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 19 May 2020 11:08:49 +0200
+
 ngcp-mediator (8.4.0.0+0~mr8.4.0.0) unstable; urgency=medium
 
   [ Marco Capetta ]
