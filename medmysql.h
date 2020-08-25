@@ -12,7 +12,7 @@
 
 struct medmysql_str {
     char str[PACKET_SIZE];
-    unsigned int len;
+    size_t len;
 };
 
 struct medmysql_batches {
