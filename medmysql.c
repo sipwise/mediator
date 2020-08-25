@@ -512,8 +512,35 @@ void medmysql_cleanup()
     medmysql_handler_close(&stats_handler);
 }
 
+static void medmysql_buf_escape(MYSQL *m, size_t *buflen, const char *str, char *orig_dest,
+		size_t sql_buffer_size)
+{
+	size_t str_len = strlen(str);
+	char *dest = orig_dest;
+
+	// verify buffer space requirements: string itself * 2, quotes '', optional "_latin1", null
+	if (*buflen + str_len * 2 + 2 + 7 + 1 >= sql_buffer_size)
+		abort();
+
+	if (!g_utf8_validate(str, str_len, NULL)) {
+		// force the string as latin1
+		memcpy(dest, "_latin1'", 8);
+		dest += 8;
+	}
+	else
+		*dest++ = '\'';
+
+	size_t esc_len = mysql_real_escape_string(m, dest, str, str_len);
+	dest += esc_len;
+
+	*dest++ = '\'';
+	*dest = '\0';
+
+	*buflen += dest - orig_dest;
+}
+
 #define BUFPRINT(x...)    buflen += sprintf(sql_buffer + buflen, x); if (buflen >= sql_buffer_size) abort()
-#define BUFESCAPE(x)    buflen += mysql_real_escape_string(med_handler->m, sql_buffer + buflen, x, strlen(x)); if (buflen >= sql_buffer_size) abort()
+#define BUFESCAPE(x) medmysql_buf_escape(med_handler->m, &buflen, x, sql_buffer + buflen, sql_buffer_size)
 
 /**********************************************************************/
 int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *table)
@@ -542,23 +569,23 @@ int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *ta
         if (!e->redis)
             continue;
 
-        BUFPRINT("('");
+        BUFPRINT("(");
         BUFESCAPE(e->sip_code);
-        BUFPRINT("','");
+        BUFPRINT(",");
         BUFESCAPE(e->sip_reason);
-        BUFPRINT("','");
+        BUFPRINT(",");
         BUFESCAPE(e->sip_method);
-        BUFPRINT("','");
+        BUFPRINT(",");
         BUFESCAPE(e->callid);
-        BUFPRINT("','");
+        BUFPRINT(",");
         BUFESCAPE(e->timestamp);
-        BUFPRINT("','%f','", e->unix_timestamp);
+        BUFPRINT(",'%f',", e->unix_timestamp);
         BUFESCAPE(e->src_leg);
-        BUFPRINT("','");
+        BUFPRINT(",");
         BUFESCAPE(e->dst_leg);
-        BUFPRINT("','");
+        BUFPRINT(",");
         BUFESCAPE(e->branch_id);
-        BUFPRINT("'),");
+        BUFPRINT("),");
 
         entries++;
     }
@@ -807,7 +834,7 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *batches
 }
 
 #define CDRPRINT(x)    batch->cdrs.len += sprintf(batch->cdrs.str + batch->cdrs.len, x)
-#define CDRESCAPE(x)    batch->cdrs.len += mysql_real_escape_string(med_handler->m, batch->cdrs.str + batch->cdrs.len, x, strlen(x))
+#define CDRESCAPE(x) medmysql_buf_escape(med_handler->m, &batch->cdrs.len, x, batch->cdrs.str + batch->cdrs.len, PACKET_SIZE)
 
 /**********************************************************************/
 static int medmysql_tag_record(GQueue *q, unsigned long cdr_id, unsigned long provider_id,
@@ -931,67 +958,67 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         snprintf(str_source_accid, sizeof(str_source_accid), "%llu", (long long unsigned int) e->source_account_id);
         snprintf(str_dest_accid, sizeof(str_dest_accid), "%llu", (long long unsigned int) e->destination_account_id);
 
-        CDRPRINT("(NULL, now(), '");
+        CDRPRINT("(NULL, now(), ");
         CDRESCAPE(e->source_user_id);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->source_provider_id);
-        CDRPRINT("','");
+        CDRPRINT(",");
 
         CDRESCAPE(e->source_ext_subscriber_id);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->source_ext_contract_id);
-        CDRPRINT("',");
+        CDRPRINT(",");
         CDRESCAPE(str_source_accid);
-        CDRPRINT(",'");
+        CDRPRINT(",");
 
         CDRESCAPE(e->source_user);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->source_domain);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->source_cli);
-        CDRPRINT("',");
+        CDRPRINT(",");
         CDRESCAPE(str_source_clir);
-        CDRPRINT(",'");
+        CDRPRINT(",");
         CDRESCAPE(e->source_ip);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->destination_user_id);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->destination_provider_id);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->destination_ext_subscriber_id);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->destination_ext_contract_id);
-        CDRPRINT("',");
+        CDRPRINT(",");
         CDRESCAPE(str_dest_accid);
-        CDRPRINT(",'");
+        CDRPRINT(",");
         CDRESCAPE(e->destination_user);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->destination_domain);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->destination_user_in);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->destination_domain_in);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->destination_dialed);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->peer_auth_user);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->peer_auth_realm);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->call_type);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->call_status);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->call_code);
-        CDRPRINT("',");
+        CDRPRINT(",");
         CDRESCAPE(str_init_time);
         CDRPRINT(",");
         CDRESCAPE(str_start_time);
         CDRPRINT(",");
         CDRESCAPE(str_duration);
-        CDRPRINT(",'");
+        CDRPRINT(",");
         CDRESCAPE(e->call_id);
-        CDRPRINT("',");
+        CDRPRINT(",");
         CDRESCAPE(str_source_carrier_cost);
         CDRPRINT(",");
         CDRESCAPE(str_source_reseller_cost);
@@ -1009,9 +1036,8 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         {
             if(strnlen(e->source_gpp[gpp], sizeof(e->source_gpp[gpp])) > 0)
             {
-                CDRPRINT(",'");
+                CDRPRINT(",");
                 CDRESCAPE(e->source_gpp[gpp]);
-                CDRPRINT("'");
             }
             else
             {
@@ -1022,9 +1048,8 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         {
             if(strnlen(e->destination_gpp[gpp], sizeof(e->destination_gpp[gpp])) > 0)
             {
-                CDRPRINT(",'");
+                CDRPRINT(",");
                 CDRESCAPE(e->destination_gpp[gpp]);
-                CDRPRINT("'");
             }
             else
             {
@@ -1032,21 +1057,19 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
             }
         }
 
-        CDRPRINT(",'");
+        CDRPRINT(",");
         CDRESCAPE(e->source_lnp_prefix);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->destination_lnp_prefix);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->source_user_out);
-        CDRPRINT("','");
+        CDRPRINT(",");
         CDRESCAPE(e->destination_user_out);
-        CDRPRINT("'");
 
         if(strnlen(e->source_lnp_type, sizeof(e->source_lnp_type)) > 0)
         {
-            CDRPRINT(",'");
+            CDRPRINT(",");
             CDRESCAPE(e->source_lnp_type);
-            CDRPRINT("'");
         }
         else
         {
@@ -1055,9 +1078,8 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
 
         if(strnlen(e->destination_lnp_type, sizeof(e->destination_lnp_type)) > 0)
         {
-            CDRPRINT(",'");
+            CDRPRINT(",");
             CDRESCAPE(e->destination_lnp_type);
-            CDRPRINT("'");
         }
         else
         {
@@ -1065,9 +1087,8 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         }
 
         if (batch == &batches->int_cdr_batch) {
-            CDRPRINT(",'");
+            CDRPRINT(",");
             CDRESCAPE(e->acc_ref);
-            CDRPRINT("'");
         }
 
         CDRPRINT("),");
@@ -1460,7 +1481,7 @@ static int medmysql_flush_med_str(struct medmysql_str *str) {
         str->len += sprintf(str->str + str->len, "%s", def->sql_finish_string);
 
     L_DEBUG("SQL flush med str\n");
-    L_DEBUG("SQL: %.*s\n", str->len, str->str);
+    L_DEBUG("SQL: %.*s\n", (int) str->len, str->str);
 
     if (medmysql_query_wrapper_tx(*def->handler_ptr, str->str, str->len) != 0) {
         str->len = 0;
