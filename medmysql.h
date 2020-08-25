@@ -16,7 +16,7 @@ struct medmysql_cdr_batch;
 
 struct medmysql_str {
     char str[PACKET_SIZE];
-    unsigned int len;
+    size_t len;
     const struct _medmysql_batch_definition *def;
     struct medmysql_batches *batches;
     struct medmysql_cdr_batch *cdr_batch;
