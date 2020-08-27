@@ -24,6 +24,11 @@
     "(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
     "src_leg, dst_leg, branch_id, id " \
     "from acc where method = 'BYE' and callid in ('%s', '%s"XFERSUFFIX"') " \
+    "order by length(callid) asc, time_hires asc) " \
+    "union all " \
+    "(select distinct sip_code, sip_reason, method, callid, time, time_hires, " \
+    "src_leg, dst_leg, branch_id, id " \
+    "from acc where method = 'BYE' and callid in ('%s', '%s"PBXSUFFIX""XFERSUFFIX"') " \
     "order by length(callid) asc, time_hires asc)"
 
 #define MED_LOAD_PEER_QUERY "select h.ip, h.host, g.peering_contract_id, h.id " \
@@ -679,7 +684,7 @@ int medmysql_fetch_records(med_callid_t *callid,
 {
     MYSQL_RES *res;
     MYSQL_ROW row;
-    char query[strlen(MED_FETCH_QUERY) + sizeof(callid->value) * 5 + 1];
+    char query[strlen(MED_FETCH_QUERY) + sizeof(callid->value) * 7 + 1];
     size_t entry_size;
     uint64_t i = 0;
     int ret = 0;
@@ -693,6 +698,7 @@ int medmysql_fetch_records(med_callid_t *callid,
 
     len = snprintf(query, sizeof(query), MED_FETCH_QUERY,
         esc_callid,
+        esc_callid, esc_callid,
         esc_callid, esc_callid,
         esc_callid, esc_callid);
 

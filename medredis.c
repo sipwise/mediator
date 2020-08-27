@@ -649,8 +649,9 @@ int medredis_fetch_records(med_callid_t *callid,
         1. fetch from acc:cid::$cid
         2. fetch from acc:cid::$cidPBXSUFFIX
         3. fetch from acc:cid::$cidXFERSUFFIX
-        4. combine all in list sorted by time_hires
-        5. skip if INVITE/200 and no BYE
+        4. fetch from acc:cid::$cidPBXSUFFIXXFERSUFFIX
+        5. combine all in list sorted by time_hires
+        6. skip if INVITE/200 and no BYE
     */
 
     char buffer[512];
@@ -660,7 +661,7 @@ int medredis_fetch_records(med_callid_t *callid,
 
     redisReply *reply = NULL;
 
-    char *cids[3];
+    char *cids[4];
     GList *records;
     GList *keys;
 
@@ -691,13 +692,19 @@ int medredis_fetch_records(med_callid_t *callid,
         L_ERROR("Failed to allocate memory for callid with xfersuffix\n");
         goto err;
     }
+    snprintf(buffer, sizeof(buffer), "%s%s%s", callid->value, PBXSUFFIX, XFERSUFFIX);
+    cids[3] = strdup(buffer);
+    if (!cids[3]) {
+        L_ERROR("Failed to allocate memory for callid with pbxsuffix and xfersuffix\n");
+        goto err;
+    }
 
     *count = 0;
     *entries = NULL;
 
     L_DEBUG("Fetching records from redis\n");
 
-    for (i = 0; i < 3; ++i) {
+    for (i = 0; i < 4; ++i) {
         char *cid = cids[i];
         snprintf(buffer, sizeof(buffer), "acc:cid::%s", cid);
         cid_set_argv[1] = buffer;
@@ -709,7 +716,7 @@ int medredis_fetch_records(med_callid_t *callid,
         cids[i] = NULL;
     }
 
-    for (i = 0; i < 3; ++i) {
+    for (i = 0; i < 4; ++i) {
         if (medredis_get_reply(&reply) != 0) {
             L_ERROR("Failed to get redis reply for command to fetch entries for cid '%s'\n", callid->value);
             goto err;    
@@ -804,7 +811,7 @@ err:
     if (reply)
         freeReplyObject(reply);
     *count = (uint64_t) -1;
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 4; ++i) {
         if (cids[i])
             free(cids[i]);
     }
