@@ -1,3 +1,10 @@
+ngcp-mediator (8.4.2.2+0~mr8.4.2.2) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [895cdf7] TT#90500 check and handle strings that are not UTF-8
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Fri, 28 Aug 2020 18:08:15 +0200
+
 ngcp-mediator (8.4.2.1+0~mr8.4.2.1) unstable; urgency=medium
 
   * New release.
