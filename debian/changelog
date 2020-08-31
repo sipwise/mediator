@@ -1,3 +1,13 @@
+ngcp-mediator (9.0.1.0+0~mr9.0.1.0) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [0b22ffb] TT#90500 check and handle strings that are not UTF-8
+
+  [ Marco Capetta ]
+  * [2457782] TT#90650 Fix CDRs generations in case of blind transfers
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 31 Aug 2020 21:54:03 +0200
+
 ngcp-mediator (9.0.0.0+0~mr9.0.0.0) unstable; urgency=medium
 
   * New release.
