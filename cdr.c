@@ -249,6 +249,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->source_user_id, tmp2, sizeof(cdr->source_user_id));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -260,6 +261,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     *tmp1 = '\0';
     g_strlcpy(cdr->source_user, tmp2, sizeof(cdr->source_user));
     uri_unescape(cdr->source_user);
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -270,6 +272,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->source_domain, tmp2, sizeof(cdr->source_domain));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
 
@@ -282,6 +285,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     *tmp1 = '\0';
     g_strlcpy(cdr->source_cli, tmp2, sizeof(cdr->source_cli));
     uri_unescape(cdr->source_cli);
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -293,6 +297,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     *tmp1 = '\0';
     g_strlcpy(cdr->source_ext_subscriber_id, tmp2, sizeof(cdr->source_ext_subscriber_id));
     uri_unescape(cdr->source_ext_subscriber_id);
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -304,6 +309,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     *tmp1 = '\0';
     g_strlcpy(cdr->source_ext_contract_id, tmp2, sizeof(cdr->source_ext_contract_id));
     uri_unescape(cdr->source_ext_contract_id);
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -314,6 +320,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     cdr->source_account_id = atoll(tmp2);
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -324,6 +331,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->peer_auth_user, tmp2, sizeof(cdr->peer_auth_user));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -334,6 +342,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->peer_auth_realm, tmp2, sizeof(cdr->peer_auth_realm));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -344,6 +353,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     cdr->source_clir = atoi(tmp2);
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -354,6 +364,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->call_type, tmp2, sizeof(cdr->call_type));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -364,6 +375,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->source_ip, tmp2, sizeof(cdr->source_ip));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -374,6 +386,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     cdr->init_time = g_strtod(tmp2, NULL);
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     int i;
@@ -387,6 +400,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
         }
         *tmp1 = '\0';
         g_strlcpy(cdr->source_gpp[i], tmp2, sizeof(cdr->source_gpp[i]));
+        *tmp1 = MED_SEP;
         tmp2 = ++tmp1;
     }
 
@@ -405,6 +419,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->source_lnp_prefix, tmp2, sizeof(cdr->source_lnp_prefix));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -422,6 +437,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     *tmp1 = '\0';
     g_strlcpy(cdr->source_user_out, tmp2, sizeof(cdr->source_user_out));
     uri_unescape(cdr->source_user_out);
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -432,6 +448,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->source_lnp_type, tmp2, sizeof(cdr->source_lnp_type));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -442,6 +459,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->header_pai, tmp2, sizeof(cdr->header_pai));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -452,6 +470,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->header_diversion, tmp2, sizeof(cdr->header_diversion));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -462,6 +481,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->group, tmp2, sizeof(cdr->group));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -474,6 +494,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->header_u2u, tmp2, sizeof(cdr->header_u2u));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -486,6 +507,7 @@ static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     cdr->source_lcr_id = atoll(tmp2);
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     return 0;
@@ -505,6 +527,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     cdr->split = atoi(tmp2);
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -516,6 +539,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     *tmp1 = '\0';
     g_strlcpy(cdr->destination_ext_subscriber_id, tmp2, sizeof(cdr->destination_ext_subscriber_id));
     uri_unescape(cdr->destination_ext_subscriber_id);
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -527,6 +551,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     *tmp1 = '\0';
     g_strlcpy(cdr->destination_ext_contract_id, tmp2, sizeof(cdr->destination_ext_contract_id));
     uri_unescape(cdr->destination_ext_contract_id);
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -537,6 +562,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     cdr->destination_account_id = atoll(tmp2);
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -547,6 +573,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->destination_dialed, tmp2, sizeof(cdr->destination_dialed));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -557,6 +584,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->destination_user_id, tmp2, sizeof(cdr->destination_user_id));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -567,6 +595,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->destination_user, tmp2, sizeof(cdr->destination_user));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -577,6 +606,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->destination_domain, tmp2, sizeof(cdr->destination_domain));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -587,6 +617,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->destination_user_in, tmp2, sizeof(cdr->destination_user_in));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -597,6 +628,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->destination_domain_in, tmp2, sizeof(cdr->destination_domain_in));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -607,6 +639,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     cdr->destination_lcr_id = atoll(tmp2);
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     int i;
@@ -620,6 +653,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
         }
         *tmp1 = '\0';
         g_strlcpy(cdr->destination_gpp[i], tmp2, sizeof(cdr->destination_gpp[i]));
+        *tmp1 = MED_SEP;
         tmp2 = ++tmp1;
     }
 
@@ -638,6 +672,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->destination_lnp_prefix, tmp2, sizeof(cdr->destination_lnp_prefix));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -654,6 +689,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->destination_user_out, tmp2, sizeof(cdr->destination_user_out));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -664,6 +700,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->destination_lnp_type, tmp2, sizeof(cdr->destination_lnp_type));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     tmp1 = strchr(tmp2, MED_SEP);
@@ -674,6 +711,7 @@ static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_strlcpy(cdr->furnished_charging_info, tmp2, sizeof(cdr->furnished_charging_info));
+    *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
     return 0;
