@@ -1,3 +1,11 @@
+ngcp-mediator (7.5.6.1+0~mr7.5.6.1) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [72ceecf] TT#90500 check and handle strings that are not UTF-8
+  * [6e957e6] TT#97150 restore strings broken up by separator parsing
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Fri, 16 Oct 2020 16:17:44 +0200
+
 ngcp-mediator (7.5.6.0+0~mr7.5.6.0) unstable; urgency=medium
 
   * New release.
