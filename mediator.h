@@ -75,8 +75,8 @@ typedef enum {
 
 
 typedef struct {
-    char src_leg[256];
-    char dst_leg[256];
+    char src_leg[1024];
+    char dst_leg[1024];
     char sip_code[4];
     char sip_reason[32];
     char callid[256];
