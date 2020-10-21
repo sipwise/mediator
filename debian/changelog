@@ -1,3 +1,10 @@
+ngcp-mediator (7.5.6.2+0~mr7.5.6.2) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [e8e3cc0] TT#97150 increase length of src/dst-leg
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Wed, 21 Oct 2020 14:53:07 +0200
+
 ngcp-mediator (7.5.6.1+0~mr7.5.6.1) unstable; urgency=medium
 
   [ Richard Fuchs ]
