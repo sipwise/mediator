@@ -416,7 +416,7 @@ void medmysql_cleanup()
 int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *table)
 {
     char *sql_buffer = NULL;
-    size_t sql_buffer_size = (count + 1) * 1024; // some extra space for sql overhead
+    size_t sql_buffer_size = (count + 1) * (sizeof(med_entry_t) + 64) + 256;
     size_t buflen = 0;
     int ret = 0, entries = 0;
 
