@@ -1,3 +1,14 @@
+ngcp-mediator (9.2.0.0+0~mr9.2.0.0) unstable; urgency=medium
+
+  [ Michael Prokop ]
+  * [a8d8698] TT#51701 Switch from deprecated /var/lock to /run/lock
+
+  [ Richard Fuchs ]
+  * [096e37a] TT#97150 restore strings broken up by separator parsing
+  * [46ea8fa] TT#98400 increase acc_backup/trash insert buffer size
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 09 Nov 2020 16:24:39 +0100
+
 ngcp-mediator (9.1.0.0+0~mr9.1.0.0) unstable; urgency=medium
 
   [ Richard Fuchs ]
