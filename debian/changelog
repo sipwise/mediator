@@ -1,3 +1,10 @@
+ngcp-mediator (8.5.3.1+0~mr8.5.3.1) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [9c4f103] TT#98400 increase acc_backup/trash insert buffer size
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 14 Jan 2021 16:48:07 +0100
+
 ngcp-mediator (8.5.3.0+0~mr8.5.3.0) unstable; urgency=medium
 
   [ Richard Fuchs ]
