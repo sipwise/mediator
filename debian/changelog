@@ -1,3 +1,10 @@
+ngcp-mediator (6.5.3.3+0~mr6.5.3.3) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [00f41b4] TT#97150 restore strings broken up by separator parsing
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 14 Jan 2021 18:06:39 +0100
+
 ngcp-mediator (6.5.3.2+0~mr6.5.3.2) unstable; urgency=medium
 
   [ Richard Fuchs ]
