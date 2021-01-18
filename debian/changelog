@@ -1,3 +1,11 @@
+ngcp-mediator (7.5.7.1+0~mr7.5.7.1) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [be4c12d] TT#97150 increase length of src/dst-leg
+  * [1b29fd3] TT#98400 increase acc_backup/trash insert buffer size
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 18 Jan 2021 15:00:45 +0100
+
 ngcp-mediator (7.5.7.0+0~mr7.5.7.0) unstable; urgency=medium
 
   [ Richard Fuchs ]
