@@ -600,8 +600,6 @@ err:
     if (reply)
         freeReplyObject(reply);
     *count = (uint64_t) -1;
-    if (entries)
-        free(entries);
     g_hash_table_destroy(cid_table);
     return NULL;
 }    
