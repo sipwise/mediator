@@ -440,7 +440,7 @@ static int cdr_parse_srcleg_json(json_object *json, cdr_entry_t *cdr)
     }
     if(json_object_array_length(temp_value) != 10)
     {
-        L_ERROR("Call-Id '%s' has only '%d' source gpp fields, they should be 10, '%s'", cdr->call_id, json_object_array_length(temp_value), json_object_get_string(json));
+        L_ERROR("Call-Id '%s' has only '%zu' source gpp fields, they should be 10, '%s'", cdr->call_id, json_object_array_length(temp_value), json_object_get_string(json));
         goto err;
     }
     int i;
@@ -634,7 +634,7 @@ static int cdr_parse_dstleg_json(json_object *json, cdr_entry_t *cdr)
     }
     if(json_object_array_length(temp_value) != 10)
     {
-        L_ERROR("Call-Id '%s' has only '%d' destination gpp fields, they should be 10, '%s'", cdr->call_id, json_object_array_length(temp_value), json_object_get_string(json));
+        L_ERROR("Call-Id '%s' has only '%zu' destination gpp fields, they should be 10, '%s'", cdr->call_id, json_object_array_length(temp_value), json_object_get_string(json));
         goto err;
     }
     int i;
