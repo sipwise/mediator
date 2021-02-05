@@ -9,7 +9,10 @@ CPPFLAGS += -DMEDIATOR_VERSION="\"$(VERSION)\""
 GLIB_CFLAGS := $(shell pkg-config glib-2.0 --cflags)
 
 # mariadb/mysql support
-ifneq ($(shell which mariadb_config),)
+ifeq ($(shell pkg-config --exists mariadb && echo yes),yes)
+MYSQL_CFLAGS := $(shell pkg-config --cflags mariadb)
+MYSQL_LDFLAGS := $(shell pkg-config --libs mariadb)
+else ifneq ($(shell which mariadb_config),)
 MYSQL_CFLAGS := $(shell mariadb_config --cflags)
 MYSQL_LDFLAGS := $(shell mariadb_config --libs)
 else ifneq ($(shell which mysql_config),)
