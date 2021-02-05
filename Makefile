@@ -4,7 +4,7 @@ VERSION := $(shell sed -n -e '1s/^.*(\(.*\)).*$$/\1/p' debian/changelog)
 
 CC := gcc
 
-CPPFLAGS := -DMEDIATOR_VERSION="\"$(VERSION)\""
+CPPFLAGS += -DMEDIATOR_VERSION="\"$(VERSION)\""
 
 GLIB_CFLAGS := $(shell pkg-config glib-2.0 --cflags)
 
@@ -20,7 +20,9 @@ MYSQL_CFLAGS := -I/usr/include/mysql
 MYSQL_LDFLAGS := -lmysqlclient
 endif
 
-CFLAGS := $(GLIB_CFLAGS) -g -Wall -Wextra -O2 -D_GNU_SOURCE
+CFLAGS ?= -g -Wall -Wextra -O2
+CFLAGS += -D_GNU_SOURCE
+CFLAGS += $(GLIB_CFLAGS)
 CFLAGS += $(MYSQL_CFLAGS)
 #CFLAGS += -DWITH_TIME_CALC
 CFLAGS += $(shell pkg-config json-c --cflags)
@@ -28,7 +30,7 @@ CFLAGS += $(shell pkg-config hiredis --cflags)
 CFLAGS += $(shell pkg-config libsystemd --cflags)
 
 GLIB_LDFLAGS := $(shell pkg-config glib-2.0 --libs)
-LDFLAGS := $(GLIB_LDFLAGS)
+LDFLAGS += $(GLIB_LDFLAGS)
 LDFLAGS += $(MYSQL_LDFLAGS)
 LDFLAGS += $(shell pkg-config json-c --libs)
 LDFLAGS += $(shell pkg-config hiredis --libs)
