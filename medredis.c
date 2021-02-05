@@ -446,7 +446,7 @@ int medredis_init() {
         L_ERROR("Invalid reply from SCRIPT LOAD: %i/%lu\n", reply->type, (unsigned long) reply->len);
         goto err;
     }
-    strcpy(medredis_srem_key_lua, reply->str);
+    g_strlcpy(medredis_srem_key_lua, reply->str, sizeof(medredis_srem_key_lua));
     medredis_free_reply(&reply);
     
     L_DEBUG("Redis connection opened to %s:%d/%d\n",
