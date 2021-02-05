@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <mysql.h>
 #include <mysql/errmsg.h>
 #include <mysql/mysqld_error.h>
@@ -375,7 +376,7 @@ static medmysql_handler *medmysql_handler_init(const char *name, const char *hos
         const char *pass, const char *db, unsigned int port)
 {
     medmysql_handler *ret;
-    my_bool recon = 1;
+    bool recon = 1;
 
     ret = malloc(sizeof(*ret));
     if (!ret) {
