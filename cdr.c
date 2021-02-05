@@ -282,16 +282,6 @@ static int cdr_parse_json_get_uint64(json_object *obj, const char *key, uint64_t
     return 1;
 }
 
-static int cdr_parse_json_get_uint64_clamped(json_object *obj, const char *key, uint64_t *outp, uint64_t min, uint64_t max) {
-    if(!cdr_parse_json_get_uint64(obj, key, outp))
-        return 0;
-    if (*outp > max)
-        *outp = max;
-    else if (*outp < min)
-        *outp = min;
-    return 1;
-}
-
 static int cdr_parse_json_get_int(json_object *obj, const char *key, int *outp) {
     json_object *int_obj;
     if (!json_object_object_get_ex(obj, key, &int_obj))
