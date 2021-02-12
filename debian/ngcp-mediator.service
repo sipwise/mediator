@@ -75,6 +75,7 @@ PrivateNetwork=false
 # Control access to specific device nodes by the executed processes
 DevicePolicy=strict
 DeviceAllow=/dev/null rw
+DeviceAllow=/dev/urandom r
 
 # Maximum number of bytes of memory that may be locked into RAM
 LimitMEMLOCK=0
