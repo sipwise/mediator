@@ -76,11 +76,6 @@ PrivateNetwork=false
 DevicePolicy=strict
 DeviceAllow=/dev/null rw
 
-# Block all IP address ranges
-# NOTE: allow access from localhost
-IPAddressAllow=localhost
-IPAddressDeny=any
-
 # Maximum number of bytes of memory that may be locked into RAM
 LimitMEMLOCK=0
 
