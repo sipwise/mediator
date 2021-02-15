@@ -1,3 +1,26 @@
+ngcp-mediator (9.4.0.0+0~mr9.4.0.0) unstable; urgency=medium
+
+  [ Guillem Jover ]
+  * [14a6639] TT#108003 Do not override user-controlled build variables
+  * [8ab76bd] TT#108003 Add support for mariadb configuration via pkg-config
+  * [009f485] TT#108003 Add a coverity-scan GitHub workflow
+  * [00a56dc] TT#108003 Update gitignore
+  * [1057527] TT#108003 Fix type mismatch in printf format string for size_t variable
+  * [6c88ec5] TT#108003 Remove unused cdr_parse_json_get_uint64_clamped()
+  * [a69d501] TT#108003 Do not let writing over capacity into medredis_srem_key_lua
+  * [353093d] TT#108003 Remove unused free()
+
+  [ Richard Fuchs ]
+  * [a952a7c] TT#108003 use bool type instead of my_bool
+
+  [ Michael Prokop ]
+  * [29cf843] TT#76552 Harden ngcp-mediator service
+  * [fa565ef] TT#110904 TT#76552 Fix systemd hardening for carrier environments
+  * [0cbeddf] TT#110904 TT#76552 Fix systemd hardening for rand() access.
+    Thanks to Victor Seva for reporting
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 15 Feb 2021 17:52:36 +0100
+
 ngcp-mediator (9.3.0.0+0~mr9.3.0.0) unstable; urgency=medium
 
   * New release.
