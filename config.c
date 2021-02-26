@@ -354,7 +354,7 @@ static void config_set_defaults(void)
 
 static int config_parse_line(char *line)
 {
-    char *sep = line;
+    char *sep;
     const char *value;
     struct option *option;
 
