@@ -809,7 +809,7 @@ err:
     if (reply)
         freeReplyObject(reply);
     *count = (uint64_t) -1;
-    for (int i = 0; i < 4; ++i) {
+    for (i = 0; i < 4; ++i) {
         if (cids[i])
             free(cids[i]);
     }
