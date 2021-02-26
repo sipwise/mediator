@@ -664,7 +664,7 @@ med_callid_t *medmysql_fetch_callids(uint64_t *count)
     while((row = mysql_fetch_row(res)) != NULL)
     {
         med_callid_t *c = &callids[i++];
-        if(row == NULL || row[0] == NULL)
+        if(row[0] == NULL)
         {
             g_strlcpy(c->value, "0", sizeof(c->value));
         } else {
