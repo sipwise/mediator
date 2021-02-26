@@ -325,12 +325,15 @@ int main(int argc, char **argv)
             if(medredis_fetch_records(&(mysql_callids[i]), &redis_records, &redis_rec_count) == 0
                     && redis_rec_count)
             {
-                mysql_records = realloc(mysql_records, (mysql_rec_count + redis_rec_count) * sizeof(med_entry_t));
-                if (!mysql_records)
+                med_entry_t *mysql_new_records;
+
+                mysql_new_records = realloc(mysql_records, (mysql_rec_count + redis_rec_count) * sizeof(med_entry_t));
+                if (!mysql_new_records)
                 {
                     L_ERROR("Failed to realloc mysql_records\n");
                     break;
                 }
+                mysql_records = mysql_new_records;
                 memcpy(&mysql_records[mysql_rec_count], redis_records, redis_rec_count * sizeof(med_entry_t));
                 free(redis_records);
                 mysql_rec_count += redis_rec_count;
@@ -385,12 +388,15 @@ int main(int argc, char **argv)
             if(medmysql_fetch_records(&(redis_callids[i]), &mysql_records, &mysql_rec_count, 0) == 0
                     && mysql_rec_count)
             {
-                redis_records = realloc(redis_records, (mysql_rec_count + redis_rec_count) * sizeof(med_entry_t));
-                if (!redis_records)
+                med_entry_t *redis_new_records;
+
+                redis_new_records = realloc(redis_records, (mysql_rec_count + redis_rec_count) * sizeof(med_entry_t));
+                if (!redis_new_records)
                 {
                     L_ERROR("Failed to realloc redis_records\n");
                     break;
                 }
+                redis_records = redis_new_records;
                 memcpy(&redis_records[redis_rec_count], mysql_records, mysql_rec_count * sizeof(med_entry_t));
                 free(mysql_records);
                 redis_rec_count += mysql_rec_count;
