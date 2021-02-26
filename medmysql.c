@@ -1192,19 +1192,25 @@ int medmysql_update_call_stat_info(const char *call_code, const double start_tim
 
     char period[STAT_PERIOD_SIZE];
     time_t etime = (time_t)start_time;
+    struct tm etm;
     char period_key[STAT_PERIOD_SIZE+4];
     struct medmysql_call_stat_info_t * period_t;
+
+    if (!localtime_r(&etime, &etm)) {
+        L_CRITICAL("Cannot get localtime: %s", strerror(errno));
+        return -1;
+    }
 
     switch (config_stats_period)
     {
         case MED_STATS_HOUR:
-            strftime(period, STAT_PERIOD_SIZE, "%Y-%m-%d %H:00:00", localtime(&etime));
+            strftime(period, STAT_PERIOD_SIZE, "%Y-%m-%d %H:00:00", &etm);
             break;
         case MED_STATS_DAY:
-            strftime(period, STAT_PERIOD_SIZE, "%Y-%m-%d 00:00:00", localtime(&etime));
+            strftime(period, STAT_PERIOD_SIZE, "%Y-%m-%d 00:00:00", &etm);
             break;
         case MED_STATS_MONTH:
-            strftime(period, STAT_PERIOD_SIZE, "%Y-%m-01 00:00:00", localtime(&etime));
+            strftime(period, STAT_PERIOD_SIZE, "%Y-%m-01 00:00:00", &etm);
             break;
         default:
             L_CRITICAL("Undefinied or wrong config_stats_period %d",
