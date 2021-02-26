@@ -1,7 +1,12 @@
 #include <stdbool.h>
 #include <mysql.h>
+#ifdef MARIADB
+#include <mariadb/errmsg.h>
+#include <mariadb/mysqld_error.h>
+#else
 #include <mysql/errmsg.h>
 #include <mysql/mysqld_error.h>
+#endif
 #include <assert.h>
 
 #include "medmysql.h"

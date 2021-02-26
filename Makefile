@@ -10,10 +10,10 @@ GLIB_CFLAGS := $(shell pkg-config glib-2.0 --cflags)
 
 # mariadb/mysql support
 ifeq ($(shell pkg-config --exists libmariadb && echo yes),yes)
-MYSQL_CFLAGS := $(shell pkg-config --cflags libmariadb)
+MYSQL_CFLAGS := $(shell pkg-config --cflags libmariadb) -DMARIADB=1
 MYSQL_LDFLAGS := $(shell pkg-config --libs libmariadb)
 else ifneq ($(shell which mariadb_config),)
-MYSQL_CFLAGS := $(shell mariadb_config --cflags)
+MYSQL_CFLAGS := $(shell mariadb_config --cflags) -DMARIADB=1
 MYSQL_LDFLAGS := $(shell mariadb_config --libs)
 else ifneq ($(shell which mysql_config),)
 MYSQL_CFLAGS := $(shell mysql_config --cflags)
