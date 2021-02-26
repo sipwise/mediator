@@ -180,7 +180,7 @@ static int medredis_get_reply(redisReply **reply) {
     int ret;
     medredis_command_t *cmd;
 
-    if (con->append_counter <= 0) {
+    if (con->append_counter == 0) {
         *reply = NULL;
         return 0;
     }
