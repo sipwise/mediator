@@ -1137,6 +1137,9 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_destination,
                     "concurrent_calls_count_customer", e->destination_concurrent_calls_count_customer, e))
             return -1;
+        if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_source,
+                    "header=History-Info", e->source_last_hih, e))
+            return -1;
 
         if (e->mos.filled && batch->mos.def) {
             if (medmysql_mos_record(&batch->cdr_mos, batch->num_cdrs, e->mos.avg_score,

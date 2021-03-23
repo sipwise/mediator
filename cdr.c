@@ -532,6 +532,14 @@ static int cdr_parse_srcleg_json(json_object *json, cdr_entry_t *cdr)
         goto ret;
     }
 
+    // source_last_hih
+    if (!cdr_parse_json_get_strbuf(json, "last_hih", cdr->source_last_hih)) {
+        L_DEBUG("Call-Id '%s' does not contain 'last_hih' key (source last hih), '%s'", cdr->call_id, json_object_get_string(json));
+        /// Added in mr9.4, it should be changed to -1 in mr10.+
+        /// goto err;
+        goto ret;
+    }
+
 ret:
     json_object_put(json);
     return 0;
