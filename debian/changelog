@@ -1,3 +1,12 @@
+ngcp-mediator (6.5.12.1+0~mr6.5.12.1) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [1c80b74] TT#97150 increase length of src/dst-leg
+  * [3422246] TT#98400 increase acc_backup/trash insert buffer size
+  * [d9dd8ee] TT#97150 restore strings broken up by separator parsing
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 30 Mar 2021 19:21:50 +0200
+
 ngcp-mediator (6.5.12.0+0~mr6.5.12.0) unstable; urgency=medium
 
   * New release.
