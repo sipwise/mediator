@@ -3,7 +3,7 @@
 
 #include "mediator.h"
 
-int daemonize();
+int daemonize(void);
 int write_pid(const char *pidfile);
 
 #endif /* _DAEMONIZER_H */

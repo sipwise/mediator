@@ -88,7 +88,7 @@ static int medmysql_flush_int_cdr(struct medmysql_batches *);
 static int medmysql_flush_all_med(struct medmysql_batches *);
 static int medmysql_flush_med_str(struct medmysql_str *);
 static int medmysql_flush_medlist(struct medmysql_str *);
-static int medmysql_flush_call_stat_info();
+static int medmysql_flush_call_stat_info(void);
 static void medmysql_handler_close(medmysql_handler **h);
 static int medmysql_handler_transaction(medmysql_handler *h);
 

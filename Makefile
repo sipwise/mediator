@@ -23,7 +23,7 @@ MYSQL_CFLAGS := -I/usr/include/mysql
 MYSQL_LDFLAGS := -lmysqlclient
 endif
 
-CFLAGS ?= -g -Wall -Wextra -O2
+CFLAGS ?= -g -Wall -Wextra -Wstrict-prototypes -O2
 CFLAGS += -D_GNU_SOURCE
 CFLAGS += $(GLIB_CFLAGS)
 CFLAGS += $(MYSQL_CFLAGS)

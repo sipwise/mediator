@@ -33,7 +33,7 @@ GHashTable *med_call_stat_info_table = NULL;
 GHashTable *med_cdr_tag_table = NULL;
 
 /**********************************************************************/
-static int mediator_load_maps()
+static int mediator_load_maps(void)
 {
     med_peer_ip_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
     med_peer_host_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
@@ -60,7 +60,7 @@ static void mediator_print_mapentry(gpointer key, gpointer value, gpointer d __a
 }
 
 /**********************************************************************/
-static void mediator_destroy_maps()
+static void mediator_destroy_maps(void)
 {
     if(med_peer_ip_table)
         g_hash_table_destroy(med_peer_ip_table);
@@ -84,7 +84,7 @@ static void mediator_destroy_maps()
 }
 
 /**********************************************************************/
-static void mediator_print_maps()
+static void mediator_print_maps(void)
 {
     L_DEBUG("Peer IP map:");
     g_hash_table_foreach(med_peer_ip_table, mediator_print_mapentry, NULL);
@@ -99,7 +99,7 @@ static void mediator_print_maps()
 }
 
 /**********************************************************************/
-static void mediator_unlock()
+static void mediator_unlock(void)
 {
     L_DEBUG("Unlocking mediator.");
 
@@ -110,7 +110,7 @@ static void mediator_unlock()
 }
 
 /**********************************************************************/
-static void mediator_exit()
+static void mediator_exit(void)
 {
     mediator_unlock();
     config_cleanup();
@@ -125,7 +125,7 @@ static void mediator_signal(int signal)
 }
 
 /**********************************************************************/
-static int mediator_lock()
+static int mediator_lock(void)
 {
     struct stat sb;
 

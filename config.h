@@ -51,6 +51,6 @@ extern int config_intermediate_interval;
 extern med_loglevel_t config_loglevel;
 
 int config_parse(int argc, char **argv);
-void config_cleanup();
+void config_cleanup(void);
 
 #endif /* _CONFIG_H */
