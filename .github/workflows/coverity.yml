@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - coverity_scan
+  schedule:
+    - cron: '17 4 */7 * *'
 
   workflow_dispatch:
 
@@ -19,6 +21,10 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
+
+      - name: Update APT cache
+        run: |
+          sudo apt-get update
 
       - name: Get build dependencies
         run: |
