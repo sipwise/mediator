@@ -8,7 +8,7 @@
 #include "mediator.h"
 
 static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
-        cdr_entry_t **cdrs, uint64_t *cdr_count, uint8_t *trash, int do_intermediate);
+        cdr_entry_t **cdrs, uint64_t *cdr_count, uint64_t *alloc_size, uint8_t *trash, int do_intermediate);
 
 static const char* cdr_map_status(const char *sip_status)
 {
@@ -40,6 +40,13 @@ static const char* cdr_map_status(const char *sip_status)
     return CDR_STATUS_UNKNOWN;
 }
 
+
+static void free_cdrs(cdr_entry_t **cdrs, uint64_t cdr_count) {
+    g_free(*cdrs);
+    *cdrs = NULL;
+}
+
+
 int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_count,
         struct medmysql_batches *batches, int do_intermediate)
 {
@@ -58,7 +65,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 
 
     cdr_entry_t *cdrs = NULL;
-    uint64_t cdr_count;
+    uint64_t cdr_count, alloc_size = 0;
 
     *ext_count = 0;
 
@@ -118,7 +125,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
             }
             else
             {
-                if(cdr_create_cdrs(records, count, &cdrs, &cdr_count, &trash, do_intermediate) != 0)
+                if(cdr_create_cdrs(records, count, &cdrs, &cdr_count, &alloc_size, &trash, do_intermediate) != 0)
                     goto error;
                 else
                 {
@@ -164,7 +171,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
                     {
                         /* TODO: no CDRs created? */
                     }
-                    free(cdrs);
+                    free_cdrs(&cdrs, alloc_size);
                     cdrs = NULL;
                 }
             }
@@ -202,7 +209,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 
 error:
     if(cdrs)
-        free(cdrs);
+        free_cdrs(&cdrs, alloc_size);
     return -1;
 }
 
@@ -1346,12 +1353,20 @@ err:
 }
 
 
+static cdr_entry_t *alloc_cdrs(uint64_t cdr_count) {
+    cdr_entry_t *cdrs = g_malloc0(sizeof(*cdrs) * cdr_count);
+    if (!cdrs)
+        return NULL;
+
+    return cdrs;
+}
+
+
 static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
-        cdr_entry_t **cdrs, uint64_t *cdr_count, uint8_t *trash, int do_intermediate)
+        cdr_entry_t **cdrs, uint64_t *cdr_count, uint64_t *alloc_size, uint8_t *trash, int do_intermediate)
 {
     uint64_t i = 0, cdr_index = 0;
-    uint32_t invites = 0;
-    size_t cdr_size;
+    uint64_t invites = 0;
     int timed_out = 0;
 
     char *endtime = NULL;
@@ -1396,14 +1411,13 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
     }
 
     /* each INVITE maps to a CDR */
-    cdr_size = sizeof(cdr_entry_t) * invites;
-    *cdrs = (cdr_entry_t*)malloc(cdr_size);
+    *cdrs = alloc_cdrs(invites);
     if(*cdrs == NULL)
     {
         L_ERROR("Error allocating memory for cdrs: %s", strerror(errno));
         return -1;
     }
-    memset(*cdrs, 0, cdr_size);
+    *alloc_size = invites;
 
     for(i = 0; i < count; ++i)
     {
