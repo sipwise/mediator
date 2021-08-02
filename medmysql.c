@@ -523,10 +523,10 @@ void medmysql_cleanup()
     medmysql_handler_close(&stats_handler);
 }
 
-static void medmysql_buf_escape(MYSQL *m, size_t *buflen, const char *str, char *orig_dest,
+static void medmysql_buf_escape(MYSQL *m, size_t *buflen, const char *str, const size_t str_len,
+		char *orig_dest,
 		size_t sql_buffer_size)
 {
-	size_t str_len = strlen(str);
 	char *dest = orig_dest;
 
 	// verify buffer space requirements: string itself * 2, quotes '', optional "_latin1", null
@@ -549,9 +549,14 @@ static void medmysql_buf_escape(MYSQL *m, size_t *buflen, const char *str, char 
 
 	*buflen += dest - orig_dest;
 }
+static inline void medmysql_buf_escape_c(MYSQL *m, size_t *buflen, const char *str, char *orig_dest,
+		size_t sql_buffer_size)
+{
+	medmysql_buf_escape(m, buflen, str, strlen(str), orig_dest, sql_buffer_size);
+}
 
 #define BUFPRINT(x...)    buflen += sprintf(sql_buffer + buflen, x); if (buflen >= sql_buffer_size) abort()
-#define BUFESCAPE(x) medmysql_buf_escape(med_handler->m, &buflen, x, sql_buffer + buflen, sql_buffer_size)
+#define BUFESCAPE(x) medmysql_buf_escape_c(med_handler->m, &buflen, x, sql_buffer + buflen, sql_buffer_size)
 
 /**********************************************************************/
 int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *table)
@@ -846,15 +851,16 @@ int medmysql_delete_entries(const char *callid, struct medmysql_batches *batches
 }
 
 #define CDRPRINT(x)    batch->cdrs.len += sprintf(batch->cdrs.str + batch->cdrs.len, x)
-#define CDRESCAPE(x) medmysql_buf_escape(med_handler->m, &batch->cdrs.len, x, batch->cdrs.str + batch->cdrs.len, PACKET_SIZE)
+#define CDRESCAPE(x) medmysql_buf_escape(med_handler->m, &batch->cdrs.len, x->str, x->len, batch->cdrs.str + batch->cdrs.len, PACKET_SIZE)
+#define CDRESCAPE_C(x) medmysql_buf_escape_c(med_handler->m, &batch->cdrs.len, x, batch->cdrs.str + batch->cdrs.len, PACKET_SIZE)
 
 /**********************************************************************/
 static int medmysql_tag_record(GQueue *q, unsigned long cdr_id, unsigned long provider_id,
-        unsigned long direction_id, const char *value, double start_time, unsigned long tag_id)
+        unsigned long direction_id, const GString *value, double start_time, unsigned long tag_id)
 {
-    char esc_value[strlen(value)*2+1];
+    char esc_value[value->len*2+1];
 
-    mysql_real_escape_string(med_handler->m, esc_value, value, strlen(value));
+    mysql_real_escape_string(med_handler->m, esc_value, value->str, value->len);
 
     cdr_tag_record *record = malloc(sizeof(*record));
     record->cdr_id = cdr_id;
@@ -884,11 +890,11 @@ static int medmysql_mos_record(GQueue *q, unsigned long cdr_id, double avg_score
     return 0;
 }
 
-static int medmysql_group_record(MYSQL *m, GQueue *q, unsigned long cdr_id, const char *group, double start_time)
+static int medmysql_group_record(MYSQL *m, GQueue *q, unsigned long cdr_id, const GString *group, double start_time)
 {
-    char esc_group[strlen(group)*2+1];
+    char esc_group[group->len*2+1];
 
-    mysql_real_escape_string(m, esc_group, group, strlen(group));
+    mysql_real_escape_string(m, esc_group, group->str, group->len);
 
     cdr_tag_record *record = malloc(sizeof(*record));
     record->cdr_id = cdr_id;
@@ -903,17 +909,17 @@ static int medmysql_group_record(MYSQL *m, GQueue *q, unsigned long cdr_id, cons
 
 
 static int medmysql_tag_cdr(struct medmysql_cdr_batch *batch, unsigned long provider_id,
-		unsigned long direction_id, const char *tag_name, const char *tag_value,
+		unsigned long direction_id, const char *tag_name, const GString *tag_value,
 		const cdr_entry_t *e)
 {
     gpointer tag_id;
 
-    if (!strlen(tag_value))
+    if (!tag_value->len)
         return 0;
 
     if ((tag_id = g_hash_table_lookup(med_cdr_tag_table, tag_name)) == NULL) {
         L_WARNING("Call-Id '%s' has no cdr tag type '%s', '%s'",
-                    e->call_id, tag_name, tag_value);
+                    e->call_id->str, tag_name, tag_value->str);
         return -1;
     }
     if (medmysql_tag_record(&batch->cdr_tags, batch->num_cdrs, provider_id,
@@ -980,7 +986,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         CDRPRINT(",");
         CDRESCAPE(e->source_ext_contract_id);
         CDRPRINT(",");
-        CDRESCAPE(str_source_accid);
+        CDRESCAPE_C(str_source_accid);
         CDRPRINT(",");
 
         CDRESCAPE(e->source_user);
@@ -989,7 +995,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         CDRPRINT(",");
         CDRESCAPE(e->source_cli);
         CDRPRINT(",");
-        CDRESCAPE(str_source_clir);
+        CDRESCAPE_C(str_source_clir);
         CDRPRINT(",");
         CDRESCAPE(e->source_ip);
         CDRPRINT(",");
@@ -1001,7 +1007,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         CDRPRINT(",");
         CDRESCAPE(e->destination_ext_contract_id);
         CDRPRINT(",");
-        CDRESCAPE(str_dest_accid);
+        CDRESCAPE_C(str_dest_accid);
         CDRPRINT(",");
         CDRESCAPE(e->destination_user);
         CDRPRINT(",");
@@ -1023,30 +1029,30 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         CDRPRINT(",");
         CDRESCAPE(e->call_code);
         CDRPRINT(",");
-        CDRESCAPE(str_init_time);
+        CDRESCAPE_C(str_init_time);
         CDRPRINT(",");
-        CDRESCAPE(str_start_time);
+        CDRESCAPE_C(str_start_time);
         CDRPRINT(",");
-        CDRESCAPE(str_duration);
+        CDRESCAPE_C(str_duration);
         CDRPRINT(",");
         CDRESCAPE(e->call_id);
         CDRPRINT(",");
-        CDRESCAPE(str_source_carrier_cost);
+        CDRESCAPE_C(str_source_carrier_cost);
         CDRPRINT(",");
-        CDRESCAPE(str_source_reseller_cost);
+        CDRESCAPE_C(str_source_reseller_cost);
         CDRPRINT(",");
-        CDRESCAPE(str_source_customer_cost);
+        CDRESCAPE_C(str_source_customer_cost);
         CDRPRINT(",");
-        CDRESCAPE(str_dest_carrier_cost);
+        CDRESCAPE_C(str_dest_carrier_cost);
         CDRPRINT(",");
-        CDRESCAPE(str_dest_reseller_cost);
+        CDRESCAPE_C(str_dest_reseller_cost);
         CDRPRINT(",");
-        CDRESCAPE(str_dest_customer_cost);
+        CDRESCAPE_C(str_dest_customer_cost);
         CDRPRINT(",");
-        CDRESCAPE(str_split);
+        CDRESCAPE_C(str_split);
         for(gpp = 0; gpp < 10; ++gpp)
         {
-            if(strnlen(e->source_gpp[gpp], sizeof(e->source_gpp[gpp])) > 0)
+            if(e->source_gpp[gpp]->len > 0)
             {
                 CDRPRINT(",");
                 CDRESCAPE(e->source_gpp[gpp]);
@@ -1058,7 +1064,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         }
         for(gpp = 0; gpp < 10; ++gpp)
         {
-            if(strnlen(e->destination_gpp[gpp], sizeof(e->destination_gpp[gpp])) > 0)
+            if(e->destination_gpp[gpp]->len > 0)
             {
                 CDRPRINT(",");
                 CDRESCAPE(e->destination_gpp[gpp]);
@@ -1078,7 +1084,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         CDRPRINT(",");
         CDRESCAPE(e->destination_user_out);
 
-        if(strnlen(e->source_lnp_type, sizeof(e->source_lnp_type)) > 0)
+        if(e->source_lnp_type->len > 0)
         {
             CDRPRINT(",");
             CDRESCAPE(e->source_lnp_type);
@@ -1088,7 +1094,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
             CDRPRINT(",NULL");
         }
 
-        if(strnlen(e->destination_lnp_type, sizeof(e->destination_lnp_type)) > 0)
+        if(e->destination_lnp_type->len > 0)
         {
             CDRPRINT(",");
             CDRESCAPE(e->destination_lnp_type);
@@ -1155,7 +1161,7 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         batch->num_cdrs++;
 
         // no check for return codes here we should keep on nevertheless
-        medmysql_update_call_stat_info(e->call_code, e->start_time);
+        medmysql_update_call_stat_info(e->call_code->str, e->start_time);
 
         if (check_shutdown())
             return -1;
@@ -1174,10 +1180,9 @@ int medmysql_delete_intermediate(cdr_entry_t *entries, uint64_t count, struct me
     for(i = 0; i < count; ++i)
     {
         cdr_entry_t *e = &(entries[i]);
-        char *callid = e->call_id;
-        char esc_callid[strlen(callid)*2+1];
+        char esc_callid[e->call_id->len*2+1];
 
-        mysql_real_escape_string(int_cdr_handler->m, esc_callid, callid, strlen(callid));
+        mysql_real_escape_string(int_cdr_handler->m, esc_callid, e->call_id->str, e->call_id->len);
 
         if (medmysql_batch_prepare(&batches->int_cdr_delete))
             return -1;
@@ -1221,7 +1226,7 @@ int medmysql_update_call_stat_info(const char *call_code, const double start_tim
             return -1;
     }
 
-    sprintf(period_key, "%s-%s", period, call_code);
+    snprintf(period_key, sizeof(period_key), "%s-%s", period, call_code);
 
     if ((period_t = g_hash_table_lookup(med_call_stat_info_table, &period_key)) == NULL) {
         period_t = malloc(sizeof(struct medmysql_call_stat_info_t));
