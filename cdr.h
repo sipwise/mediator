@@ -25,8 +25,8 @@ typedef struct {
     int avg_rtt;
 } mos_data_t;
 
-#define F(f, l) GString *f;
-#define FA(f, a, l) GString *f[a];
+#define F(f) GString *f;
+#define FA(f, a) GString *f[a];
 
 typedef struct {
 #include "cdr_field_names.inc"

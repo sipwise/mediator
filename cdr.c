@@ -48,8 +48,8 @@ static void free_cdrs(cdr_entry_t **cdrs, uint64_t cdr_count) {
     for (uint64_t i = 0; i < cdr_count; i++) {
         cdr_entry_t *cdr = &(*cdrs)[i];
 
-#define F(f, l) g_string_free(cdr->f, TRUE);
-#define FA(f, a, l) for (unsigned int j = 0; j < a; j++) g_string_free(cdr->f[j], TRUE);
+#define F(f) g_string_free(cdr->f, TRUE);
+#define FA(f, a) for (unsigned int j = 0; j < a; j++) g_string_free(cdr->f[j], TRUE);
 
 #include "cdr_field_names.inc"
 
@@ -1374,8 +1374,8 @@ static cdr_entry_t *alloc_cdrs(uint64_t cdr_count) {
     for (uint64_t i = 0; i < cdr_count; i++) {
         cdr_entry_t *cdr = &cdrs[i];
 
-#define F(f, l) cdr->f = g_string_new("");
-#define FA(f, a, l) for (unsigned int j = 0; j < a; j++) cdr->f[j] = g_string_new("");
+#define F(f) cdr->f = g_string_new("");
+#define FA(f, a) for (unsigned int j = 0; j < a; j++) cdr->f[j] = g_string_new("");
 
 #include "cdr_field_names.inc"
 
