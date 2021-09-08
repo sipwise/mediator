@@ -1556,7 +1556,7 @@ void cdr_set_provider(cdr_entry_t *cdr)
 
     if(strcmp("0", cdr->source_user_id->str) != 0)
     {
-        if((val = g_hash_table_lookup(med_uuid_table, cdr->source_user_id)) != NULL)
+        if((val = g_hash_table_lookup(med_uuid_table, cdr->source_user_id->str)) != NULL)
         {
             g_string_assign(cdr->source_provider_id, val);
         }
@@ -1568,14 +1568,14 @@ void cdr_set_provider(cdr_entry_t *cdr)
     else if (cdr->source_lcr_id) {
         g_string_printf(cdr->source_provider_id,
                 "%llu", (unsigned long long) cdr->source_lcr_id);
-        val = g_hash_table_lookup(med_peer_id_table, cdr->source_provider_id);
+        val = g_hash_table_lookup(med_peer_id_table, cdr->source_provider_id->str);
         g_string_assign(cdr->source_provider_id, val ? : "0");
     }
-    else if((val = g_hash_table_lookup(med_peer_ip_table, cdr->source_domain)) != NULL)
+    else if((val = g_hash_table_lookup(med_peer_ip_table, cdr->source_domain->str)) != NULL)
     {
         g_string_assign(cdr->source_provider_id, val);
     }
-    else if((val = g_hash_table_lookup(med_peer_host_table, cdr->source_domain)) != NULL)
+    else if((val = g_hash_table_lookup(med_peer_host_table, cdr->source_domain->str)) != NULL)
     {
         g_string_assign(cdr->source_provider_id, val);
     }
@@ -1586,7 +1586,7 @@ void cdr_set_provider(cdr_entry_t *cdr)
 
     if(strcmp("0", cdr->destination_user_id->str) != 0)
     {
-        if((val = g_hash_table_lookup(med_uuid_table, cdr->destination_user_id)) != NULL)
+        if((val = g_hash_table_lookup(med_uuid_table, cdr->destination_user_id->str)) != NULL)
         {
             g_string_assign(cdr->destination_provider_id, val);
         }
@@ -1598,14 +1598,14 @@ void cdr_set_provider(cdr_entry_t *cdr)
     else if (cdr->destination_lcr_id) {
         g_string_printf(cdr->destination_provider_id,
                 "%llu", (unsigned long long) cdr->destination_lcr_id);
-        val = g_hash_table_lookup(med_peer_id_table, cdr->destination_provider_id);
+        val = g_hash_table_lookup(med_peer_id_table, cdr->destination_provider_id->str);
         g_string_assign(cdr->destination_provider_id, val ? : "0");
     }
-    else if((val = g_hash_table_lookup(med_peer_ip_table, cdr->destination_domain)) != NULL)
+    else if((val = g_hash_table_lookup(med_peer_ip_table, cdr->destination_domain->str)) != NULL)
     {
         g_string_assign(cdr->destination_provider_id, val);
     }
-    else if((val = g_hash_table_lookup(med_peer_host_table, cdr->destination_domain)) != NULL)
+    else if((val = g_hash_table_lookup(med_peer_host_table, cdr->destination_domain->str)) != NULL)
     {
         g_string_assign(cdr->destination_provider_id, val);
     }
