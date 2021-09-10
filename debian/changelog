@@ -1,3 +1,10 @@
+ngcp-mediator (10.0.2.0+0~mr10.0.2.0) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [94556e3] TT#139650 fix GHashTable string lookup against GString
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Fri, 10 Sep 2021 16:11:41 +0200
+
 ngcp-mediator (10.0.1.0+0~mr10.0.1.0) unstable; urgency=medium
 
   [ Richard Fuchs ]
