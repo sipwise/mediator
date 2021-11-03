@@ -3,13 +3,13 @@ Section: utils
 Priority: optional
 Maintainer: Sipwise Development Team <support@sipwise.com>
 Build-Depends:
- debhelper-compat (= 12),
+ debhelper-compat (= 13),
  default-libmysqlclient-dev,
  libglib2.0-dev,
  libhiredis-dev,
  libjson-c-dev,
  libsystemd-dev,
-Standards-Version: 3.9.8
+Standards-Version: 4.5.1
 Homepage: https://www.sipwise.com/
 
 Package: ngcp-mediator
