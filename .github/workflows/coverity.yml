@@ -28,8 +28,8 @@ jobs:
 
       - name: Get build dependencies
         run: |
-          sudo apt-get install -qq -y --no-install-recommends git ca-certificates curl
-          sudo apt-get build-dep -qq -y .
+          sudo apt-get install -q -y --no-install-recommends git ca-certificates curl
+          sudo apt-get build-dep -q -y .
 
       - name: Get coverity scan
         run: |
