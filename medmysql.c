@@ -14,6 +14,9 @@
 
 #define _TEST_SIMULATE_SQL_ERRORS 0
 
+#define MED_SQL_BUF_LEN(fixed_string_len, escaped_string_len) \
+    (fixed_string_len + 7 + 2 + (escaped_string_len) * 2 + 1) // _latin1'STRING'\0
+
 #define MED_CALLID_QUERY "select a.callid from acc a" \
     " where a.method = 'INVITE' " \
    " group by a.callid limit 0,200000"
@@ -530,7 +533,7 @@ static void medmysql_buf_escape(MYSQL *m, size_t *buflen, const char *str, const
 	char *dest = orig_dest;
 
 	// verify buffer space requirements: string itself * 2, quotes '', optional "_latin1", null
-	if (*buflen + str_len * 2 + 2 + 7 + 1 >= sql_buffer_size)
+	if (MED_SQL_BUF_LEN(*buflen, str_len) > sql_buffer_size)
 		abort();
 
 	if (!g_utf8_validate(str, str_len, NULL)) {
