@@ -14,6 +14,8 @@
 
 #define _TEST_SIMULATE_SQL_ERRORS 0
 
+#define MED_CACHE_DURATION 30
+
 #define MED_SQL_BUF_LEN(fixed_string_len, escaped_string_len) \
     (fixed_string_len + 7 + 2 + (escaped_string_len) * 2 + 1) // _latin1'STRING'\0
 
@@ -43,9 +45,6 @@
 #define MED_LOAD_PEER_QUERY "select h.ip, h.host, g.peering_contract_id, h.id " \
     "from provisioning.voip_peer_hosts h, provisioning.voip_peer_groups g " \
     "where g.id = h.group_id"
-#define MED_LOAD_UUID_QUERY "select vs.uuid, r.contract_id from billing.voip_subscribers vs, " \
-    "billing.contracts c, billing.contacts ct, billing.resellers r where c.id = vs.contract_id and " \
-    "c.contact_id = ct.id and ct.reseller_id = r.id"
 
 #define MED_LOAD_CDR_TAG_IDS_QUERY "select id, type from accounting.cdr_tag"
 
@@ -1297,50 +1296,111 @@ out:
 }
 
 /**********************************************************************/
-int medmysql_load_uuids(GHashTable *uuid_table)
+static char *medmysql_lookup_cache_str(GHashTable *table, const char *key)
 {
-    MYSQL_RES *res;
-    MYSQL_ROW row;
-    int ret = 0;
-    /* char query[1024] = ""; */
-    gpointer key;
-    char *provider_id;
+    med_cache_entry_t *e = g_hash_table_lookup(table, key);
+    if (!e)
+        return NULL;
+    if (time(NULL) - e->created > MED_CACHE_DURATION) {
+        g_hash_table_remove(table, key);
+        return NULL;
+    }
+    L_DEBUG("Returning cached map entry: '%s' -> '%s'", key, e->str_value);
+    return e->str_value;
+}
 
-    /* snprintf(query, sizeof(query), MED_LOAD_UUID_QUERY); */
 
-    /* L_DEBUG("q='%s'", query); */
-    if(medmysql_query_wrapper(prov_handler, MED_LOAD_UUID_QUERY, strlen(MED_LOAD_UUID_QUERY)) != 0)
-    {
-        L_CRITICAL("Error loading uuids: %s",
-                mysql_error(prov_handler->m));
-        return -1;
+void medmysql_cache_cleanup(GHashTable *table)
+{
+    GHashTableIter iter;
+    g_hash_table_iter_init(&iter, table);
+    gpointer value;
+    time_t expiry = time(NULL) - MED_CACHE_DURATION;
+    while (g_hash_table_iter_next(&iter, NULL, &value)) {
+        med_cache_entry_t *e = value;
+        if (e->created > expiry)
+            continue;
+        g_hash_table_iter_remove(&iter);
+    }
+}
+
+
+static void medmysql_insert_cache_str(GHashTable *table, const char *key, char *val)
+{
+    med_cache_entry_t *e = g_slice_alloc0(sizeof(*e));
+    e->created = time(NULL);
+    e->str_value = val; // allocated per g_strdup
+    g_hash_table_replace(table, g_strdup(key), e);
+}
+
+
+static char *medmysql_select_one(medmysql_handler *mysql, const char *query, size_t query_len)
+{
+    int err = medmysql_query_wrapper(mysql, query, query_len);
+    if (err != 0) {
+        L_ERROR("Error executing query '%.*s': %s",
+                (int) query_len, query, mysql_error(mysql->m));
+        return NULL;
     }
 
-    res = mysql_store_result(prov_handler->m);
+    char *ret = NULL;
 
-    while((row = mysql_fetch_row(res)) != NULL)
-    {
-        if(row[0] == NULL || row[1] == NULL)
-        {
-            L_CRITICAL("Error loading uuids, a column is NULL");
-            ret = -1;
-            goto out;
+    MYSQL_RES *res = mysql_store_result(mysql->m);
+    unsigned long long rows = mysql_num_rows(res);
+    if (rows > 0) {
+        if (rows > 1)
+            L_WARNING("More than one row returned from query '%.*s' (%llu rows)",
+                    (int) query_len, query, rows);
+
+        MYSQL_ROW row = mysql_fetch_row(res);
+        if (!row) {
+            L_ERROR("Failed to fetch row from query '%.*s': %s",
+                    (int) query_len, query, mysql_error(mysql->m));
         }
-
-        provider_id = strdup(row[1]);
-        if(provider_id == NULL)
-        {
-            L_CRITICAL("Error allocating provider id memory: %s", strerror(errno));
-            ret = -1;
-            goto out;
+        else {
+            const char *val = row[0];
+            if (!val)
+                L_ERROR("NULL value returned from query '%.*s'",
+                        (int) query_len, query);
+            else
+                ret = g_strdup(val);
         }
-
-        key = (gpointer)g_strdup(row[0]);
-        g_hash_table_insert(uuid_table, key, provider_id);
     }
 
-out:
     mysql_free_result(res);
+
+    return ret;
+}
+
+
+char *medmysql_lookup_uuid(const char *uuid)
+{
+    char *ret = medmysql_lookup_cache_str(med_uuid_cache, uuid);
+    if (ret)
+        return ret;
+
+    // query DB
+
+    static const char *query_prefix = "SELECT r.contract_id FROM billing.voip_subscribers vs, " \
+        "billing.contracts c, billing.contacts ct, billing.resellers r WHERE c.id = vs.contract_id AND " \
+        "c.contact_id = ct.id AND ct.reseller_id = r.id AND vs.uuid = ";
+    size_t query_len = strlen(query_prefix); // compile-time constant
+
+    char query[MED_SQL_BUF_LEN(query_len, strlen(uuid))];
+    strcpy(query, query_prefix);
+    char *buf_ptr = query + query_len;
+    medmysql_buf_escape_c(prov_handler->m, &query_len, uuid, buf_ptr, sizeof(query));
+
+    L_DEBUG("UUID lookup with query: '%.*s'\n", (int) query_len, query);
+
+    ret = medmysql_select_one(prov_handler, query, query_len);
+    if (!ret)
+        return NULL;
+
+    L_DEBUG("UUID query returned: '%.*s' -> '%s'\n", (int) query_len, query, ret);
+
+    medmysql_insert_cache_str(med_uuid_cache, uuid, ret);
+
     return ret;
 }
 

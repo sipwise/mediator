@@ -101,10 +101,15 @@ typedef struct {
     char value[256];
 } med_callid_t;
 
+typedef struct {
+    char *str_value;
+    time_t created;
+} med_cache_entry_t;
+
 extern GHashTable *med_peer_host_table;
 extern GHashTable *med_peer_ip_table;
 extern GHashTable *med_peer_id_table;
-extern GHashTable *med_uuid_table;
+extern GHashTable *med_uuid_cache;
 extern GHashTable *med_call_stat_info_table;
 extern GHashTable *med_cdr_tag_table;
 

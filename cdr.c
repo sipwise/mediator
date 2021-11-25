@@ -1556,7 +1556,7 @@ void cdr_set_provider(cdr_entry_t *cdr)
 
     if(strcmp("0", cdr->source_user_id->str) != 0)
     {
-        if((val = g_hash_table_lookup(med_uuid_table, cdr->source_user_id->str)) != NULL)
+        if((val = medmysql_lookup_uuid(cdr->source_user_id->str)) != NULL)
         {
             g_string_assign(cdr->source_provider_id, val);
         }
@@ -1586,7 +1586,7 @@ void cdr_set_provider(cdr_entry_t *cdr)
 
     if(strcmp("0", cdr->destination_user_id->str) != 0)
     {
-        if((val = g_hash_table_lookup(med_uuid_table, cdr->destination_user_id->str)) != NULL)
+        if((val = medmysql_lookup_uuid(cdr->destination_user_id->str)) != NULL)
         {
             g_string_assign(cdr->destination_provider_id, val);
         }
