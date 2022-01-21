@@ -1,10 +1,8 @@
 [Unit]
 Description=NGCP Mediator
 After=mariadb.service
-After=redis-server.service
 After=remote-fs.target
 Wants=mariadb.service
-Wants=redis-server.service
 
 [Service]
 Type=notify
