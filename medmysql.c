@@ -561,14 +561,14 @@ static inline void medmysql_buf_escape_c(MYSQL *m, size_t *buflen, const char *s
 #define BUFESCAPE(x) medmysql_buf_escape_c(med_handler->m, &buflen, x, sql_buffer + buflen, sql_buffer_size)
 
 /**********************************************************************/
-int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *table)
+int medmysql_insert_records(GQueue *records, const char *table)
 {
     char *sql_buffer = NULL;
-    size_t sql_buffer_size = (count + 1) * (sizeof(med_entry_t) + 64) + 256;
+    size_t sql_buffer_size = (records->length + 1) * (sizeof(med_entry_t) + 64) + 256;
     size_t buflen = 0;
     int ret = 0, entries = 0;
 
-    if (!count)
+    if (!records->length)
         return 0;
 
     sql_buffer = (char*)malloc(sql_buffer_size);
@@ -580,8 +580,8 @@ int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *ta
         "(sip_code,sip_reason,method,callid,time,time_hires,src_leg,dst_leg,branch_id) VALUES ",
          table);
     
-    for (uint64_t i = 0; i < count; ++i) {
-        med_entry_t *e = &(records[i]);
+    for (GList *l = records->head; l; l = l->next) {
+        med_entry_t *e = l->data;
 
         // this is only used for inserting redis entries into mysql
         if (!e->redis)
@@ -670,20 +670,17 @@ gboolean medmysql_fetch_callids(GQueue *output)
 
 /**********************************************************************/
 int medmysql_fetch_records(char *callid,
-        med_entry_t **entries, uint64_t *count, int warn_empty)
+        GQueue *entries, int warn_empty)
 {
     MYSQL_RES *res;
     MYSQL_ROW row;
     size_t callid_len = strlen(callid);
     char query[strlen(MED_FETCH_QUERY) + callid_len * 7 + 1];
-    size_t entry_size;
-    uint64_t i = 0;
     int ret = 0;
     int len;
+    unsigned long long count = 0;
 
     char esc_callid[callid_len*2+1];
-
-    *count = 0;
 
     mysql_real_escape_string(med_handler->m, esc_callid, callid, callid_len);
 
@@ -705,8 +702,8 @@ int medmysql_fetch_records(char *callid,
     }
 
     res = mysql_store_result(med_handler->m);
-    *count = mysql_num_rows(res);
-    if(*count == 0)
+    count = mysql_num_rows(res);
+    if(count == 0)
     {
         if (warn_empty)
             L_CRITICAL("No records found for callid '%s'!",
@@ -715,21 +712,9 @@ int medmysql_fetch_records(char *callid,
         goto out;
     }
 
-    entry_size = (*count) * sizeof(med_entry_t);
-    *entries = (med_entry_t*)malloc(entry_size);
-    if(*entries == NULL)
-    {
-        L_CRITICAL("Error allocating memory for record entries: %s",
-                strerror(errno));
-        ret = -1;
-        goto out;
-
-    }
-    memset(*entries, 0, entry_size);
-
     while((row = mysql_fetch_row(res)) != NULL)
     {
-        med_entry_t *e = &(*entries)[i++];
+        med_entry_t *e = g_slice_alloc0(sizeof(*e));
 
         g_strlcpy(e->sip_code, row[0], sizeof(e->sip_code));
         g_strlcpy(e->sip_reason, row[1], sizeof(e->sip_reason));
@@ -742,6 +727,8 @@ int medmysql_fetch_records(char *callid,
         g_strlcpy(e->branch_id, row[8] ? : "", sizeof(e->branch_id));
         g_strlcpy(e->acc_ref, row[9], sizeof(e->acc_ref));
         e->valid = 1;
+
+        g_queue_push_tail(entries, e);
 
         if (check_shutdown())
             return -1;

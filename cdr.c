@@ -7,7 +7,7 @@
 #include "config.h"
 #include "mediator.h"
 
-static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
+static int cdr_create_cdrs(GQueue *records,
         cdr_entry_t **cdrs, uint64_t *cdr_count, uint64_t *alloc_size, uint8_t *trash, int do_intermediate);
 
 static const char* cdr_map_status(const char *sip_status)
@@ -62,12 +62,11 @@ static void free_cdrs(cdr_entry_t **cdrs, uint64_t cdr_count) {
 }
 
 
-int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_count,
+int cdr_process_records(GQueue *records, uint64_t *ext_count,
         struct medmysql_batches *batches, int do_intermediate)
 {
     int ret = 0;
     uint8_t trash = 0;
-    uint64_t i;
     int timed_out = 0;
 
     uint16_t msg_invites = 0;
@@ -75,7 +74,8 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
     uint16_t msg_unknowns = 0;
     uint16_t invite_200 = 0;
 
-    char *callid = records[0].callid;
+    med_entry_t *first = g_queue_peek_head(records);
+    char *callid = first->callid;
     int has_redis = 0, has_mysql = 0;
 
 
@@ -84,9 +84,9 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
 
     *ext_count = 0;
 
-    for(i = 0; i < count; ++i)
+    for (GList *l = records->head; l; l = l->next)
     {
-        med_entry_t *e = &(records[i]);
+        med_entry_t *e = l->data;
 
         if (e->timed_out)
             timed_out = 1;
@@ -140,7 +140,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
             }
             else
             {
-                if(cdr_create_cdrs(records, count, &cdrs, &cdr_count, &alloc_size, &trash, do_intermediate) != 0)
+                if(cdr_create_cdrs(records, &cdrs, &cdr_count, &alloc_size, &trash, do_intermediate) != 0)
                     goto error;
                 else
                 {
@@ -162,7 +162,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
                         {
                             if (has_redis)
                             {
-                                if(medredis_backup_entries(records, count) != 0)
+                                if(medredis_backup_entries(records) != 0)
                                     goto error;
                             }
                             if (has_mysql)
@@ -210,7 +210,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
     {
         if (has_redis)
         {
-            if(medredis_trash_entries(records, count) != 0)
+            if(medredis_trash_entries(records) != 0)
                 goto error;
         }
         if (has_mysql)
@@ -1387,7 +1387,7 @@ static cdr_entry_t *alloc_cdrs(uint64_t cdr_count) {
 }
 
 
-static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
+static int cdr_create_cdrs(GQueue *records,
         cdr_entry_t **cdrs, uint64_t *cdr_count, uint64_t *alloc_size, uint8_t *trash, int do_intermediate)
 {
     uint64_t i = 0, cdr_index = 0;
@@ -1404,9 +1404,9 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
 
 
     /* get end time from BYE's timestamp */
-    for(i = 0; i < count; ++i)
+    for (GList *l = records->head; l; l = l->next)
     {
-        med_entry_t *e = &(records[i]);
+        med_entry_t *e = l->data;
         if (e->timed_out)
             timed_out = 1;
 
@@ -1430,8 +1430,9 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
 
     if(invites == 0)
     {
+        med_entry_t *e = g_queue_peek_head(records);
         L_CRITICAL("No valid INVITEs for creating a cdr, internal error, callid='%s'",
-                records[0].callid);
+                e->callid);
         return -1;
     }
 
@@ -1444,19 +1445,19 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
     }
     *alloc_size = invites;
 
-    for(i = 0; i < count; ++i)
+    for (GList *l = records->head; l; l = l->next)
     {
         med_entry_t *e = NULL;
         cdr_entry_t *cdr = NULL;
 
 
         cdr = &(*cdrs)[cdr_index];
-        e = &(records[i]);
+        e = l->data;
 
         if (!e->valid)
             continue;
 
-        L_DEBUG("create cdr %lu of %lu in batch\n", i, count);
+        L_DEBUG("create cdr %" PRIu64 " of %u in batch\n", ++i, records->length);
 
         call_status = cdr_map_status(e->sip_code);
         if (timed_out)

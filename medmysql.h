@@ -53,7 +53,7 @@ struct medmysql_call_stat_info_t {
 int medmysql_init(void);
 void medmysql_cleanup(void);
 gboolean medmysql_fetch_callids(GQueue *output);
-int medmysql_fetch_records(char *callid, med_entry_t **entries, uint64_t *count, int warn_empty);
+int medmysql_fetch_records(char *callid, GQueue *entries, int warn_empty);
 int medmysql_trash_entries(const char *callid, struct medmysql_batches *);
 int medmysql_backup_entries(const char *callid, struct medmysql_batches *);
 int medmysql_delete_entries(const char *callid, struct medmysql_batches *);
@@ -66,7 +66,7 @@ int medmysql_load_cdr_tag_ids(GHashTable *cdr_tag_table);
 int medmysql_batch_start(struct medmysql_batches *);
 int medmysql_batch_end(struct medmysql_batches *);
 int medmysql_update_call_stat_info(const char *call_code, const double start_time);
-int medmysql_insert_records(med_entry_t *records, uint64_t count, const char *table);
+int medmysql_insert_records(GQueue *records, const char *table);
 void medmysql_cache_cleanup(GHashTable *);
 
 #endif /* _MED_MYSQL_H */

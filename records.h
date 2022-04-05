@@ -2,8 +2,9 @@
 #define _RECORDS_H
 
 #include "mediator.h"
+#include <glib.h>
 
-void records_sort(med_entry_t *records, uint64_t count);
-int records_complete(med_entry_t *records, uint64_t count);
+void records_sort(GQueue *records);
+int records_complete(GQueue *records);
 
 #endif

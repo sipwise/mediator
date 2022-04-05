@@ -106,6 +106,8 @@ extern GHashTable *med_cdr_tag_table;
 
 void critical(const char *);
 
+void med_entry_free(void *p);
+
 static inline int check_shutdown(void) {
     if (mediator_shutdown) {
         syslog(LOG_INFO, "Shutdown detected, aborting work in progress");

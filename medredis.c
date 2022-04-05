@@ -350,8 +350,7 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, 
         return NULL;
     }
 
-    entry = (med_entry_t*)malloc(sizeof(med_entry_t));
-    memset(entry, 0, sizeof(med_entry_t));
+    entry = g_slice_alloc0(sizeof(med_entry_t));
     entry->valid = 1;
     entry->redis = 1;
 
@@ -612,7 +611,7 @@ static void medredis_free_keys_list(gpointer data) {
 
 /**********************************************************************/
 int medredis_fetch_records(char *callid,
-        med_entry_t **entries, uint64_t *count) {
+        GQueue *entries) {
 
 
     /*
@@ -632,7 +631,6 @@ int medredis_fetch_records(char *callid,
     redisReply *reply = NULL;
 
     char *cids[4];
-    GList *records;
     GList *keys;
 
     size_t i;
@@ -640,7 +638,6 @@ int medredis_fetch_records(char *callid,
     cid_set_argc = 2;
     cid_set_argv[0] = "SMEMBERS";
 
-    records = NULL;
     keys = NULL;
 
 
@@ -669,8 +666,7 @@ int medredis_fetch_records(char *callid,
         goto err;
     }
 
-    *count = 0;
-    *entries = NULL;
+    g_queue_clear_full(entries, med_entry_free);
 
     L_DEBUG("Fetching records from redis\n");
 
@@ -742,34 +738,9 @@ int medredis_fetch_records(char *callid,
             continue;
         }
         medredis_free_reply(&reply);
-        records = g_list_prepend(records, e);
-        (*count)++;
+        g_queue_push_head(entries, e);
     }
 
-    if (!*count)
-        goto no_entries;
-
-    *entries = (med_entry_t*)malloc(*count * sizeof(med_entry_t));
-    if (!*entries) {
-        L_ERROR("Failed to allocate memory for entries (cid '%s')\n", callid);
-        goto err;
-    }
-    i = 0;
-    for (GList *l = records; l; l = l->next) {
-        med_entry_t *s = (med_entry_t*)l->data;
-        med_entry_t *d = &(*entries)[i++];
-
-        L_DEBUG("Copying record with cid='%s', method='%s', code='%s'",
-            s->callid, s->sip_method, s->sip_code);
-
-        memcpy(d, s, sizeof(med_entry_t));
-        free(s);
-
-        L_DEBUG("Added entry with cid '%s' and method '%s'\n", d->callid, d->sip_method);
-    }
-
-no_entries:
-    g_list_free(records);
     g_list_free_full(keys, medredis_free_keys_list);
 
     medredis_consume_replies();
@@ -780,13 +751,11 @@ no_entries:
 err:
     if (reply)
         freeReplyObject(reply);
-    *count = (uint64_t) -1;
     for (i = 0; i < 4; ++i) {
         if (cids[i])
             free(cids[i]);
     }
-    if (*entries)
-        free(*entries);
+    g_queue_clear_full(entries, med_entry_free);
     medredis_consume_replies();
     return -1;
 
@@ -794,16 +763,16 @@ err:
 }
 
 /**********************************************************************/
-static int medredis_cleanup_entries(med_entry_t *records, uint64_t count, const char *table) {
+static int medredis_cleanup_entries(GQueue *records, const char *table) {
     char buffer[512];
 
-    if (medmysql_insert_records(records, count, table) != 0) {
+    if (medmysql_insert_records(records, table) != 0) {
         L_CRITICAL("Failed to cleanup redis records\n");
         goto err;
     }
 
-    for (uint64_t i = 0; i < count; ++i) {
-        med_entry_t *e = &(records[i]);
+    for (GList *l = records->head; l; l = l->next) {
+        med_entry_t *e = l->data;
         if (!e->redis)
             continue;
 
@@ -845,11 +814,11 @@ err:
 }
 
 /**********************************************************************/
-int medredis_trash_entries(med_entry_t *records, uint64_t count) {
-    return medredis_cleanup_entries(records, count, "trash");
+int medredis_trash_entries(GQueue *records) {
+    return medredis_cleanup_entries(records, "trash");
 }
 
 /**********************************************************************/
-int medredis_backup_entries(med_entry_t *records, uint64_t count) {
-    return medredis_cleanup_entries(records, count, "backup");
+int medredis_backup_entries(GQueue *records) {
+    return medredis_cleanup_entries(records, "backup");
 }

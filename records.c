@@ -1,5 +1,6 @@
 #include "records.h"
 #include "config.h"
+#include <glib.h>
 #include <time.h>
 
 #define comp_ret(a_var, b_var) \
@@ -12,7 +13,7 @@
             return 1; \
     } while (0)
 
-static int records_sort_func(const void *aa, const void *bb)
+static int records_sort_func(const void *aa, const void *bb, __attribute__ ((unused)) void *dummy)
 {
     const med_entry_t *a = aa;
     const med_entry_t *b = bb;
@@ -22,28 +23,29 @@ static int records_sort_func(const void *aa, const void *bb)
     return 0;
 }
 
-void records_sort(med_entry_t *records, uint64_t count)
+void records_sort(GQueue *records)
 {
-    qsort(records, count, sizeof(med_entry_t), records_sort_func);
+    g_queue_sort(records, records_sort_func, NULL);
 }
 
-int records_complete(med_entry_t *records, uint64_t count)
+int records_complete(GQueue *records)
 {
     uint8_t has_bye = 0;
     uint8_t has_inv_200 = 0;
 
     // if our records are old enough, we always consider them complete
-    if (count && config_max_acc_age)
+    if (records->head && config_max_acc_age)
     {
-        if (time(NULL) - records[0].unix_timestamp > config_max_acc_age) {
-            records[0].timed_out = 1;
+        med_entry_t *r = g_queue_peek_head(records);
+        if (time(NULL) - r->unix_timestamp > config_max_acc_age) {
+            r->timed_out = 1;
             return 1;
         }
     }
 
-    for (uint64_t i = 0; i < count; i++)
+    for (GList *l = records->head; l; l = l->next)
     {
-        med_entry_t *s = &records[i];
+        med_entry_t *s = l->data;
         if (s->sip_method[0] == 'I' && s->sip_method[1] == 'N' && s->sip_method[2] == 'V' &&
                 s->sip_code[0] == '2') {
             has_inv_200 |= 1;

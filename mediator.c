@@ -39,6 +39,9 @@ static void med_free_cache_entry(void *p)
     g_free(e->str_value);
     g_slice_free1(sizeof(*e), e);
 }
+void med_entry_free(void *p) {
+    g_slice_free1(sizeof(med_entry_t), p);
+}
 
 /**********************************************************************/
 static void mediator_create_caches(void)
@@ -176,12 +179,28 @@ static uint64_t mediator_calc_runtime(struct timeval *tv_start, struct timeval *
 }
 
 /**********************************************************************/
+// appends the entire `two` list to the end of `one`, resetting `two` to empty
+static void mediator_splice_gqueue(GQueue *one, GQueue *two) {
+    if (!two->head)
+        return;
+    if (!one->tail) {
+        *one = *two;
+        g_queue_init(two);
+        return;
+    }
+    one->tail->next = two->head;
+    two->head->prev = one->tail;
+    one->length += two->length;
+    g_queue_init(two);
+}
+
+/**********************************************************************/
 int main(int argc, char **argv)
 {
     GQueue mysql_callids = G_QUEUE_INIT;
     GQueue redis_callids = G_QUEUE_INIT;
-    med_entry_t *mysql_records, *redis_records;
-    uint64_t mysql_rec_count, redis_rec_count;
+    GQueue mysql_records = G_QUEUE_INIT;
+    GQueue redis_records = G_QUEUE_INIT;
     uint64_t cdr_count, last_count;
     int maprefresh;
     struct medmysql_batches *batches;
@@ -306,7 +325,9 @@ int main(int argc, char **argv)
 
         g_queue_clear_full(&mysql_callids, g_free);
         g_queue_clear_full(&redis_callids, g_free);
-        mysql_rec_count = redis_rec_count = cdr_count = 0;
+        g_queue_clear_full(&mysql_records, med_entry_free);
+        g_queue_clear_full(&redis_records, med_entry_free);
+        cdr_count = 0;
         last_count = mediator_count;
 
         success = medmysql_fetch_callids(&mysql_callids);
@@ -342,45 +363,30 @@ int main(int argc, char **argv)
             gettimeofday(&tv_start, NULL);
 #endif
 
-            if(medmysql_fetch_records(mysql_callid, &mysql_records, &mysql_rec_count, 1) != 0)
+            if(medmysql_fetch_records(mysql_callid, &mysql_records, 1) != 0)
                 goto out;
 
-            if(medredis_fetch_records(mysql_callid, &redis_records, &redis_rec_count) == 0
-                    && redis_rec_count)
+            if(medredis_fetch_records(mysql_callid, &redis_records) == 0)
             {
-                med_entry_t *mysql_new_records;
-
-                mysql_new_records = realloc(mysql_records, (mysql_rec_count + redis_rec_count) * sizeof(med_entry_t));
-                if (!mysql_new_records)
-                {
-                    L_ERROR("Failed to realloc mysql_records\n");
-                    break;
-                }
-                mysql_records = mysql_new_records;
-                memcpy(&mysql_records[mysql_rec_count], redis_records, redis_rec_count * sizeof(med_entry_t));
-                free(redis_records);
-                mysql_rec_count += redis_rec_count;
+                mediator_splice_gqueue(&mysql_records, &redis_records);
 
 		// only re-sort if records from Redis were added, as MySQL already does the sorting
-                records_sort(mysql_records, mysql_rec_count);
+                records_sort(&mysql_records);
             }
 
-            int are_records_complete = records_complete(mysql_records, mysql_rec_count);
+            int are_records_complete = records_complete(&mysql_records);
 
             if (!are_records_complete && !do_intermediate)
             {
                 L_DEBUG("Found incomplete call with cid '%s', skipping...\n", mysql_callid);
-                free(mysql_records);
+                g_queue_clear_full(&mysql_records, med_entry_free);
                 continue;
             }
 
-            if(cdr_process_records(mysql_records, mysql_rec_count, &cdr_count, batches, do_intermediate) != 0)
+            if(cdr_process_records(&mysql_records, &cdr_count, batches, do_intermediate) != 0)
                 goto out;
 
-            if(mysql_rec_count > 0)
-            {
-                free(mysql_records);
-            }
+            g_queue_clear_full(&mysql_records, med_entry_free);
 
             mediator_count += cdr_count;
 
@@ -403,46 +409,34 @@ int main(int argc, char **argv)
             gettimeofday(&tv_start, NULL);
 #endif
 
-            if(medredis_fetch_records(redis_callid, &redis_records, &redis_rec_count) != 0)
+            if(medredis_fetch_records(redis_callid, &redis_records) != 0)
                 goto out;
 
-            if(medmysql_fetch_records(redis_callid, &mysql_records, &mysql_rec_count, 0) == 0
-                    && mysql_rec_count)
+            if(medmysql_fetch_records(redis_callid, &mysql_records, 0) == 0)
             {
-                med_entry_t *redis_new_records;
-
-                redis_new_records = realloc(redis_records, (mysql_rec_count + redis_rec_count) * sizeof(med_entry_t));
-                if (!redis_new_records)
-                {
-                    L_ERROR("Failed to realloc redis_records\n");
-                    break;
-                }
-                redis_records = redis_new_records;
-                memcpy(&redis_records[redis_rec_count], mysql_records, mysql_rec_count * sizeof(med_entry_t));
-                free(mysql_records);
-                redis_rec_count += mysql_rec_count;
+                mediator_splice_gqueue(&redis_records, &mysql_records);
             }
 
 	    // always sort records from Redis, regardless of whether records from MySQL were merged
-            records_sort(redis_records, redis_rec_count);
+            records_sort(&redis_records);
 
-            int are_records_complete =  records_complete(redis_records, redis_rec_count);
+            int are_records_complete = records_complete(&redis_records);
 
             if (!are_records_complete && !do_intermediate)
             {
                 L_DEBUG("Found incomplete call with cid '%s', skipping...\n", redis_callid);
-                free(redis_records);
+                g_queue_clear_full(&redis_records, med_entry_free);
                 continue;
             }
 
-            L_DEBUG("process cdr with cid '%s' and %"PRIu64" records\n", redis_callid, redis_rec_count);
+            L_DEBUG("process cdr with cid '%s' and %u records\n", redis_callid, redis_records.length);
 
-            if (redis_rec_count) {
-                if(cdr_process_records(redis_records, redis_rec_count, &cdr_count, batches, do_intermediate) != 0) {
-                    free(redis_records);
+            if (redis_records.length) {
+                if(cdr_process_records(&redis_records, &cdr_count, batches, do_intermediate) != 0) {
+                    g_queue_clear_full(&redis_records, med_entry_free);
                     goto out;
                 }
-                free(redis_records);
+                g_queue_clear_full(&redis_records, med_entry_free);
 
                 mediator_count += cdr_count;
             }
