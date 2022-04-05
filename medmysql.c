@@ -627,16 +627,11 @@ out:
 }
 
 /**********************************************************************/
-med_callid_t *medmysql_fetch_callids(uint64_t *count)
+gboolean medmysql_fetch_callids(GQueue *output)
 {
     MYSQL_RES *res;
     MYSQL_ROW row;
     /* char query[1024] = ""; */
-    size_t callid_size;
-    uint64_t i = 0;
-    med_callid_t *callids = NULL;
-
-    *count = (uint64_t) -1; /* non-zero count and return of NULL == error */
 
     /* g_strlcpy(query, MED_CALLID_QUERY, sizeof(query)); */
 
@@ -646,68 +641,51 @@ med_callid_t *medmysql_fetch_callids(uint64_t *count)
     {
         L_CRITICAL("Error getting acc callids: %s",
                 mysql_error(med_handler->m));
-        return NULL;
+        return FALSE;
     }
 
     res = mysql_store_result(med_handler->m);
-    *count = mysql_num_rows(res);
-    if(*count == 0)
-    {
-        goto out;
-    }
-
-    callid_size = sizeof(med_callid_t) * (*count);
-    callids = malloc(callid_size);
-    if(callids == NULL)
-    {
-        L_CRITICAL("Error allocating callid memory: %s", strerror(errno));
-        free(callids);
-        callids = NULL;
-        goto out;
-    }
-
-    memset(callids, '\0', callid_size);
 
     while((row = mysql_fetch_row(res)) != NULL)
     {
-        med_callid_t *c = &callids[i++];
         if(row[0] == NULL)
         {
-            g_strlcpy(c->value, "0", sizeof(c->value));
+            g_queue_push_tail(output, g_strdup("0"));
         } else {
-            g_strlcpy(c->value, row[0], sizeof(c->value));
+            g_queue_push_tail(output, g_strdup(row[0]));
         }
 
         /*L_DEBUG("callid[%"PRIu64"]='%s'", i, c->value);*/
 
         if (check_shutdown()) {
-            free(callids);
-            return NULL;
+            mysql_free_result(res);
+            g_queue_clear_full(output, free);
+            return FALSE;
         }
     }
 
-out:
     mysql_free_result(res);
-    return callids;
+    return TRUE;
 }
 
 /**********************************************************************/
-int medmysql_fetch_records(med_callid_t *callid,
+int medmysql_fetch_records(char *callid,
         med_entry_t **entries, uint64_t *count, int warn_empty)
 {
     MYSQL_RES *res;
     MYSQL_ROW row;
-    char query[strlen(MED_FETCH_QUERY) + sizeof(callid->value) * 7 + 1];
+    size_t callid_len = strlen(callid);
+    char query[strlen(MED_FETCH_QUERY) + callid_len * 7 + 1];
     size_t entry_size;
     uint64_t i = 0;
     int ret = 0;
     int len;
 
-    char esc_callid[sizeof(((med_callid_t*)0)->value)*2+1];
+    char esc_callid[callid_len*2+1];
 
     *count = 0;
 
-    mysql_real_escape_string(med_handler->m, esc_callid, callid->value, strlen(callid->value));
+    mysql_real_escape_string(med_handler->m, esc_callid, callid, callid_len);
 
     len = snprintf(query, sizeof(query), MED_FETCH_QUERY,
         esc_callid,
@@ -722,7 +700,7 @@ int medmysql_fetch_records(med_callid_t *callid,
     if(medmysql_query_wrapper(med_handler, query, len) != 0)
     {
         L_CRITICAL("Error getting acc records for callid '%s': %s",
-                callid->value, mysql_error(med_handler->m));
+                callid, mysql_error(med_handler->m));
         return -1;
     }
 
@@ -732,7 +710,7 @@ int medmysql_fetch_records(med_callid_t *callid,
     {
         if (warn_empty)
             L_CRITICAL("No records found for callid '%s'!",
-                    callid->value);
+                    callid);
         ret = -1;
         goto out;
     }

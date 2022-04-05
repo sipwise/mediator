@@ -39,11 +39,6 @@ typedef struct {
     unsigned int append_counter;
 } medredis_con_t;
 
-typedef struct {
-    med_callid_t *entries;
-    uint64_t index;
-} medredis_cidlist_t;
-
 static medredis_con_t *con = NULL;
 static char medredis_srem_key_lua[41]; // sha-1 hex string
 
@@ -482,29 +477,16 @@ void medredis_cleanup() {
 }
 
 /**********************************************************************/
-static void medredis_add_cid(void *key, void *val, void *data) {
-    medredis_cidlist_t *list = (medredis_cidlist_t*)data;
-    (void)val;
-    L_DEBUG("Adding cid %s at index %"PRIu64"\n", (char*)key, list->index);
-    g_strlcpy(list->entries[list->index].value, (char*)key, sizeof(list->entries[list->index].value));
-    list->index++;
-}
-
-/**********************************************************************/
-med_callid_t *medredis_fetch_callids(uint64_t *count) {
+gboolean medredis_fetch_callids(GQueue *output) {
     unsigned int cursor = 0;
     size_t i = 0;
     redisReply *reply = NULL;
     char *cmd = "SSCAN acc:meth::INVITE %u COUNT 1000";
-    med_callid_t *entries = NULL;
     GHashTable *cid_table;
-    medredis_cidlist_t cid_list;
     char buffer[256];
     char *tmp;
 
-    cid_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, NULL);
-
-    *count = 0;
+    cid_table = g_hash_table_new(g_str_hash, g_str_equal);
 
     do {
         snprintf(buffer, sizeof(buffer), cmd, cursor);
@@ -557,7 +539,7 @@ med_callid_t *medredis_fetch_callids(uint64_t *count) {
 
 
             // strip leading "acc:entry::" and trailing ":<time_hires>:<branch_id>"
-            cid = strdup(entry->str + strlen("acc:entry::"));
+            cid = g_strdup(entry->str + strlen("acc:entry::"));
             tmp = strrchr(cid, ':');
             if (tmp) {
                 *tmp = '\0';
@@ -574,34 +556,24 @@ med_callid_t *medredis_fetch_callids(uint64_t *count) {
             }
 
             if (g_hash_table_insert(cid_table, cid, cid)) {
-                (*count)++;
+                g_queue_push_tail(output, cid);
+            } else {
+                free(cid);
             }
 
         }
         medredis_free_reply(&reply);
-    } while (cursor && (*count) < 200000);
+    } while (cursor && output->length < 200000);
 
-    *count = g_hash_table_size(cid_table);
-    if (*count) {
-        entries = (med_callid_t*)malloc(*count * sizeof(*entries));
-        if (!entries) {
-            L_ERROR("Failed to allocate memory for callid list\n");
-            goto err;
-        }
-        cid_list.entries = entries;
-        cid_list.index = 0;
-        g_hash_table_foreach(cid_table, medredis_add_cid, &cid_list);
-    }
     g_hash_table_destroy(cid_table);
 
-    return entries;
+    return TRUE;
 
 err:
     if (reply)
         freeReplyObject(reply);
-    *count = (uint64_t) -1;
     g_hash_table_destroy(cid_table);
-    return NULL;
+    return FALSE;
 }    
 
 /**********************************************************************/
@@ -639,7 +611,7 @@ static void medredis_free_keys_list(gpointer data) {
 }
 
 /**********************************************************************/
-int medredis_fetch_records(med_callid_t *callid,
+int medredis_fetch_records(char *callid,
         med_entry_t **entries, uint64_t *count) {
 
 
@@ -673,24 +645,24 @@ int medredis_fetch_records(med_callid_t *callid,
 
 
     memset(cids, 0, sizeof(cids));
-    cids[0] = strdup(callid->value);
+    cids[0] = strdup(callid);
     if (!cids[0]) {
         L_ERROR("Failed to allocate memory for callid\n");
         goto err;
     }
-    snprintf(buffer, sizeof(buffer), "%s%s", callid->value, PBXSUFFIX);
+    snprintf(buffer, sizeof(buffer), "%s%s", callid, PBXSUFFIX);
     cids[1] = strdup(buffer);
     if (!cids[1]) {
         L_ERROR("Failed to allocate memory for callid with pbxsuffix\n");
         goto err;
     }
-    snprintf(buffer, sizeof(buffer), "%s%s", callid->value, XFERSUFFIX);
+    snprintf(buffer, sizeof(buffer), "%s%s", callid, XFERSUFFIX);
     cids[2] = strdup(buffer);
     if (!cids[2]) {
         L_ERROR("Failed to allocate memory for callid with xfersuffix\n");
         goto err;
     }
-    snprintf(buffer, sizeof(buffer), "%s%s%s", callid->value, PBXSUFFIX, XFERSUFFIX);
+    snprintf(buffer, sizeof(buffer), "%s%s%s", callid, PBXSUFFIX, XFERSUFFIX);
     cids[3] = strdup(buffer);
     if (!cids[3]) {
         L_ERROR("Failed to allocate memory for callid with pbxsuffix and xfersuffix\n");
@@ -707,7 +679,7 @@ int medredis_fetch_records(med_callid_t *callid,
         snprintf(buffer, sizeof(buffer), "acc:cid::%s", cid);
         cid_set_argv[1] = buffer;
         if (medredis_append_command_argv(cid_set_argc, cid_set_argv, 1) != 0) {
-            L_ERROR("Failed to append redis command to fetch entries for cid '%s'\n", callid->value);
+            L_ERROR("Failed to append redis command to fetch entries for cid '%s'\n", callid);
             goto err;
         }
         free(cid);
@@ -716,7 +688,7 @@ int medredis_fetch_records(med_callid_t *callid,
 
     for (i = 0; i < 4; ++i) {
         if (medredis_get_reply(&reply) != 0) {
-            L_ERROR("Failed to get redis reply for command to fetch entries for cid '%s'\n", callid->value);
+            L_ERROR("Failed to get redis reply for command to fetch entries for cid '%s'\n", callid);
             goto err;    
         }
         medredis_check_reply("smembers for cid", reply, err);
@@ -729,14 +701,14 @@ int medredis_fetch_records(med_callid_t *callid,
         }
         if (!reply->elements) {
             medredis_free_reply(&reply);
-            L_DEBUG("No matching entries for cid '%s' at suffix idx %lu\n", callid->value, i);
+            L_DEBUG("No matching entries for cid '%s' at suffix idx %lu\n", callid, i);
             continue;
         }
 
         for (size_t j = 0; j < reply->elements; ++j) {
             char *key = strdup(reply->element[j]->str);
             if (!key) {
-                L_ERROR("Failed to allocate memory for redis key (cid '%s')\n", callid->value);
+                L_ERROR("Failed to allocate memory for redis key (cid '%s')\n", callid);
                 goto err;
             }
             L_DEBUG("Putting key '%s' to keys list\n", key);
@@ -755,7 +727,7 @@ int medredis_fetch_records(med_callid_t *callid,
         
         L_DEBUG("Fetching next reply record, query key was '%s'\n", key);
         if (medredis_get_reply(&reply) != 0) {
-            L_ERROR("Failed to get reply from redis (cid '%s')\n", callid->value);
+            L_ERROR("Failed to get reply from redis (cid '%s')\n", callid);
             goto err;
         }
         if (!reply)
@@ -763,9 +735,9 @@ int medredis_fetch_records(med_callid_t *callid,
         medredis_check_reply("get reply", reply, err);
         medredis_dump_reply(reply);
 
-        e = medredis_reply_to_entry(reply, callid->value, key);
+        e = medredis_reply_to_entry(reply, callid, key);
         if (!e) {
-            L_WARNING("Failed to convert redis reply to entry (cid '%s')\n", callid->value);
+            L_WARNING("Failed to convert redis reply to entry (cid '%s')\n", callid);
             medredis_free_reply(&reply);
             continue;
         }
@@ -779,7 +751,7 @@ int medredis_fetch_records(med_callid_t *callid,
 
     *entries = (med_entry_t*)malloc(*count * sizeof(med_entry_t));
     if (!*entries) {
-        L_ERROR("Failed to allocate memory for entries (cid '%s')\n", callid->value);
+        L_ERROR("Failed to allocate memory for entries (cid '%s')\n", callid);
         goto err;
     }
     i = 0;

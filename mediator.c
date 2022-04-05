@@ -178,10 +178,10 @@ static uint64_t mediator_calc_runtime(struct timeval *tv_start, struct timeval *
 /**********************************************************************/
 int main(int argc, char **argv)
 {
-    med_callid_t *mysql_callids;
-    med_callid_t *redis_callids;
+    GQueue mysql_callids = G_QUEUE_INIT;
+    GQueue redis_callids = G_QUEUE_INIT;
     med_entry_t *mysql_records, *redis_records;
-    uint64_t mysql_id_count, redis_id_count, mysql_rec_count, redis_rec_count, i;
+    uint64_t mysql_rec_count, redis_rec_count;
     uint64_t cdr_count, last_count;
     int maprefresh;
     struct medmysql_batches *batches;
@@ -191,6 +191,7 @@ int main(int argc, char **argv)
     struct timeval tv_start, tv_stop;
     uint64_t runtime;
 #endif    
+    gboolean success;
 
     openlog(MEDIATOR_SYSLOG_NAME, LOG_PID|LOG_NDELAY, LOG_DAEMON);
     atexit(mediator_exit);
@@ -303,22 +304,24 @@ int main(int argc, char **argv)
             }
         }
 
-        mysql_id_count = redis_id_count = mysql_rec_count = redis_rec_count = cdr_count = 0;
+        g_queue_clear_full(&mysql_callids, g_free);
+        g_queue_clear_full(&redis_callids, g_free);
+        mysql_rec_count = redis_rec_count = cdr_count = 0;
         last_count = mediator_count;
 
-        mysql_callids = medmysql_fetch_callids(&mysql_id_count);
-        if(!mysql_callids && mysql_id_count) {
+        success = medmysql_fetch_callids(&mysql_callids);
+        if(!success) {
             L_ERROR("Failed to fetch callids from MySQL\n");
             break;
         }
 
-        redis_callids = medredis_fetch_callids(&redis_id_count);
-        if (!redis_callids && redis_id_count) {
+        success = medredis_fetch_callids(&redis_callids);
+        if (!success) {
             L_ERROR("Failed to fetch callids from Redis\n");
             break;
         }
 
-        if (!mysql_id_count && !redis_id_count) {
+        if (!mysql_callids.length && !redis_callids.length) {
             L_DEBUG("No callids found, going idle\n");
             goto idle;
         }
@@ -331,17 +334,18 @@ int main(int argc, char **argv)
 
         //////////////// mysql handling //////////////////
 
-        L_DEBUG("Processing %"PRIu64" mysql accounting record group(s).", mysql_id_count);
-        for(i = 0; i < mysql_id_count && !mediator_shutdown; ++i)
+        L_DEBUG("Processing %u mysql accounting record group(s).", mysql_callids.length);
+        for(GList *l = mysql_callids.head; l && !mediator_shutdown; l = l->next)
         {
+            char *mysql_callid = l->data;
 #ifdef WITH_TIME_CALC
             gettimeofday(&tv_start, NULL);
 #endif
 
-            if(medmysql_fetch_records(&(mysql_callids[i]), &mysql_records, &mysql_rec_count, 1) != 0)
+            if(medmysql_fetch_records(mysql_callid, &mysql_records, &mysql_rec_count, 1) != 0)
                 goto out;
 
-            if(medredis_fetch_records(&(mysql_callids[i]), &redis_records, &redis_rec_count) == 0
+            if(medredis_fetch_records(mysql_callid, &redis_records, &redis_rec_count) == 0
                     && redis_rec_count)
             {
                 med_entry_t *mysql_new_records;
@@ -365,7 +369,7 @@ int main(int argc, char **argv)
 
             if (!are_records_complete && !do_intermediate)
             {
-                L_DEBUG("Found incomplete call with cid '%s', skipping...\n", mysql_callids[i].value);
+                L_DEBUG("Found incomplete call with cid '%s', skipping...\n", mysql_callid);
                 free(mysql_records);
                 continue;
             }
@@ -384,27 +388,25 @@ int main(int argc, char **argv)
             gettimeofday(&tv_stop, NULL);
             runtime = mediator_calc_runtime(&tv_start, &tv_stop);
             L_INFO("Runtime for mysql record group was %"PRIu64" us.", runtime);
-            L_INFO("CDR creation rate for mysql record group was %f CDR/sec", (double)mysql_id_count/runtime * 1000000);
+            L_INFO("CDR creation rate for mysql record group was %f CDR/sec", (double)mysql_callids.length/runtime * 1000000);
 #endif
-        }
-        if (mysql_id_count) {
-            free(mysql_callids);
         }
 
 
         //////////////// redis handling //////////////////
 
-        L_DEBUG("Processing %"PRIu64" redis accounting record group(s).", redis_id_count);
-        for(i = 0; i < redis_id_count && !mediator_shutdown; ++i)
+        L_DEBUG("Processing %u redis accounting record group(s).", redis_callids.length);
+        for(GList *l = redis_callids.head; l && !mediator_shutdown; l = l->next)
         {
+            char *redis_callid = l->data;
 #ifdef WITH_TIME_CALC
             gettimeofday(&tv_start, NULL);
 #endif
 
-            if(medredis_fetch_records(&(redis_callids[i]), &redis_records, &redis_rec_count) != 0)
+            if(medredis_fetch_records(redis_callid, &redis_records, &redis_rec_count) != 0)
                 goto out;
 
-            if(medmysql_fetch_records(&(redis_callids[i]), &mysql_records, &mysql_rec_count, 0) == 0
+            if(medmysql_fetch_records(redis_callid, &mysql_records, &mysql_rec_count, 0) == 0
                     && mysql_rec_count)
             {
                 med_entry_t *redis_new_records;
@@ -428,12 +430,12 @@ int main(int argc, char **argv)
 
             if (!are_records_complete && !do_intermediate)
             {
-                L_DEBUG("Found incomplete call with cid '%s', skipping...\n", redis_callids[i].value);
+                L_DEBUG("Found incomplete call with cid '%s', skipping...\n", redis_callid);
                 free(redis_records);
                 continue;
             }
 
-            L_DEBUG("process cdr with cid '%s' and %"PRIu64" records\n", redis_callids[i].value, redis_rec_count);
+            L_DEBUG("process cdr with cid '%s' and %"PRIu64" records\n", redis_callid, redis_rec_count);
 
             if (redis_rec_count) {
                 if(cdr_process_records(redis_records, redis_rec_count, &cdr_count, batches, do_intermediate) != 0) {
@@ -449,11 +451,8 @@ int main(int argc, char **argv)
             gettimeofday(&tv_stop, NULL);
             runtime = mediator_calc_runtime(&tv_start, &tv_stop);
             L_INFO("Runtime for redis record group was %"PRIu64" us.", runtime);
-            L_INFO("CDR creation rate for redis record group was %f CDR/sec", (double)redis_id_count/runtime * 1000000);
+            L_INFO("CDR creation rate for redis record group was %f CDR/sec", (double)redis_callids.length/runtime * 1000000);
 #endif
-        }
-        if (redis_id_count) {
-            free(redis_callids);
         }
 
         //////////////// end //////////////////
@@ -463,8 +462,8 @@ int main(int argc, char **argv)
 
         gettimeofday(&loop_tv_stop, NULL);
         loop_runtime = mediator_calc_runtime(&loop_tv_start, &loop_tv_stop);
-        L_INFO("Runtime for loop processing %"PRIu64" callids and generating %"PRIu64" CDRs was %"PRIu64" us.",
-            mysql_id_count + redis_id_count, mediator_count - last_count, loop_runtime);
+        L_INFO("Runtime for loop processing %u callids and generating %"PRIu64" CDRs was %"PRIu64" us.",
+            mysql_callids.length + redis_callids.length, mediator_count - last_count, loop_runtime);
         L_INFO("Total CDR creation rate %f CDR/sec", (double)(mediator_count - last_count)/loop_runtime * 1000000);
 
 idle:
@@ -484,6 +483,8 @@ out:
     L_INFO("Shutting down.");
     sd_notify(0, "STOPPING=1\n");
 
+    g_queue_clear_full(&mysql_callids, g_free);
+    g_queue_clear_full(&redis_callids, g_free);
     mediator_destroy_maps();
     mediator_destroy_caches();
     medmysql_cleanup();

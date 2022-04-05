@@ -92,10 +92,6 @@ typedef struct {
 } med_entry_t;
 
 typedef struct {
-    char value[256];
-} med_callid_t;
-
-typedef struct {
     char *str_value;
     time_t created;
 } med_cache_entry_t;
