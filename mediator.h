@@ -92,12 +92,6 @@ typedef struct {
 } med_entry_t;
 
 typedef struct {
-    med_entry_t *records;
-    uint64_t rec_count;
-    char callid[256];
-} med_redis_entry_t;
-
-typedef struct {
     char value[256];
 } med_callid_t;
 
