@@ -46,10 +46,9 @@ int records_complete(GQueue *records)
     for (GList *l = records->head; l; l = l->next)
     {
         med_entry_t *s = l->data;
-        if (s->sip_method[0] == 'I' && s->sip_method[1] == 'N' && s->sip_method[2] == 'V' &&
-                s->sip_code[0] == '2') {
+        if (s->method == MED_INVITE && s->sip_code[0] == '2') {
             has_inv_200 |= 1;
-        } else if (s->sip_method[0] == 'B' && s->sip_method[1] == 'Y' && s->sip_method[2] == 'E') {
+        } else if (s->method == MED_BYE) {
             has_bye |= 1;
         }
     }

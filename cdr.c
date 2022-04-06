@@ -94,30 +94,23 @@ int cdr_process_records(GQueue *records, uint64_t *ext_count,
         if (e->timed_out)
             timed_out = 1;
 
-        if(!e->valid)
-        {
-            ++msg_unknowns;
-            e->method = MED_UNRECOGNIZED;
-        }
-        else if(strcmp(e->sip_method, MSG_INVITE) == 0)
+        if(e->method == MED_INVITE)
         {
             ++msg_invites;
-            e->method = MED_INVITE;
             if(strncmp("200", e->sip_code, 3) == 0)
             {
                 ++invite_200;
             }
         }
-        else if(strcmp(e->sip_method, MSG_BYE) == 0)
+        else if(e->method == MED_BYE)
         {
             ++msg_byes;
-            e->method = MED_BYE;
         }
         else
         {
-            L_DEBUG("Unrecognized record with method '%s' for cid '%s'\n", e->sip_method, callid);
+            if (e->valid)
+                L_DEBUG("Unrecognized record with method '%s' for cid '%s'\n", e->sip_method, callid);
             ++msg_unknowns;
-            e->method = MED_UNRECOGNIZED;
         }
 
         if (check_shutdown())
@@ -1622,5 +1615,22 @@ void cdr_parse_entry(med_entry_t *e)
     if (!e->dst_leg_json && e->dst_leg[0])
     {
         e->dst_leg_json = json_tokener_parse(e->dst_leg);
+    }
+
+    if (!e->valid)
+    {
+        e->method = MED_UNRECOGNIZED;
+    }
+    else if (strcmp(e->sip_method, MSG_INVITE) == 0)
+    {
+        e->method = MED_INVITE;
+    }
+    else if (strcmp(e->sip_method, MSG_BYE) == 0)
+    {
+        e->method = MED_BYE;
+    }
+    else
+    {
+        e->method = MED_UNRECOGNIZED;
     }
 }
