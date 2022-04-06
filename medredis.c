@@ -659,8 +659,6 @@ int medredis_fetch_records(char *callid,
         6. skip if INVITE/200 and no BYE
     */
 
-    char buffer[512];
-
     uint8_t cid_set_argc;
     char *cid_set_argv[2];
 
@@ -678,47 +676,25 @@ int medredis_fetch_records(char *callid,
 
 
     memset(cids, 0, sizeof(cids));
-    cids[0] = strdup(callid);
-    if (!cids[0]) {
-        L_ERROR("Failed to allocate memory for callid\n");
-        goto err;
-    }
-    snprintf(buffer, sizeof(buffer), "%s%s", callid, PBXSUFFIX);
-    cids[1] = strdup(buffer);
-    if (!cids[1]) {
-        L_ERROR("Failed to allocate memory for callid with pbxsuffix\n");
-        goto err;
-    }
-    snprintf(buffer, sizeof(buffer), "%s%s", callid, XFERSUFFIX);
-    cids[2] = strdup(buffer);
-    if (!cids[2]) {
-        L_ERROR("Failed to allocate memory for callid with xfersuffix\n");
-        goto err;
-    }
-    snprintf(buffer, sizeof(buffer), "%s%s%s", callid, PBXSUFFIX, XFERSUFFIX);
-    cids[3] = strdup(buffer);
-    if (!cids[3]) {
-        L_ERROR("Failed to allocate memory for callid with pbxsuffix and xfersuffix\n");
-        goto err;
-    }
+    cids[0] = g_strdup_printf("acc:cid::%s", callid);
+    cids[1] = g_strdup_printf("acc:cid::%s%s", callid, PBXSUFFIX);
+    cids[2] = g_strdup_printf("acc:cid::%s%s", callid, XFERSUFFIX);
+    cids[3] = g_strdup_printf("acc:cid::%s%s%s", callid, PBXSUFFIX, XFERSUFFIX);
 
     g_queue_clear_full(entries, med_entry_free);
 
     L_DEBUG("Fetching records from redis\n");
 
-    for (i = 0; i < 4; ++i) {
+    for (i = 0; i < G_N_ELEMENTS(cids); ++i) {
         char *cid = cids[i];
-        snprintf(buffer, sizeof(buffer), "acc:cid::%s", cid);
-        cid_set_argv[1] = buffer;
+        cid_set_argv[1] = cid;
         if (medredis_append_command_argv(cid_set_argc, cid_set_argv, 1) != 0) {
             L_ERROR("Failed to append redis command to fetch entries for cid '%s'\n", callid);
             goto err;
         }
-        free(cid);
-        cids[i] = NULL;
     }
 
-    for (i = 0; i < 4; ++i) {
+    for (i = 0; i < G_N_ELEMENTS(cids); ++i) {
         if (medredis_get_reply(&reply) != 0) {
             L_ERROR("Failed to get redis reply for command to fetch entries for cid '%s'\n", callid);
             goto err;    
@@ -744,7 +720,7 @@ int medredis_fetch_records(char *callid,
                 goto err;
             }
             L_DEBUG("Putting key '%s' to keys list\n", key);
-            keys = g_list_append(keys, key);
+            keys = g_list_prepend(keys, key);
 
         }
         medredis_free_reply(&reply);
@@ -774,7 +750,7 @@ int medredis_fetch_records(char *callid,
             continue;
         }
         medredis_free_reply(&reply);
-        g_queue_push_head(entries, e);
+        g_queue_push_tail(entries, e);
     }
 
     g_list_free_full(keys, medredis_free_keys_list);
@@ -787,9 +763,8 @@ int medredis_fetch_records(char *callid,
 err:
     if (reply)
         freeReplyObject(reply);
-    for (i = 0; i < 4; ++i) {
-        if (cids[i])
-            free(cids[i]);
+    for (i = 0; i < G_N_ELEMENTS(cids); ++i) {
+        g_free(cids[i]);
     }
     g_queue_clear_full(entries, med_entry_free);
     medredis_consume_replies();
