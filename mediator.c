@@ -40,7 +40,12 @@ static void med_free_cache_entry(void *p)
     g_slice_free1(sizeof(*e), e);
 }
 void med_entry_free(void *p) {
-    g_slice_free1(sizeof(med_entry_t), p);
+    med_entry_t *e = p;
+    g_free(e->callid);
+    g_free(e->dst_leg);
+    g_free(e->src_leg);
+    g_free(e->acc_ref);
+    g_slice_free1(sizeof(*e), e);
 }
 
 /**********************************************************************/

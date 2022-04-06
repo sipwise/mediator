@@ -722,13 +722,13 @@ int medmysql_fetch_records(char *callid,
         g_strlcpy(e->sip_code, row[0], sizeof(e->sip_code));
         g_strlcpy(e->sip_reason, row[1], sizeof(e->sip_reason));
         g_strlcpy(e->sip_method, row[2], sizeof(e->sip_method));
-        g_strlcpy(e->callid, row[3], sizeof(e->callid));
+        e->callid = g_strdup(row[3]);
         g_strlcpy(e->timestamp, row[4], sizeof(e->timestamp));
         e->unix_timestamp = atof(row[5]);
-        g_strlcpy(e->src_leg, row[6] ? : "", sizeof(e->src_leg));
-        g_strlcpy(e->dst_leg, row[7] ? : "", sizeof(e->dst_leg));
+        e->src_leg = g_strdup(row[6] ? : "");
+        e->dst_leg = g_strdup(row[7] ? : "");
         g_strlcpy(e->branch_id, row[8] ? : "", sizeof(e->branch_id));
-        g_strlcpy(e->acc_ref, row[9], sizeof(e->acc_ref));
+        e->acc_ref = g_strdup(row[9]);
         e->valid = 1;
 
         g_queue_push_tail(entries, e);

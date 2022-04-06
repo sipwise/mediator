@@ -296,22 +296,42 @@ err:
     return -1;
 }
 
+
 /**********************************************************************/
 static int medredis_check_reply_string(med_entry_t *entry, redisReply *reply,
-        char* element, const char* element_name, size_t element_size,
+        const char* element_name,
         int index,
         const char* cid, const char* key) {
-    int ret;
     if (reply->element[index]->type != REDIS_REPLY_STRING) {
         L_WARNING("Received Redis reply type %i instead of %i (string) for %s field of cid '%s' using key '%s'\n",
                 reply->element[index]->type, REDIS_REPLY_STRING, element_name, cid, key);
         entry->valid = 0;
-        ret = -1;
-    } else {
-        g_strlcpy(element, reply->element[index]->str, element_size);
-        ret = 0;
+        return -1;
     }
-    return ret;
+    return 0;
+}
+
+/**********************************************************************/
+static int medredis_check_reply_strcpy(med_entry_t *entry, redisReply *reply,
+        char* element, const char* element_name, size_t element_size,
+        int index,
+        const char* cid, const char* key) {
+    if (medredis_check_reply_string(entry, reply, element_name, index, cid, key) == 0) {
+        g_strlcpy(element, reply->element[index]->str, element_size);
+        return 0;
+    }
+    return -1;
+}
+
+/**********************************************************************/
+static void medredis_check_reply_strdup(med_entry_t *entry, redisReply *reply,
+        char** element, const char* element_name,
+        int index,
+        const char* cid, const char* key) {
+    if (medredis_check_reply_string(entry, reply, element_name, index, cid, key) == 0)
+        *element = g_strdup(reply->element[index]->str);
+    else
+        *element = g_strdup("");
 }
 
 /**********************************************************************/
@@ -354,11 +374,11 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, 
     entry->valid = 1;
     entry->redis = 1;
 
-    medredis_check_reply_string(entry, reply, entry->sip_code, "sip_code", sizeof(entry->sip_code), 0, cid, key);
-    medredis_check_reply_string(entry, reply, entry->sip_reason, "sip_reason", sizeof(entry->sip_reason), 1, cid, key);
-    medredis_check_reply_string(entry, reply, entry->sip_method, "sip_method", sizeof(entry->sip_method), 2, cid, key);
-    medredis_check_reply_string(entry, reply, entry->callid, "callid", sizeof(entry->callid), 3, cid, key);
-    if (medredis_check_reply_string(entry, reply, entry->timestamp, "timestamp", sizeof(entry->timestamp), 4, cid, key) != 0) {
+    medredis_check_reply_strcpy(entry, reply, entry->sip_code, "sip_code", sizeof(entry->sip_code), 0, cid, key);
+    medredis_check_reply_strcpy(entry, reply, entry->sip_reason, "sip_reason", sizeof(entry->sip_reason), 1, cid, key);
+    medredis_check_reply_strcpy(entry, reply, entry->sip_method, "sip_method", sizeof(entry->sip_method), 2, cid, key);
+    medredis_check_reply_strdup(entry, reply, &entry->callid, "callid", 3, cid, key);
+    if (medredis_check_reply_strcpy(entry, reply, entry->timestamp, "timestamp", sizeof(entry->timestamp), 4, cid, key) != 0) {
         g_strlcpy(entry->timestamp, "0000-00-00 00:00:00", sizeof(entry->timestamp));
     }
     if (reply->element[5]->type != REDIS_REPLY_STRING) {
@@ -368,15 +388,15 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, 
     } else {
         entry->unix_timestamp = atof(reply->element[5]->str);
     }
-    medredis_check_reply_string(entry, reply, entry->src_leg, "src_leg", sizeof(entry->src_leg), 6, cid, key);
-    medredis_check_reply_string(entry, reply, entry->dst_leg, "dst_leg", sizeof(entry->dst_leg), 7, cid, key);
+    medredis_check_reply_strdup(entry, reply, &entry->src_leg, "src_leg", 6, cid, key);
+    medredis_check_reply_strdup(entry, reply, &entry->dst_leg, "dst_leg", 7, cid, key);
     if (reply->element[8]->type != REDIS_REPLY_STRING) {
         L_DEBUG("Received Redis reply of cid '%s' using key '%s' doesn't have branch_id >>> old acc record version\n", cid, key);
         g_strlcpy(entry->branch_id, "", sizeof(entry->branch_id));
     } else {
-        medredis_check_reply_string(entry, reply, entry->branch_id, "branch_id", sizeof(entry->branch_id), 8, cid, key);
+        medredis_check_reply_strcpy(entry, reply, entry->branch_id, "branch_id", sizeof(entry->branch_id), 8, cid, key);
     }
-    g_strlcpy(entry->acc_ref, key, sizeof(entry->acc_ref));
+    entry->acc_ref = g_strdup(key);
     
     L_DEBUG("Converted record with cid '%s' and method '%s'\n", entry->callid, entry->sip_method);
 

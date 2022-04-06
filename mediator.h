@@ -75,11 +75,11 @@ typedef enum {
 
 
 typedef struct {
-    char src_leg[1024];
-    char dst_leg[1024];
+    char *src_leg;
+    char *dst_leg;
     char sip_code[4];
     char sip_reason[32];
-    char callid[256];
+    char *callid;
     char timestamp[24];
     double unix_timestamp;
     char branch_id[3];
@@ -87,7 +87,7 @@ typedef struct {
     med_method_t method;
     char sip_method[32];
     uint8_t redis;
-    char acc_ref[256];
+    char *acc_ref;
     uint8_t timed_out;
 } med_entry_t;
 
