@@ -9,6 +9,9 @@
 
 static int cdr_create_cdrs(GQueue *records,
         cdr_entry_t **cdrs, uint64_t *cdr_count, uint64_t *alloc_size, uint8_t *trash, int do_intermediate);
+static int cdr_fill_record(cdr_entry_t *cdr);
+static void cdr_set_provider(cdr_entry_t *cdr);
+
 
 static const char* cdr_map_status(const char *sip_status)
 {
@@ -1537,7 +1540,7 @@ static int cdr_create_cdrs(GQueue *records,
     return 0;
 }
 
-int cdr_fill_record(cdr_entry_t *cdr)
+static int cdr_fill_record(cdr_entry_t *cdr)
 {
     cdr_set_provider(cdr);
 
@@ -1551,7 +1554,7 @@ int cdr_fill_record(cdr_entry_t *cdr)
     return 0;
 }
 
-void cdr_set_provider(cdr_entry_t *cdr)
+static void cdr_set_provider(cdr_entry_t *cdr)
 {
     char *val;
 
