@@ -5,6 +5,7 @@
 
 #define MSG_INVITE "INVITE"
 #define MSG_BYE    "BYE"
+#define MSG_REFER  "REFER"
 
 #define CDR_STATUS_OK       "ok"
 #define CDR_STATUS_BUSY     "busy"

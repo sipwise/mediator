@@ -69,9 +69,10 @@ extern int mediator_lockfd;
 extern sig_atomic_t mediator_shutdown;
 
 typedef enum {
-    MED_INVITE = 1,
-    MED_BYE = 2,
-    MED_UNRECOGNIZED = 3
+    MED_UNRECOGNIZED = 0,
+    MED_INVITE,
+    MED_BYE,
+    MED_REFER,
 } med_method_t;
 
 

@@ -273,12 +273,13 @@ static int medredis_remove_mappings(const char* cid, char* key, const char *meth
     }
 
     // delete cid from acc:meth::$METHOD and handle acc::index::meth mappings
-    char *methods[2];
+    char *methods[3];
     int num_methods;
     if (!method || !method[0]) {
         methods[0] = "acc:meth::INVITE";
         methods[1] = "acc:meth::BYE";
-        num_methods = 2;
+        methods[2] = "acc:meth::REFER";
+        num_methods = 3;
     }
     else {
         method_key = g_strdup_printf("acc:meth::%s", method);

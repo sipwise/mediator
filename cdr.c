@@ -1629,6 +1629,10 @@ void cdr_parse_entry(med_entry_t *e)
     {
         e->method = MED_BYE;
     }
+    else if (strcmp(e->sip_method, MSG_REFER) == 0)
+    {
+        e->method = MED_REFER;
+    }
     else
     {
         e->method = MED_UNRECOGNIZED;
