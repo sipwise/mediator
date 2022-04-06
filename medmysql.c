@@ -731,6 +731,8 @@ int medmysql_fetch_records(char *callid,
         e->acc_ref = g_strdup(row[9]);
         e->valid = 1;
 
+        cdr_parse_entry(e);
+
         g_queue_push_tail(entries, e);
 
         if (check_shutdown())

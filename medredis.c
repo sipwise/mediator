@@ -397,7 +397,9 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, 
         medredis_check_reply_strcpy(entry, reply, entry->branch_id, "branch_id", sizeof(entry->branch_id), 8, cid, key);
     }
     entry->acc_ref = g_strdup(key);
-    
+
+    cdr_parse_entry(entry);
+
     L_DEBUG("Converted record with cid '%s' and method '%s'\n", entry->callid, entry->sip_method);
 
     return entry;
