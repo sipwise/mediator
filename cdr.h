@@ -61,6 +61,7 @@ typedef struct {
 
 int cdr_process_records(GQueue *records, uint64_t *cdr_count, struct medmysql_batches *,
         int do_intermediate);
+void cdr_parse_entry(med_entry_t *);
 
 
 #endif /* _CDR_H */

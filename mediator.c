@@ -45,6 +45,8 @@ void med_entry_free(void *p) {
     g_free(e->dst_leg);
     g_free(e->src_leg);
     g_free(e->acc_ref);
+    json_object_put(e->dst_leg_json);
+    json_object_put(e->src_leg_json);
     g_slice_free1(sizeof(*e), e);
 }
 

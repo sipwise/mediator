@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <glib.h>
 #include <inttypes.h>
+#include <json.h>
 
 
 #define MEDIATOR_DEFAULT_INTERVAL 10
@@ -77,6 +78,8 @@ typedef enum {
 typedef struct {
     char *src_leg;
     char *dst_leg;
+    json_object *src_leg_json;
+    json_object *dst_leg_json;
     char sip_code[4];
     char sip_reason[32];
     char *callid;

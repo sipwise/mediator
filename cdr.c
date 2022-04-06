@@ -564,11 +564,9 @@ static int cdr_parse_srcleg_json(json_object *json, cdr_entry_t *cdr)
     }
 
 ret:
-    json_object_put(json);
     return 0;
 
 err:
-    json_object_put(json);
     return -1;
 }
 
@@ -731,11 +729,9 @@ static int cdr_parse_dstleg_json(json_object *json, cdr_entry_t *cdr)
     }
 
 ret:
-    json_object_put(json);
     return 0;
 
 err:
-    json_object_put(json);
     return -1;
 }
 
@@ -1291,80 +1287,77 @@ static int cdr_parse_dstleg_list(char *dstleg, cdr_entry_t *cdr)
     return 0;
 }
 
-static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
+static int cdr_parse_srcleg(med_entry_t *e, cdr_entry_t *cdr)
 {
-    json_object *json = json_tokener_parse(srcleg);
-    if (!json || !json_object_is_type(json, json_type_object)) {
-        L_DEBUG("Analysing srcleg in list format: '%s'", srcleg);
-        return cdr_parse_srcleg_list(srcleg, cdr);
+    cdr_parse_entry(e);
+    if (!e->src_leg_json || !json_object_is_type(e->src_leg_json, json_type_object)) {
+        L_DEBUG("Analysing srcleg in list format: '%s'", e->src_leg);
+        return cdr_parse_srcleg_list(e->src_leg, cdr);
     }
     else {
-        L_DEBUG("Analysing srcleg in json format: '%s'", srcleg);
-        return cdr_parse_srcleg_json(json, cdr);
+        L_DEBUG("Analysing srcleg in json format: '%s'", e->src_leg);
+        return cdr_parse_srcleg_json(e->src_leg_json, cdr);
     }
 
     return 0;
 }
 
-static int cdr_parse_dstleg(char *dstleg, cdr_entry_t *cdr)
+static int cdr_parse_dstleg(med_entry_t *e, cdr_entry_t *cdr)
 {
-    json_object *json = json_tokener_parse(dstleg);
-    if (!json || !json_object_is_type(json, json_type_object)) {
-        L_DEBUG("Analysing dstleg in list format: '%s'", dstleg);
-        json_object_put(json);
-        return cdr_parse_dstleg_list(dstleg, cdr);
+    cdr_parse_entry(e);
+    if (!e->dst_leg_json || !json_object_is_type(e->dst_leg_json, json_type_object)) {
+        L_DEBUG("Analysing dstleg in list format: '%s'", e->dst_leg);
+        return cdr_parse_dstleg_list(e->dst_leg, cdr);
     }
     else {
-        L_DEBUG("Analysing dstleg in json format: '%s'", dstleg);
-        return cdr_parse_dstleg_json(json, cdr);
+        L_DEBUG("Analysing dstleg in json format: '%s'", e->dst_leg);
+        return cdr_parse_dstleg_json(e->dst_leg_json, cdr);
     }
 
     return 0;
 }
 
 
-static int cdr_parse_bye_dstleg(char *dstleg, mos_data_t *mos_data) {
-    L_DEBUG("Parsing JSON: '%s'", dstleg);
+static int cdr_parse_bye_dstleg(med_entry_t *e, mos_data_t *mos_data) {
+    L_DEBUG("Parsing JSON: '%s'", e->dst_leg);
 
-    json_object *json = json_tokener_parse(dstleg);
-    if (!json) {
-        L_ERROR("Could not parse JSON dst_leg string: '%s'", dstleg);
+    cdr_parse_entry(e);
+    if (!e->dst_leg_json) {
+        L_ERROR("Could not parse JSON dst_leg string: '%s'", e->dst_leg);
         return -1;
     }
-    if (!json_object_is_type(json, json_type_object)) {
-        L_ERROR("JSON type is not object: '%s'", dstleg);
+    if (!json_object_is_type(e->dst_leg_json, json_type_object)) {
+        L_ERROR("JSON type is not object: '%s'", e->dst_leg);
         goto err;
     }
     json_object *mos;
-    if (!json_object_object_get_ex(json, "mos", &mos)
+    if (!json_object_object_get_ex(e->dst_leg_json, "mos", &mos)
             || !json_object_is_type(mos, json_type_object))
     {
-        L_ERROR("JSON object does not contain 'mos' key: '%s'", dstleg);
+        L_ERROR("JSON object does not contain 'mos' key: '%s'", e->dst_leg);
         goto err;
     }
     if (!cdr_parse_json_get_double_clamped(mos, "avg_score", &mos_data->avg_score, 0, 99)) {
-        L_ERROR("JSON object does not contain 'mos.avg_score' key: '%s'", dstleg);
+        L_ERROR("JSON object does not contain 'mos.avg_score' key: '%s'", e->dst_leg);
         goto err;
     }
     if (!cdr_parse_json_get_int_clamped(mos, "avg_packetloss", &mos_data->avg_packetloss, 0, 100)) {
-        L_ERROR("JSON object does not contain 'mos.avg_packetloss' key: '%s'", dstleg);
+        L_ERROR("JSON object does not contain 'mos.avg_packetloss' key: '%s'", e->dst_leg);
         goto err;
     }
     if (!cdr_parse_json_get_int_clamped(mos, "avg_jitter", &mos_data->avg_jitter, 0, 9999)) {
-        L_ERROR("JSON object does not contain 'mos.avg_jitter' key: '%s'", dstleg);
+        L_ERROR("JSON object does not contain 'mos.avg_jitter' key: '%s'", e->dst_leg);
         goto err;
     }
     if (!cdr_parse_json_get_int_clamped(mos, "avg_rtt", &mos_data->avg_rtt, 0, 9999)) {
-        L_ERROR("JSON object does not contain 'mos.avg_rtt' key: '%s'", dstleg);
+        L_ERROR("JSON object does not contain 'mos.avg_rtt' key: '%s'", e->dst_leg);
         goto err;
     }
 
     mos_data->filled = 1;
-    json_object_put(json);
     return 0;
 
 err:
-    json_object_put(json);
     return -1;
 }
 
@@ -1424,7 +1417,7 @@ static int cdr_create_cdrs(GQueue *records,
                 unix_endtime = e->unix_timestamp;
             }
             if (!mos_data.filled)
-                cdr_parse_bye_dstleg(e->dst_leg, &mos_data);
+                cdr_parse_bye_dstleg(e, &mos_data);
         }
 
         if (check_shutdown())
@@ -1506,13 +1499,13 @@ static int cdr_create_cdrs(GQueue *records,
             cdr->destination_reseller_cost = 0;
             cdr->destination_customer_cost = 0;
 
-            if(cdr_parse_srcleg(e->src_leg, cdr) < 0 && !cdr->intermediate)
+            if(cdr_parse_srcleg(e, cdr) < 0 && !cdr->intermediate)
             {
                 *trash = 1;
                 return 0;
             }
 
-            if(cdr_parse_dstleg(e->dst_leg, cdr) < 0 && !cdr->intermediate && !timed_out)
+            if(cdr_parse_dstleg(e, cdr) < 0 && !cdr->intermediate && !timed_out)
             {
                 *trash = 1;
                 return 0;
@@ -1616,5 +1609,18 @@ static void cdr_set_provider(cdr_entry_t *cdr)
     else
     {
         g_string_assign(cdr->destination_provider_id, "0");
+    }
+}
+
+void cdr_parse_entry(med_entry_t *e)
+{
+    if (!e->src_leg_json && e->src_leg[0])
+    {
+        e->src_leg_json = json_tokener_parse(e->src_leg);
+    }
+
+    if (!e->dst_leg_json && e->dst_leg[0])
+    {
+        e->dst_leg_json = json_tokener_parse(e->dst_leg);
     }
 }
