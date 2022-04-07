@@ -715,6 +715,7 @@ int medmysql_fetch_records(char *callid,
         goto out;
     }
 
+    ret = 0;
     while((row = mysql_fetch_row(res)) != NULL)
     {
         med_entry_t *e = g_slice_alloc0(sizeof(*e));

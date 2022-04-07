@@ -681,8 +681,6 @@ int medredis_fetch_records(char *callid,
     cids[2] = g_strdup_printf("acc:cid::%s%s", callid, XFERSUFFIX);
     cids[3] = g_strdup_printf("acc:cid::%s%s%s", callid, PBXSUFFIX, XFERSUFFIX);
 
-    g_queue_clear_full(entries, med_entry_free);
-
     L_DEBUG("Fetching records from redis\n");
 
     for (i = 0; i < G_N_ELEMENTS(cids); ++i) {
@@ -729,6 +727,8 @@ int medredis_fetch_records(char *callid,
     L_DEBUG("Appending all keys to redis command\n");
     g_list_foreach(keys, medredis_append_key, NULL);
 
+    int ret = 0;
+
     for (GList *l = keys; l; l = l->next) {
         med_entry_t *e;
         char *key = (char*)l->data;
@@ -751,13 +751,14 @@ int medredis_fetch_records(char *callid,
         }
         medredis_free_reply(&reply);
         g_queue_push_tail(entries, e);
+        ret = 1;
     }
 
     g_list_free_full(keys, medredis_free_keys_list);
 
     medredis_consume_replies();
 
-    return 0;
+    return ret;
 
 
 err:
@@ -766,7 +767,6 @@ err:
     for (i = 0; i < G_N_ELEMENTS(cids); ++i) {
         g_free(cids[i]);
     }
-    g_queue_clear_full(entries, med_entry_free);
     medredis_consume_replies();
     return -1;
 
