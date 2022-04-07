@@ -11,6 +11,7 @@
 
 #include "medmysql.h"
 #include "config.h"
+#include "records.h"
 
 #define _TEST_SIMULATE_SQL_ERRORS 0
 
@@ -736,7 +737,12 @@ int medmysql_fetch_records(char *callid,
         cdr_parse_entry(e);
 
         if (!filter || filter(e, filter_data))
+        {
             g_queue_push_tail(entries, e);
+
+            if (records_handle_refer(entries, e, callid))
+                ret = 1;
+        }
         else
             med_entry_free(e);
 

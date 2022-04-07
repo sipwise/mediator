@@ -4,6 +4,7 @@
 #include "medredis.h"
 #include "medmysql.h"
 #include "config.h"
+#include "records.h"
 
 #define PBXSUFFIX "_pbx-1"
 #define XFERSUFFIX "_xfer-1"
@@ -726,6 +727,7 @@ int medredis_fetch_records(char *callid,
     g_list_foreach(keys, medredis_append_key, NULL);
 
     int ret = 0;
+    GList *entries_end = entries->tail;
 
     for (GList *l = keys; l; l = l->next) {
         med_entry_t *e;
@@ -756,6 +758,14 @@ int medredis_fetch_records(char *callid,
         }
         else
             med_entry_free(e);
+    }
+
+    // Second pass over the newly added entries (starting at `entries_end`).
+    // It's necessary to do this as a second pass so the replies from Redis
+    // are read and consumed in order.
+    for (GList *l = entries_end ? entries_end->next : entries->head; l; l = l->next) {
+        med_entry_t *e = l->data;
+        records_handle_refer(entries, e, callid);
     }
 
     g_list_free_full(keys, medredis_free_keys_list);

@@ -6,5 +6,6 @@
 
 void records_sort(GQueue *records);
 int records_complete(GQueue *records);
+int records_handle_refer(GQueue *records, med_entry_t *, const char *callid);
 
 #endif
