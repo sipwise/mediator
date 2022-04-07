@@ -1638,3 +1638,29 @@ void cdr_parse_entry(med_entry_t *e)
         e->method = MED_UNRECOGNIZED;
     }
 }
+
+// try strip one suffix and return whether it was done
+static inline int cdr_truncate_suffix(char *callid, size_t *len, const char *suffix) {
+    size_t slen = strlen(suffix);
+    if (*len < slen)
+        return 0;
+    if (memcmp(&callid[*len - slen], suffix, slen) != 0)
+        return 0;
+    callid[*len - slen] = '\0';
+    *len -= slen;
+    return 1;
+}
+
+// strip (potentially chained) suffices
+void cdr_truncate_call_id_suffix(char *callid)
+{
+    size_t len = strlen(callid);
+
+    while (1) {
+        if (cdr_truncate_suffix(callid, &len, PBXSUFFIX))
+            continue;
+        if (cdr_truncate_suffix(callid, &len, XFERSUFFIX))
+            continue;
+        break;
+    };
+}

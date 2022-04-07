@@ -584,11 +584,7 @@ gboolean medredis_fetch_callids(GQueue *output) {
                 *tmp = '\0';
             }
 
-            // strip (potentially chained) suffices
-            if ((tmp = strstr(entry->str, PBXSUFFIX)) ||
-                    (tmp = strstr(entry->str, XFERSUFFIX))) {
-                *tmp = '\0';
-            }
+            cdr_truncate_call_id_suffix(cid);
 
             if (g_hash_table_insert(cid_table, cid, cid)) {
                 g_queue_push_tail(output, cid);
