@@ -53,7 +53,7 @@ struct medmysql_call_stat_info_t {
 int medmysql_init(void);
 void medmysql_cleanup(void);
 gboolean medmysql_fetch_callids(GQueue *output);
-int medmysql_fetch_records(char *callid, GQueue *entries, int warn_empty);
+int medmysql_fetch_records(char *callid, GQueue *entries, int warn_empty, records_filter_func, void *filter_data);
 int medmysql_trash_entries(const char *callid, struct medmysql_batches *);
 int medmysql_backup_entries(const char *callid, struct medmysql_batches *);
 int medmysql_delete_entries(const char *callid, struct medmysql_batches *);

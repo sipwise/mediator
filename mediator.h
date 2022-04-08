@@ -100,6 +100,8 @@ typedef struct {
     time_t created;
 } med_cache_entry_t;
 
+typedef gboolean (*records_filter_func)(med_entry_t *, void *data);
+
 extern GHashTable *med_peer_host_table;
 extern GHashTable *med_peer_ip_table;
 extern GHashTable *med_peer_id_table;

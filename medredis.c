@@ -643,7 +643,9 @@ static void medredis_free_keys_list(gpointer data) {
 
 /**********************************************************************/
 int medredis_fetch_records(char *callid,
-        GQueue *entries) {
+        GQueue *entries,
+        records_filter_func filter, void *filter_data)
+{
 
 
     /*
@@ -746,8 +748,14 @@ int medredis_fetch_records(char *callid,
             continue;
         }
         medredis_free_reply(&reply);
-        g_queue_push_tail(entries, e);
-        ret = 1;
+
+        if (!filter || filter(e, filter_data))
+        {
+            g_queue_push_tail(entries, e);
+            ret = 1;
+        }
+        else
+            med_entry_free(e);
     }
 
     g_list_free_full(keys, medredis_free_keys_list);

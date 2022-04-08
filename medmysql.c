@@ -673,7 +673,8 @@ gboolean medmysql_fetch_callids(GQueue *output)
 
 /**********************************************************************/
 int medmysql_fetch_records(char *callid,
-        GQueue *entries, int warn_empty)
+        GQueue *entries, int warn_empty,
+        records_filter_func filter, void *filter_data)
 {
     MYSQL_RES *res;
     MYSQL_ROW row;
@@ -734,7 +735,10 @@ int medmysql_fetch_records(char *callid,
 
         cdr_parse_entry(e);
 
-        g_queue_push_tail(entries, e);
+        if (!filter || filter(e, filter_data))
+            g_queue_push_tail(entries, e);
+        else
+            med_entry_free(e);
 
         if (check_shutdown())
             return -1;

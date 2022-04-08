@@ -9,7 +9,7 @@
 int medredis_init(void);
 void medredis_cleanup(void);
 gboolean medredis_fetch_callids(GQueue *output);
-int medredis_fetch_records(char *callid, GQueue *entries);
+int medredis_fetch_records(char *callid, GQueue *entries, records_filter_func, void *filter_data);
 int medredis_trash_entries(GQueue *records);
 int medredis_backup_entries(GQueue *records);
 

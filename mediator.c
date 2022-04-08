@@ -352,12 +352,12 @@ int main(int argc, char **argv)
             gettimeofday(&tv_start, NULL);
 #endif
 
-            int ret = medmysql_fetch_records(mysql_callid, &acc_records, 1);
+            int ret = medmysql_fetch_records(mysql_callid, &acc_records, 1, NULL, NULL);
             if (ret < 0)
                 goto out;
             int must_sort = (ret > 0);
 
-            ret = medredis_fetch_records(mysql_callid, &acc_records);
+            ret = medredis_fetch_records(mysql_callid, &acc_records, NULL, NULL);
             if (ret > 0)
                 must_sort = 1;
 
@@ -402,10 +402,10 @@ int main(int argc, char **argv)
             gettimeofday(&tv_start, NULL);
 #endif
 
-            if(medredis_fetch_records(redis_callid, &acc_records) < 0)
+            if(medredis_fetch_records(redis_callid, &acc_records, NULL, NULL) < 0)
                 goto out;
 
-            medmysql_fetch_records(redis_callid, &acc_records, 0);
+            medmysql_fetch_records(redis_callid, &acc_records, 0, NULL, NULL);
 
             // always sort records from Redis, regardless of whether records from MySQL were merged
             records_sort(&acc_records);
