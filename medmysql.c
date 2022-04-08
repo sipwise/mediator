@@ -556,26 +556,29 @@ static inline void medmysql_buf_escape_c(MYSQL *m, size_t *buflen, const char *s
 {
 	medmysql_buf_escape(m, buflen, str, strlen(str), orig_dest, sql_buffer_size);
 }
+static inline void medmysql_buf_escape_gstring(MYSQL *m, const char *str, GString *s)
+{
+    size_t str_len = strlen(str);
+    char *dst = s->str + s->len;
+    size_t orig_size = s->len;
+    size_t req_size = MED_SQL_BUF_LEN(s->len, str_len);
+    g_string_set_size(s, req_size);
+    medmysql_buf_escape(m, &orig_size, str, str_len, dst, s->len);
+    g_string_set_size(s, orig_size);
+}
 
-#define BUFPRINT(x...)    buflen += sprintf(sql_buffer + buflen, x); if (buflen >= sql_buffer_size) abort()
-#define BUFESCAPE(x) medmysql_buf_escape_c(med_handler->m, &buflen, x, sql_buffer + buflen, sql_buffer_size)
+#define BUFPRINT(x...)    g_string_append_printf(sql_buffer, x)
+#define BUFESCAPE(x) medmysql_buf_escape_gstring(med_handler->m, x, sql_buffer)
 
 /**********************************************************************/
 int medmysql_insert_records(GQueue *records, const char *table)
 {
-    char *sql_buffer = NULL;
-    size_t sql_buffer_size = (records->length + 1) * (sizeof(med_entry_t) + 64) + 256;
-    size_t buflen = 0;
     int ret = 0, entries = 0;
 
     if (!records->length)
         return 0;
 
-    sql_buffer = (char*)malloc(sql_buffer_size);
-    if (!sql_buffer) {
-        L_ERROR("Failed to allocate memory for redis cleanup sql buffer\n");
-        return -1;
-    }
+    GString *sql_buffer = g_string_sized_new(records->length * 512);
     BUFPRINT("INSERT INTO kamailio.acc_%s " \
         "(sip_code,sip_reason,method,callid,time,time_hires,src_leg,dst_leg,branch_id) VALUES ",
          table);
@@ -610,19 +613,19 @@ int medmysql_insert_records(GQueue *records, const char *table)
     if (!entries)
         goto out;
 
-    sql_buffer[--buflen] = '\0';
+    g_string_set_size(sql_buffer, sql_buffer->len - 1);
 
-    L_DEBUG("Issuing record insert query: %s\n", sql_buffer);
+    L_DEBUG("Issuing record insert query: %s\n", sql_buffer->str);
     
-    ret = medmysql_query_wrapper(med_handler, sql_buffer, buflen);
+    ret = medmysql_query_wrapper(med_handler, sql_buffer->str, sql_buffer->len);
     if (ret != 0)
     {
         L_ERROR("Error executing query '%s': %s",
-                sql_buffer, mysql_error(med_handler->m));
+                sql_buffer->str, mysql_error(med_handler->m));
     }
 
 out:
-    free(sql_buffer);
+    g_string_free(sql_buffer, TRUE);
     return ret;
 }
 
