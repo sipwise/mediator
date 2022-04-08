@@ -89,11 +89,13 @@ static const char *records_get_extras_bleg_cid(med_entry_t *e) {
 
 static gboolean records_only_refer_bleg_bye(med_entry_t *e, void *data)
 {
-    const char *callid = data; // original REFER call ID
+    const char *callid = data; // original REFER call ID, can be NULL
 
     const char *legb_cid_o = records_get_extras_bleg_cid(e);
     if (!legb_cid_o)
         return FALSE;
+    if (!callid)
+        return TRUE;
 
     gboolean keep = FALSE;
     char *legb_cid = g_strdup(legb_cid_o);
@@ -106,6 +108,11 @@ static gboolean records_only_refer_bleg_bye(med_entry_t *e, void *data)
     g_free(legb_cid);
 
     return keep;
+}
+
+gboolean records_no_refer_bleg_bye(med_entry_t *e, void *data)
+{
+    return ! records_only_refer_bleg_bye(e, data);
 }
 
 // returns whether any records were fetched, which in turn then requires the list to be sorted
