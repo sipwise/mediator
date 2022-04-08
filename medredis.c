@@ -253,9 +253,10 @@ err:
 }
 
 /**********************************************************************/
-static int medredis_remove_mappings(const char* cid, char* key) {
+static int medredis_remove_mappings(const char* cid, char* key, const char *method) {
     char *argv[6];
     char buffer[512];
+    char *method_key = NULL;
 
     snprintf(buffer, sizeof(buffer), "acc:cid::%s", cid);
 
@@ -271,27 +272,39 @@ static int medredis_remove_mappings(const char* cid, char* key) {
         goto err;
     }
 
-    // delete cid from acc:meth::INVITE and acc:meth::BYE and handle acc::index::meth mappings
+    // delete cid from acc:meth::$METHOD and handle acc::index::meth mappings
+    char *methods[2];
+    int num_methods;
+    if (!method || !method[0]) {
+        methods[0] = "acc:meth::INVITE";
+        methods[1] = "acc:meth::BYE";
+        num_methods = 2;
+    }
+    else {
+        method_key = g_strdup_printf("acc:meth::%s", method);
+        methods[0] = method_key;
+        num_methods = 1;
+    }
     argv[0] = "EVALSHA";
     argv[1] = medredis_srem_key_lua;
     argv[2] = "3";
-    argv[3] = "acc:meth::INVITE";
     argv[4] = "acc::index::meth";
     argv[5] = key;
-    if (medredis_append_command_argv(6, argv, 1) != 0) {
-        L_ERROR("Failed to append redis command to remove mapping key '%s' from '%s'\n", key, argv[1]);
-        goto err;
-    }
-    argv[3] = "acc:meth::BYE";
-    if (medredis_append_command_argv(6, argv, 1) != 0) {
-        L_ERROR("Failed to append redis command to remove mapping key '%s' from '%s'\n", key, argv[1]);
-        goto err;
+
+    for (int i = 0; i < num_methods; i++) {
+        argv[3] = methods[i];
+        if (medredis_append_command_argv(6, argv, 1) != 0) {
+            L_ERROR("Failed to append redis command to remove mapping key '%s' from '%s'\n", key, argv[1]);
+            goto err;
+        }
     }
 
+    g_free(method_key);
     medredis_consume_replies();
     return 0;
 
 err:
+    g_free(method_key);
     medredis_consume_replies();
     return -1;
 }
@@ -342,7 +355,7 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, 
     if (reply->elements != 9) {
         L_ERROR("Invalid number of redis reply elements for acc record with cid '%s' and key '%s', expected 9, got %lu, trashing record\n",
             cid, key, reply->elements);
-        medredis_remove_mappings(cid, key);
+        medredis_remove_mappings(cid, key, NULL);
         medredis_remove_entry(key);
         return NULL;
     }
@@ -357,7 +370,7 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, 
     }
     if (all_null) {
         L_WARNING("Redis entry does not exist for key '%s', trashing mappings", key);
-        medredis_remove_mappings(cid, key);
+        medredis_remove_mappings(cid, key, NULL);
         return NULL;
     }
 
@@ -365,7 +378,7 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, 
     if (reply->element[3]->type != REDIS_REPLY_STRING) {
         L_WARNING("Received Redis reply type %i instead of %i (string) for call-id field of cid '%s' using key '%s', trashing record\n",
                 reply->element[3]->type, REDIS_REPLY_STRING, cid, key);
-        medredis_remove_mappings(cid, key);
+        medredis_remove_mappings(cid, key, NULL);
         medredis_remove_entry(key);
         return NULL;
     }
@@ -811,7 +824,7 @@ static int medredis_cleanup_entries(GQueue *records, const char *table) {
             }
 
             L_DEBUG("Cleaning up redis entry for %s\n", buffer);
-            if (medredis_remove_mappings(e->callid, buffer) != 0) {
+            if (medredis_remove_mappings(e->callid, buffer, e->sip_method) != 0) {
                 goto err;
             }
             if (medredis_remove_entry(buffer) != 0) {
