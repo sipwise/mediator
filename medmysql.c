@@ -560,10 +560,10 @@ static inline void medmysql_buf_escape_c(MYSQL *m, size_t *buflen, const char *s
 static inline void medmysql_buf_escape_gstring(MYSQL *m, const char *str, GString *s)
 {
     size_t str_len = strlen(str);
-    char *dst = s->str + s->len;
     size_t orig_size = s->len;
-    size_t req_size = MED_SQL_BUF_LEN(s->len, str_len);
+    size_t req_size = MED_SQL_BUF_LEN(orig_size, str_len);
     g_string_set_size(s, req_size);
+    char *dst = s->str + orig_size;
     medmysql_buf_escape(m, &orig_size, str, str_len, dst, s->len);
     g_string_set_size(s, orig_size);
 }
