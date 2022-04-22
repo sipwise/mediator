@@ -770,6 +770,8 @@ int medredis_fetch_records(char *callid,
 
     g_list_free_full(keys, medredis_free_keys_list);
 
+    for (i = 0; i < G_N_ELEMENTS(cids); ++i)
+        g_free(cids[i]);
     medredis_consume_replies();
 
     return ret;
