@@ -422,7 +422,7 @@ static med_entry_t *medredis_reply_to_entry(redisReply *reply, const char* cid, 
 
 
 /**********************************************************************/
-int medredis_init() {
+static int medredis_init_one(void) {
     struct timeval tv;
     redisReply *reply;
 
@@ -472,7 +472,7 @@ int medredis_init() {
     medredis_free_reply(&reply);
 
     reply = redisCommand(con->ctx, "SCRIPT LOAD %s", SREM_KEY_LUA);
-    medredis_check_reply("SELECT", reply, err);
+    medredis_check_reply("SCRIPT LOAD", reply, err);
     if (reply->type != REDIS_REPLY_STRING || reply->len >= sizeof(medredis_srem_key_lua)) {
         L_ERROR("Invalid reply from SCRIPT LOAD: %i/%lu\n", reply->type, (unsigned long) reply->len);
         goto err;
@@ -496,6 +496,18 @@ err:
         con = NULL;
     }
     return -1;
+}
+int medredis_init() {
+    int i = 0;
+    static const int max_retries = 10;
+    while (1) {
+        if (medredis_init_one() == 0)
+            return 0;
+        if (i++ >= max_retries)
+            return -1;
+        L_ERROR("Redis connection init failed, retry attempt #%i/%i\n", i, max_retries);
+        usleep(200000);
+    }
 }
 
 
