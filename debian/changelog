@@ -1,3 +1,29 @@
+ngcp-mediator (11.0.0.0+0~mr11.0.0.0) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [558248a] TT#170203 remove obsolete type
+  * [ca8cb25] TT#170203 use linked list to manage call IDs
+  * [8537ef8] TT#170203 use linked list to manage acc records
+  * [043fd78] TT#170203 use dynamic string as SQL buffer
+  * [cc4445e] TT#170203 allocate some strings in med_entry_t
+  * [a1fbecc] TT#170203 use `static` for some file-scope functions
+  * [c9462f2] TT#170203 store parsed JSON object in med_entry_t
+  * [d86e326] TT#170203 parse JSON objects in med_entry_t early
+  * [ba137dc] TT#170203 determine SIP method code early
+  * [359d7ac] TT#170203 use specific method when deleting key
+  * [f5a7735] TT#170203 add support for REFER
+  * [59d36da] TT#170203 modernise medredis_fetch_records() a bit
+  * [9296e59] TT#170203 unify acc record fetching
+  * [0aab12e] TT#170203 split out function to truncate call ID suffixes
+  * [697bd2b] TT#170203 support filter function when fetching records
+  * [3251683] TT#170203 handle REFER records
+  * [32ab6e9] TT#170203 skip "foreign" BYE records
+  * [240002d] TT#170203 g_string_set_size before grabbing destination pointer
+  * [5ae3e4e] TT#170203 fix mem leak
+  * [097cd85] TT#177700 handle slow KeyDB startup
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 07 Jun 2022 11:43:03 +0200
+
 ngcp-mediator (10.5.0.0+0~mr10.5.0.0) unstable; urgency=medium
 
   * New release.
