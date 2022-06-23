@@ -1280,6 +1280,39 @@ static int cdr_parse_dstleg_list(char *dstleg, cdr_entry_t *cdr)
     return 0;
 }
 
+static int validate_src_dst_leg(med_entry_t *e)
+{
+    if (!e->src_leg[0])
+    {
+        L_DEBUG("Missing src_leg");
+        return -1;
+    }
+
+    if (!e->dst_leg[0])
+    {
+        L_DEBUG("Missing dst_leg");
+        return -1;
+    }
+
+    json_object *json_src_leg = json_tokener_parse(e->src_leg);
+    if (!(json_src_leg && json_object_is_type(json_src_leg, json_type_object)) &&
+        strchr(e->src_leg, MED_SEP) == NULL)
+    {
+        L_DEBUG("Invalid src_leg");
+        return -1;
+    }
+
+    json_object *json_dst_leg = json_tokener_parse(e->dst_leg);
+    if (!(json_dst_leg && json_object_is_type(json_dst_leg, json_type_object)) &&
+        strchr(e->dst_leg, MED_SEP) == NULL)
+    {
+        L_DEBUG("Invalid dst_leg");
+        return -1;
+    }
+
+    return 0;
+}
+
 static int cdr_parse_srcleg(med_entry_t *e, cdr_entry_t *cdr)
 {
     cdr_parse_entry(e);
@@ -1379,7 +1412,7 @@ static cdr_entry_t *alloc_cdrs(uint64_t cdr_count) {
 static int cdr_create_cdrs(GQueue *records,
         cdr_entry_t **cdrs, uint64_t *cdr_count, uint64_t *alloc_size, uint8_t *trash, int do_intermediate)
 {
-    uint64_t i = 0, cdr_index = 0;
+    uint64_t i = 0, cdr_index = 0, created = 0;
     uint64_t invites = 0;
     int timed_out = 0;
 
@@ -1469,6 +1502,13 @@ static int cdr_create_cdrs(GQueue *records,
                 if (!tmp_unix_endtime) {
                     if (do_intermediate && !timed_out) {
                         L_DEBUG("CDR %lu is an intermediate record\n", cdr_index);
+
+                        if (validate_src_dst_leg(e))
+                        {
+                            L_DEBUG("Skip intermediate CDR index %lu without valid src_leg and dst_leg for call-id '%s'\n", cdr_index, e->callid);
+                            continue;
+                        }
+
                         cdr->intermediate = 1;
                     }
                     else {
@@ -1477,6 +1517,8 @@ static int cdr_create_cdrs(GQueue *records,
                     tmp_unix_endtime = time(NULL);
                 }
             }
+
+            ++created; // TODO: move to the end when everything is successful ?
 
             g_string_assign(cdr->call_id, e->callid);
             cdr->start_time = e->unix_timestamp;
@@ -1519,7 +1561,7 @@ static int cdr_create_cdrs(GQueue *records,
             return -1;
     }
 
-    *cdr_count = cdr_index;
+    *cdr_count = created;
 
     /*L_DEBUG("Created %llu CDRs:", *cdr_count);*/
 
