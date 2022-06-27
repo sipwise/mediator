@@ -370,7 +370,7 @@ int main(int argc, char **argv)
                 continue;
             }
 
-            if(cdr_process_records(mysql_records, mysql_rec_count, &cdr_count, batches, do_intermediate) != 0)
+            if(cdr_process_records(&mysql_records, &mysql_rec_count, &cdr_count, batches, do_intermediate) != 0)
                 goto out;
 
             if(mysql_rec_count > 0)
@@ -436,7 +436,7 @@ int main(int argc, char **argv)
             L_DEBUG("process cdr with cid '%s' and %"PRIu64" records\n", redis_callids[i].value, redis_rec_count);
 
             if (redis_rec_count) {
-                if(cdr_process_records(redis_records, redis_rec_count, &cdr_count, batches, do_intermediate) != 0) {
+                if(cdr_process_records(&redis_records, &redis_rec_count, &cdr_count, batches, do_intermediate) != 0) {
                     free(redis_records);
                     goto out;
                 }
@@ -459,6 +459,8 @@ int main(int argc, char **argv)
         //////////////// end //////////////////
 
         if (medmysql_batch_end(batches))
+            break;
+        if (medredis_batch_end())
             break;
 
         gettimeofday(&loop_tv_stop, NULL);

@@ -45,14 +45,20 @@ typedef struct {
 } medredis_cidlist_t;
 
 typedef struct {
+    med_entry_t *records;
+    uint64_t count;
+} medredis_records_list_t;
+
+typedef struct {
     const char *name;
+    GQueue record_lists;
 } medredis_table_t;
 
 static medredis_con_t *con = NULL;
 static char medredis_srem_key_lua[41]; // sha-1 hex string
 
-static medredis_table_t medredis_table_trash = { .name = "trash" };
-static medredis_table_t medredis_table_backup = { .name = "backup" };
+static medredis_table_t medredis_table_trash = { .name = "trash", .record_lists = G_QUEUE_INIT };
+static medredis_table_t medredis_table_backup = { .name = "backup", .record_lists = G_QUEUE_INIT };
 
 /**********************************************************************/
 static void medredis_free_reply(redisReply **reply) {
@@ -829,16 +835,34 @@ err:
 }
 
 /**********************************************************************/
-static int medredis_cleanup_entries(med_entry_t *records, uint64_t count, medredis_table_t *table) {
-    char buffer[512];
-
-    if (medmysql_insert_records(records, count, table->name) != 0) {
+static int medredis_cleanup_entries(med_entry_t **records, uint64_t *count, medredis_table_t *table) {
+    if (medmysql_insert_records(*records, *count, table->name) != 0) {
         L_CRITICAL("Failed to cleanup redis records\n");
         goto err;
     }
 
-    for (uint64_t i = 0; i < count; ++i) {
-        med_entry_t *e = &(records[i]);
+    // take ownership of the contents of the `records` array and swap out contents with
+    // an empty array
+    medredis_records_list_t *list = g_slice_alloc(sizeof(*list));
+    list->records = *records;
+    list->count = *count;
+    *count = 0;
+    *records = NULL;
+
+    g_queue_push_tail(&table->record_lists, list);
+
+    return 0;
+
+err:
+    return -1;
+}
+
+/**********************************************************************/
+static int medredis_batch_end_records(medredis_records_list_t *list) {
+    char buffer[512];
+
+    for (uint64_t i = 0; i < list->count; ++i) {
+        med_entry_t *e = &(list->records[i]);
         if (!e->redis)
             continue;
 
@@ -880,11 +904,33 @@ err:
 }
 
 /**********************************************************************/
-int medredis_trash_entries(med_entry_t *records, uint64_t count) {
+static int medredis_batch_end_table(medredis_table_t *table) {
+    while (table->record_lists.length) {
+        medredis_records_list_t *list = g_queue_pop_head(&table->record_lists);
+        int ret = medredis_batch_end_records(list);
+        free(list->records);
+        g_slice_free1(sizeof(*list), list);
+        if (ret)
+            return -1;
+    }
+    return 0;
+}
+
+/**********************************************************************/
+int medredis_batch_end(void) {
+    if (medredis_batch_end_table(&medredis_table_trash))
+        return -1;
+    if (medredis_batch_end_table(&medredis_table_backup))
+        return -1;
+    return 0;
+}
+
+/**********************************************************************/
+int medredis_trash_entries(med_entry_t **records, uint64_t *count) {
     return medredis_cleanup_entries(records, count, &medredis_table_trash);
 }
 
 /**********************************************************************/
-int medredis_backup_entries(med_entry_t *records, uint64_t count) {
+int medredis_backup_entries(med_entry_t **records, uint64_t *count) {
     return medredis_cleanup_entries(records, count, &medredis_table_backup);
 }

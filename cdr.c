@@ -62,9 +62,11 @@ static void free_cdrs(cdr_entry_t **cdrs, uint64_t cdr_count) {
 }
 
 
-int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_count,
+int cdr_process_records(med_entry_t **records_p, uint64_t *count_p, uint64_t *ext_count,
         struct medmysql_batches *batches, int do_intermediate)
 {
+    med_entry_t *records = *records_p;
+    uint64_t count = *count_p;
     int ret = 0;
     uint8_t trash = 0;
     uint64_t i;
@@ -162,7 +164,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
                         {
                             if (has_redis)
                             {
-                                if(medredis_backup_entries(records, count) != 0)
+                                if(medredis_backup_entries(records_p, count_p) != 0)
                                     goto error;
                             }
                             if (has_mysql)
@@ -210,7 +212,7 @@ int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *ext_coun
     {
         if (has_redis)
         {
-            if(medredis_trash_entries(records, count) != 0)
+            if(medredis_trash_entries(records_p, count_p) != 0)
                 goto error;
         }
         if (has_mysql)

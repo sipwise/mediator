@@ -59,7 +59,7 @@ typedef struct {
 #undef F
 #undef FA
 
-int cdr_process_records(med_entry_t *records, uint64_t count, uint64_t *cdr_count, struct medmysql_batches *,
+int cdr_process_records(med_entry_t **records, uint64_t *count, uint64_t *cdr_count, struct medmysql_batches *,
         int do_intermediate);
 void cdr_fix_accids(med_entry_t *records, uint64_t count);
 int cdr_fill_record(cdr_entry_t *cdr);
