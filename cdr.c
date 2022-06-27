@@ -1423,7 +1423,7 @@ static cdr_entry_t *alloc_cdrs(uint64_t cdr_count) {
 static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
         cdr_entry_t **cdrs, uint64_t *cdr_count, uint64_t *alloc_size, uint8_t *trash, int do_intermediate)
 {
-    uint64_t i = 0, cdr_index = 0, created = 0;
+    uint64_t i = 0, cdr_index = 0;
     uint64_t invites = 0;
     int timed_out = 0;
 
@@ -1516,6 +1516,7 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
                         if (validate_src_dst_leg(e))
                         {
                             L_DEBUG("Skip intermediate CDR index %lu without valid src_leg and dst_leg for call-id '%s'\n", cdr_index, e->callid);
+                            cdr_index--;
                             continue;
                         }
 
@@ -1527,8 +1528,6 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
                     tmp_unix_endtime = time(NULL);
                 }
             }
-
-            ++created; // TODO: move to the end when everything is successful ?
 
             g_string_assign(cdr->call_id, e->callid);
             cdr->start_time = e->unix_timestamp;
@@ -1571,7 +1570,7 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
             return -1;
     }
 
-    *cdr_count = created;
+    *cdr_count = cdr_index;
 
     /*L_DEBUG("Created %llu CDRs:", *cdr_count);*/
 
