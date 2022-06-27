@@ -443,6 +443,8 @@ int main(int argc, char **argv)
 
         if (medmysql_batch_end(batches))
             break;
+        if (medredis_batch_end())
+            break;
 
         gettimeofday(&loop_tv_stop, NULL);
         loop_runtime = mediator_calc_runtime(&loop_tv_start, &loop_tv_stop);

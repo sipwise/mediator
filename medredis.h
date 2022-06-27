@@ -12,5 +12,6 @@ gboolean medredis_fetch_callids(GQueue *output);
 int medredis_fetch_records(char *callid, GQueue *entries, records_filter_func, void *filter_data);
 int medredis_trash_entries(GQueue *records);
 int medredis_backup_entries(GQueue *records);
+int medredis_batch_end(void);
 
 #endif /* _MED_REDIS_H */

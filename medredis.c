@@ -42,13 +42,14 @@ typedef struct {
 
 typedef struct {
     const char *name;
+    GQueue record_lists;
 } medredis_table_t;
 
 static medredis_con_t *con = NULL;
 static char medredis_srem_key_lua[41]; // sha-1 hex string
 
-static medredis_table_t medredis_table_trash = { .name = "trash" };
-static medredis_table_t medredis_table_backup = { .name = "backup" };
+static medredis_table_t medredis_table_trash = { .name = "trash", .record_lists = G_QUEUE_INIT };
+static medredis_table_t medredis_table_backup = { .name = "backup", .record_lists = G_QUEUE_INIT };
 
 /**********************************************************************/
 static void medredis_free_reply(redisReply **reply) {
@@ -810,12 +811,29 @@ err:
 
 /**********************************************************************/
 static int medredis_cleanup_entries(GQueue *records, medredis_table_t *table) {
-    char buffer[512];
-
     if (medmysql_insert_records(records, table->name) != 0) {
         L_CRITICAL("Failed to cleanup redis records\n");
         goto err;
     }
+
+    // take ownership of the contents of the `records` queue and swap out contents with
+    // an empty queue
+    GQueue *copy = g_queue_new();
+    GQueue tmp = *copy; // empty queue
+    *copy = *records; // take ownership
+    *records = tmp; // replace with empty queue
+
+    g_queue_push_tail(&table->record_lists, copy);
+
+    return 0;
+
+err:
+    return -1;
+}
+
+/**********************************************************************/
+static int medredis_batch_end_records(GQueue *records) {
+    char buffer[512];
 
     for (GList *l = records->head; l; l = l->next) {
         med_entry_t *e = l->data;
@@ -857,6 +875,27 @@ static int medredis_cleanup_entries(GQueue *records, medredis_table_t *table) {
 
 err:
     return -1;
+}
+
+/**********************************************************************/
+static int medredis_batch_end_table(medredis_table_t *table) {
+    while (table->record_lists.length) {
+        GQueue *records = g_queue_pop_head(&table->record_lists);
+        int ret = medredis_batch_end_records(records);
+        g_queue_free_full(records, med_entry_free);
+        if (ret)
+            return -1;
+    }
+    return 0;
+}
+
+/**********************************************************************/
+int medredis_batch_end(void) {
+    if (medredis_batch_end_table(&medredis_table_trash))
+        return -1;
+    if (medredis_batch_end_table(&medredis_table_backup))
+        return -1;
+    return 0;
 }
 
 /**********************************************************************/
