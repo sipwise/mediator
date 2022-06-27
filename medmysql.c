@@ -970,6 +970,8 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         snprintf(str_source_accid, sizeof(str_source_accid), "%llu", (long long unsigned int) e->source_account_id);
         snprintf(str_dest_accid, sizeof(str_dest_accid), "%llu", (long long unsigned int) e->destination_account_id);
 
+	const char *begin_ptr = batch->cdrs.str + batch->cdrs.len;
+
         CDRPRINT("(NULL, now(), ");
         CDRESCAPE(e->source_user_id);
         CDRPRINT(",");
@@ -1104,6 +1106,9 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         }
 
         CDRPRINT("),");
+
+	const char *end_ptr = batch->cdrs.str + batch->cdrs.len;
+	L_DEBUG("CDR entry to be written: %.*s", (int) (end_ptr - begin_ptr), begin_ptr);
 
         if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_destination,
                     "furnished_charging_info", e->furnished_charging_info, e))
