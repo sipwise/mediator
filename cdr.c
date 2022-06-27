@@ -1294,17 +1294,25 @@ static int validate_src_dst_leg(med_entry_t *e)
         return -1;
     }
 
+    int invalid;
+
     json_object *json_src_leg = json_tokener_parse(e->src_leg);
-    if (!(json_src_leg && json_object_is_type(json_src_leg, json_type_object)) &&
-        strchr(e->src_leg, MED_SEP) == NULL)
+    invalid = (!(json_src_leg && json_object_is_type(json_src_leg, json_type_object)) &&
+        strchr(e->src_leg, MED_SEP) == NULL);
+    if (json_src_leg)
+        json_object_put(json_src_leg);
+    if (invalid)
     {
         L_DEBUG("Invalid src_leg");
         return -1;
     }
 
     json_object *json_dst_leg = json_tokener_parse(e->dst_leg);
-    if (!(json_dst_leg && json_object_is_type(json_dst_leg, json_type_object)) &&
-        strchr(e->dst_leg, MED_SEP) == NULL)
+    invalid = (!(json_dst_leg && json_object_is_type(json_dst_leg, json_type_object)) &&
+        strchr(e->dst_leg, MED_SEP) == NULL);
+    if (json_dst_leg)
+        json_object_put(json_dst_leg);
+    if (invalid)
     {
         L_DEBUG("Invalid dst_leg");
         return -1;
