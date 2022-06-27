@@ -44,8 +44,15 @@ typedef struct {
     uint64_t index;
 } medredis_cidlist_t;
 
+typedef struct {
+    const char *name;
+} medredis_table_t;
+
 static medredis_con_t *con = NULL;
 static char medredis_srem_key_lua[41]; // sha-1 hex string
+
+static medredis_table_t medredis_table_trash = { .name = "trash" };
+static medredis_table_t medredis_table_backup = { .name = "backup" };
 
 /**********************************************************************/
 static void medredis_free_reply(redisReply **reply) {
@@ -822,10 +829,10 @@ err:
 }
 
 /**********************************************************************/
-static int medredis_cleanup_entries(med_entry_t *records, uint64_t count, const char *table) {
+static int medredis_cleanup_entries(med_entry_t *records, uint64_t count, medredis_table_t *table) {
     char buffer[512];
 
-    if (medmysql_insert_records(records, count, table) != 0) {
+    if (medmysql_insert_records(records, count, table->name) != 0) {
         L_CRITICAL("Failed to cleanup redis records\n");
         goto err;
     }
@@ -874,10 +881,10 @@ err:
 
 /**********************************************************************/
 int medredis_trash_entries(med_entry_t *records, uint64_t count) {
-    return medredis_cleanup_entries(records, count, "trash");
+    return medredis_cleanup_entries(records, count, &medredis_table_trash);
 }
 
 /**********************************************************************/
 int medredis_backup_entries(med_entry_t *records, uint64_t count) {
-    return medredis_cleanup_entries(records, count, "backup");
+    return medredis_cleanup_entries(records, count, &medredis_table_backup);
 }
