@@ -1290,47 +1290,6 @@ static int cdr_parse_dstleg_list(char *dstleg, cdr_entry_t *cdr)
     return 0;
 }
 
-static int validate_src_dst_leg(med_entry_t *e)
-{
-    if (!e->src_leg[0])
-    {
-        L_DEBUG("Missing src_leg");
-        return -1;
-    }
-
-    if (!e->dst_leg[0])
-    {
-        L_DEBUG("Missing dst_leg");
-        return -1;
-    }
-
-    int invalid;
-
-    json_object *json_src_leg = json_tokener_parse(e->src_leg);
-    invalid = (!(json_src_leg && json_object_is_type(json_src_leg, json_type_object)) &&
-        strchr(e->src_leg, MED_SEP) == NULL);
-    if (json_src_leg)
-        json_object_put(json_src_leg);
-    if (invalid)
-    {
-        L_DEBUG("Invalid src_leg");
-        return -1;
-    }
-
-    json_object *json_dst_leg = json_tokener_parse(e->dst_leg);
-    invalid = (!(json_dst_leg && json_object_is_type(json_dst_leg, json_type_object)) &&
-        strchr(e->dst_leg, MED_SEP) == NULL);
-    if (json_dst_leg)
-        json_object_put(json_dst_leg);
-    if (invalid)
-    {
-        L_DEBUG("Invalid dst_leg");
-        return -1;
-    }
-
-    return 0;
-}
-
 static int cdr_parse_srcleg(char *srcleg, cdr_entry_t *cdr)
 {
     json_object *json = json_tokener_parse(srcleg);
@@ -1522,14 +1481,6 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
                 if (!tmp_unix_endtime) {
                     if (do_intermediate && !timed_out) {
                         L_DEBUG("CDR %lu is an intermediate record\n", cdr_index);
-
-                        if (validate_src_dst_leg(e))
-                        {
-                            L_DEBUG("Skip intermediate CDR index %lu without valid src_leg and dst_leg for call-id '%s'\n", cdr_index, e->callid);
-                            cdr_index--;
-                            continue;
-                        }
-
                         cdr->intermediate = 1;
                     }
                     else {
@@ -1553,15 +1504,17 @@ static int cdr_create_cdrs(med_entry_t *records, uint64_t count,
             cdr->destination_reseller_cost = 0;
             cdr->destination_customer_cost = 0;
 
-            if(cdr_parse_srcleg(e->src_leg, cdr) < 0 && !cdr->intermediate)
+            if(cdr_parse_srcleg(e->src_leg, cdr) < 0)
             {
-                *trash = 1;
+                if (!cdr->intermediate)
+                    *trash = 1;
                 return 0;
             }
 
             if(cdr_parse_dstleg(e->dst_leg, cdr) < 0 && !cdr->intermediate && !timed_out)
             {
-                *trash = 1;
+                if (!cdr->intermediate)
+                    *trash = 1;
                 return 0;
             }
 
