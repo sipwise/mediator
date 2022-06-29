@@ -1,3 +1,18 @@
+ngcp-mediator (10.5.1.1+0~mr10.5.1.1) unstable; urgency=medium
+
+  [ Kirill Solomko ]
+  * [62cf241] TT#182200 skip intermediate cdr records without valid src dst
+
+  [ Richard Fuchs ]
+  * [4ffa758] TT#182200 fix CDR index bookkeeping
+  * [056f1ae] TT#182200 fix mem leak
+  * [64d50ee] TT#182200 extra debugging output
+  * [d87f661] TT#182200 abstract Redis trash/backup table definitions
+  * [bbbe2c9] TT#182200 delay Redis entry deletion until after MySQL transaction
+  * [5583350] TT#182200 use single-pass JSON parsing
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Wed, 29 Jun 2022 17:27:01 +0200
+
 ngcp-mediator (10.5.1.0+0~mr10.5.1.0) unstable; urgency=medium
 
   [ Richard Fuchs ]
