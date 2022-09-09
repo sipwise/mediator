@@ -721,6 +721,14 @@ static int cdr_parse_dstleg_json(json_object *json, cdr_entry_t *cdr)
         goto ret;
     }
 
+    // hg_ext_response
+    if (!cdr_parse_json_get_g_string(json, "hg_ext_response", cdr->hg_ext_response)) {
+        L_DEBUG("Call-Id '%s' does not contain 'hg_ext_response' key (hunt group extension response), '%s'", cdr->call_id->str, json_object_get_string(json));
+        /// Added in mr8.3, it should be changed to -1 in mr9.+
+        /// goto err;
+        goto ret;
+    }
+
 ret:
     return 0;
 
@@ -1274,6 +1282,17 @@ static int cdr_parse_dstleg_list(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_string_assign(cdr->destination_concurrent_calls_count_customer, tmp2);
+    *tmp1 = MED_SEP;
+    tmp2 = ++tmp1;
+
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
+        L_DEBUG("Call-Id '%s' has no separated hunt group extension response, '%s'", cdr->call_id->str, tmp2);
+        return 0;
+    }
+    *tmp1 = '\0';
+    g_string_assign(cdr->hg_ext_response, tmp2);
     *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 

@@ -47,6 +47,7 @@ F(source_concurrent_calls_count_customer)
 F(destination_concurrent_calls_quota)
 F(destination_concurrent_calls_count)
 F(destination_concurrent_calls_count_customer)
+F(hg_ext_response)
 F(source_last_hih)
 
 F(acc_ref)
