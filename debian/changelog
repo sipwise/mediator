@@ -1,3 +1,10 @@
+ngcp-mediator (11.1.1.0+0~mr11.1.1.0) unstable; urgency=medium
+
+  [ Alessio Garzi ]
+  * [466da5a] MT#33002 new field hg_ext_response
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 04 Oct 2022 13:50:30 +0200
+
 ngcp-mediator (11.1.0.0+0~mr11.1.0.0) unstable; urgency=medium
 
   [ Kirill Solomko ]
