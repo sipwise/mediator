@@ -1,3 +1,10 @@
+ngcp-mediator (10.5.1.2+0~mr10.5.1.2) unstable; urgency=medium
+
+  [ Rene Krenn ]
+  * [a6a4599] MT#55627 unblock failing mediator due to invalid inserts
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 13 Oct 2022 11:06:46 +0200
+
 ngcp-mediator (10.5.1.1+0~mr10.5.1.1) unstable; urgency=medium
 
   [ Kirill Solomko ]
