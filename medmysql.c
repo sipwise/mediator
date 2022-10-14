@@ -60,6 +60,11 @@ typedef struct _cdr_tag_record {
     unsigned long long cdr_id;
     char *sql_record;
 } cdr_tag_record;
+typedef struct {
+    const char *begin;
+    const char *end;
+    unsigned long cdr_id;
+} single_cdr;
 
 typedef struct _medmysql_batch_definition {
     const char *sql_init_string,
@@ -1110,6 +1115,12 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
 	const char *end_ptr = batch->cdrs.str + batch->cdrs.len;
 	L_DEBUG("CDR entry to be written: %.*s", (int) (end_ptr - begin_ptr), begin_ptr);
 
+        single_cdr *single = g_slice_alloc(sizeof(*single));
+        single->begin = begin_ptr;
+        single->end = end_ptr;
+        single->cdr_id = batch->num_cdrs;
+        g_queue_push_tail(&batch->cdrs.q, single);
+
         if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_destination,
                     "furnished_charging_info", e->furnished_charging_info, e))
             return -1;
@@ -1577,6 +1588,10 @@ static int medmysql_flush_cdr_batch(struct medmysql_cdr_batch *batch) {
         L_CRITICAL("Received zero auto-ID from SQL");
         return -1;
     }
+
+    single_cdr *single;
+    while ((single = g_queue_pop_head(&batch->cdrs.q)))
+        g_slice_free1(sizeof(*single), single);
 
     if (medmysql_write_cdr_tags(batch, auto_id))
         return -1;
