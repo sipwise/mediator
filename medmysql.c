@@ -1556,6 +1556,129 @@ static int medmysql_write_cdr_tags(struct medmysql_cdr_batch *batch, unsigned lo
 }
 
 
+static int medmysql_write_single_tags(struct medmysql_str *str, unsigned long cdr_id) {
+    const medmysql_batch_definition *def = str->def;
+    if (!def)
+        return 0;
+
+    int ret = 0;
+
+    // iterate list, skip/free old entries, process current entries, stop at later entry
+    cdr_tag_record *record;
+    while ((record = g_queue_pop_head(&str->q))) {
+        if (record->cdr_id < cdr_id)
+            goto next; // old entry, skip and free
+        if (record->cdr_id > cdr_id) {
+            // gone past - end of list for now, push back entry for later
+            g_queue_push_head(&str->q, record);
+            return 0;
+        }
+
+        // process this entry: construct SQL statement
+        char *stmt;
+        if (def->sql_finish_string)
+            stmt = g_strdup_printf("%s(%lu, %s)%s",
+                    def->sql_init_string,
+                    cdr_id,
+                    record->sql_record,
+                    def->sql_finish_string);
+        else
+            stmt = g_strdup_printf("%s(%lu, %s)",
+                    def->sql_init_string,
+                    cdr_id,
+                    record->sql_record);
+
+        L_DEBUG("SQL single tag/group statement\n");
+        L_DEBUG("SQL: %s\n", stmt);
+
+        if (medmysql_query_wrapper_tx(*def->handler_ptr, stmt, strlen(stmt))) {
+            L_CRITICAL("Error executing query: %s",
+                    mysql_error((*def->handler_ptr)->m));
+            L_CRITICAL("Failed query: '%s'", stmt);
+            ret = -1;
+        }
+
+        g_free(stmt);
+
+next:
+        free(record->sql_record);
+        free(record);
+    }
+    return ret;
+}
+
+
+// retry the CDR inserts one by one
+static int medmysql_flush_single_cdrs(struct medmysql_cdr_batch *batch) {
+    const medmysql_batch_definition *def = batch->cdrs.def;
+    if (!def)
+        return -1;
+
+    unsigned long failed = 0;
+
+    single_cdr *single;
+    while ((single = g_queue_pop_head(&batch->cdrs.q))) {
+        // construct single SQL insert statement
+        char *stmt;
+        if (def->sql_finish_string)
+            stmt = g_strdup_printf("%s%.*s%s",
+                    def->sql_init_string,
+                    (int) (single->end - single->begin) - 1,
+                    single->begin,
+                    def->sql_finish_string);
+        else
+            stmt = g_strdup_printf("%s%.*s",
+                    def->sql_init_string,
+                    (int) (single->end - single->begin) - 1,
+                    single->begin);
+
+        unsigned long cdr_id = single->cdr_id;
+
+        g_slice_free1(sizeof(*single), single);
+
+        L_DEBUG("SQL single statement\n");
+        L_DEBUG("SQL: %s\n", stmt);
+
+        if (medmysql_query_wrapper_tx(*def->handler_ptr, stmt, strlen(stmt)) == 0) {
+            // insert OK
+            unsigned long auto_id = mysql_insert_id((*def->handler_ptr)->m);
+            if (!auto_id) {
+                L_CRITICAL("Received zero auto-ID from SQL");
+                return -1;
+            }
+
+            if (medmysql_write_single_tags(&batch->tags, cdr_id))
+                failed++;
+            if (medmysql_write_single_tags(&batch->mos, cdr_id))
+                failed++;
+            if (medmysql_write_single_tags(&batch->group, cdr_id))
+                failed++;
+        }
+        else {
+            L_CRITICAL("Error executing query: %s",
+                    mysql_error((*def->handler_ptr)->m));
+            L_CRITICAL("Failed query: '%s'", stmt);
+            failed++;
+        }
+
+        g_free(stmt);
+    }
+
+    if (failed) {
+        double failed_pct = (double) failed * 100. / (double) batch->num_cdrs;
+        if (failed_pct > 10.) {
+            L_CRITICAL("Large number of SQL failures during insert (%lu out of %lu, %.1f%%), bailing",
+                    failed, batch->num_cdrs, failed_pct);
+            return -1;
+        }
+        L_WARNING("Ignoring %lu failed inserts (out of %lu = %.1f%%), continuing",
+                failed, batch->num_cdrs, failed_pct);
+    }
+
+    return 0;
+}
+
+
 static int medmysql_flush_cdr_batch(struct medmysql_cdr_batch *batch) {
 
     // TODO: the config option is a bit misleading
@@ -1580,27 +1703,29 @@ static int medmysql_flush_cdr_batch(struct medmysql_cdr_batch *batch) {
 
 
     if (medmysql_flush_med_str(&batch->cdrs)) {
-        return -1;
+        if (medmysql_flush_single_cdrs(batch))
+            return -1;
     }
+    else {
+        unsigned long auto_id = mysql_insert_id((*batch->cdrs.def->handler_ptr)->m);
+        if (!auto_id) {
+            L_CRITICAL("Received zero auto-ID from SQL");
+            return -1;
+        }
 
-    unsigned long long auto_id = mysql_insert_id((*batch->cdrs.def->handler_ptr)->m);
-    if (!auto_id) {
-        L_CRITICAL("Received zero auto-ID from SQL");
-        return -1;
+        single_cdr *single;
+        while ((single = g_queue_pop_head(&batch->cdrs.q)))
+            g_slice_free1(sizeof(*single), single);
+
+        if (medmysql_write_cdr_tags(batch, auto_id))
+            return -1;
+        if (medmysql_flush_med_str(&batch->tags))
+            return -1;
+        if (medmysql_flush_med_str(&batch->mos))
+            return -1;
+        if (medmysql_flush_med_str(&batch->group))
+            return -1;
     }
-
-    single_cdr *single;
-    while ((single = g_queue_pop_head(&batch->cdrs.q)))
-        g_slice_free1(sizeof(*single), single);
-
-    if (medmysql_write_cdr_tags(batch, auto_id))
-        return -1;
-    if (medmysql_flush_med_str(&batch->tags))
-        return -1;
-    if (medmysql_flush_med_str(&batch->mos))
-        return -1;
-    if (medmysql_flush_med_str(&batch->group))
-        return -1;
 
     batch->num_cdrs = 0;
 
