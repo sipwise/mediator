@@ -916,7 +916,7 @@ static int medmysql_tag_cdr(struct medmysql_cdr_batch *batch, unsigned long prov
                     e->call_id, tag_name, tag_value);
         return -1;
     }
-    if (medmysql_tag_record(&batch->cdr_tags, batch->num_cdrs, provider_id,
+    if (medmysql_tag_record(&batch->tags.q, batch->num_cdrs, provider_id,
             direction_id, tag_value, e->start_time,
             GPOINTER_TO_UINT(tag_id)))
         return -1;
@@ -1147,13 +1147,13 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
             return -1;
 
         if (e->mos.filled && batch->mos.def) {
-            if (medmysql_mos_record(&batch->cdr_mos, batch->num_cdrs, e->mos.avg_score,
+            if (medmysql_mos_record(&batch->mos.q, batch->num_cdrs, e->mos.avg_score,
                         e->mos.avg_packetloss, e->mos.avg_jitter, e->mos.avg_rtt,
                         e->start_time))
                 return -1;
         }
 
-        if (medmysql_group_record(med_handler->m, &batch->cdr_group, batch->num_cdrs, e->group,
+        if (medmysql_group_record(med_handler->m, &batch->group.q, batch->num_cdrs, e->group,
                     e->start_time))
             return -1;
 
@@ -1439,15 +1439,13 @@ static int medmysql_handler_commit(medmysql_handler *h) {
 
 static void medmysql_str_init(struct medmysql_str *str, const medmysql_batch_definition *def,
         struct medmysql_batches *batches,
-        struct medmysql_cdr_batch *batch, GQueue *q)
+        struct medmysql_cdr_batch *batch)
 {
     str->len = 0;
     str->def = def;
     str->batches = batches;
     str->cdr_batch = batch;
-    str->q = q;
-    if (q)
-        g_queue_init(q);
+    g_queue_init(&str->q);
 }
 
 int medmysql_batch_start(struct medmysql_batches *batches) {
@@ -1461,30 +1459,24 @@ int medmysql_batch_start(struct medmysql_batches *batches) {
     if (!med_call_stat_info_table)
         med_call_stat_info_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
 
-    medmysql_str_init(&batches->cdr_batch.cdrs, &medmysql_cdr_def, batches, &batches->cdr_batch, NULL);
-    medmysql_str_init(&batches->cdr_batch.tags, &medmysql_tag_def, batches, &batches->cdr_batch,
-            &batches->cdr_batch.cdr_tags);
-    medmysql_str_init(&batches->cdr_batch.mos, &medmysql_mos_def, batches, &batches->cdr_batch,
-            &batches->cdr_batch.cdr_mos);
-    medmysql_str_init(&batches->cdr_batch.group, &medmysql_group_def, batches, &batches->cdr_batch,
-            &batches->cdr_batch.cdr_group);
+    medmysql_str_init(&batches->cdr_batch.cdrs, &medmysql_cdr_def, batches, &batches->cdr_batch);
+    medmysql_str_init(&batches->cdr_batch.tags, &medmysql_tag_def, batches, &batches->cdr_batch);
+    medmysql_str_init(&batches->cdr_batch.mos, &medmysql_mos_def, batches, &batches->cdr_batch);
+    medmysql_str_init(&batches->cdr_batch.group, &medmysql_group_def, batches, &batches->cdr_batch);
 
     batches->cdr_batch.num_cdrs = 0;
 
-    medmysql_str_init(&batches->int_cdr_batch.cdrs, &medmysql_int_cdr_def, batches, &batches->int_cdr_batch, NULL);
-    medmysql_str_init(&batches->int_cdr_batch.tags, &medmysql_int_tag_def, batches, &batches->int_cdr_batch,
-            &batches->int_cdr_batch.cdr_tags);
-    medmysql_str_init(&batches->int_cdr_batch.mos, NULL, batches, &batches->int_cdr_batch,
-            &batches->int_cdr_batch.cdr_mos);
-    medmysql_str_init(&batches->int_cdr_batch.group, &medmysql_int_group_def, batches, &batches->int_cdr_batch,
-            &batches->int_cdr_batch.cdr_group);
+    medmysql_str_init(&batches->int_cdr_batch.cdrs, &medmysql_int_cdr_def, batches, &batches->int_cdr_batch);
+    medmysql_str_init(&batches->int_cdr_batch.tags, &medmysql_int_tag_def, batches, &batches->int_cdr_batch);
+    medmysql_str_init(&batches->int_cdr_batch.mos, NULL, batches, &batches->int_cdr_batch);
+    medmysql_str_init(&batches->int_cdr_batch.group, &medmysql_int_group_def, batches, &batches->int_cdr_batch);
 
     batches->int_cdr_batch.num_cdrs = 0;
 
-    medmysql_str_init(&batches->acc_backup, &medmysql_backup_def, batches, NULL, NULL);
-    medmysql_str_init(&batches->acc_trash, &medmysql_trash_def, batches, NULL, NULL);
-    medmysql_str_init(&batches->to_delete, &medmysql_delete_def, batches, NULL, NULL);
-    medmysql_str_init(&batches->int_cdr_delete, &medmysql_del_int_cdr_def, batches, NULL, NULL);
+    medmysql_str_init(&batches->acc_backup, &medmysql_backup_def, batches, NULL);
+    medmysql_str_init(&batches->acc_trash, &medmysql_trash_def, batches, NULL);
+    medmysql_str_init(&batches->to_delete, &medmysql_delete_def, batches, NULL);
+    medmysql_str_init(&batches->int_cdr_delete, &medmysql_del_int_cdr_def, batches, NULL);
 
     return 0;
 }
@@ -1530,7 +1522,7 @@ static int medmysql_write_tag_records(struct medmysql_str *str, unsigned long lo
     if (!str->def)
         return 0;
     cdr_tag_record *record;
-    GQueue *q = str->q;
+    GQueue *q = &str->q;
     while ((record = g_queue_pop_head(q))) {
         if (medmysql_batch_prepare(str))
             return -1;
