@@ -20,7 +20,7 @@ struct medmysql_str {
     const struct _medmysql_batch_definition *def;
     struct medmysql_batches *batches;
     struct medmysql_cdr_batch *cdr_batch;
-    GQueue *q;
+    GQueue q;
 };
 
 struct medmysql_cdr_batch {
@@ -29,9 +29,6 @@ struct medmysql_cdr_batch {
     struct medmysql_str mos;
     struct medmysql_str group;
     unsigned long num_cdrs;
-    GQueue cdr_tags;
-    GQueue cdr_mos;
-    GQueue cdr_group;
 };
 
 struct medmysql_batches {
