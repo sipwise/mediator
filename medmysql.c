@@ -125,7 +125,7 @@ static const medmysql_batch_definition medmysql_delete_def = {
     .handler_ptr = &med_handler,
 };
 static const medmysql_batch_definition medmysql_cdr_def = {
-    .sql_init_string = "insert ignore into cdr (id, update_time, " \
+    .sql_init_string = "insert into cdr (id, update_time, " \
         "source_user_id, source_provider_id, source_external_subscriber_id, "\
         "source_external_contract_id, source_account_id, source_user, source_domain, " \
         "source_cli, source_clir, source_ip, "\
@@ -150,7 +150,7 @@ static const medmysql_batch_definition medmysql_cdr_def = {
     .handler_ptr = &cdr_handler,
 };
 static const medmysql_batch_definition medmysql_int_cdr_def = {
-    .sql_init_string = "insert ignore into int_cdr (id, update_time, " \
+    .sql_init_string = "insert into int_cdr (id, update_time, " \
         "source_user_id, source_provider_id, source_external_subscriber_id, "\
         "source_external_contract_id, source_account_id, source_user, source_domain, " \
         "source_cli, source_clir, source_ip, "\
