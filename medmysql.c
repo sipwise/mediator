@@ -1693,6 +1693,7 @@ static int medmysql_flush_single_cdrs(struct medmysql_cdr_batch *batch) {
             unsigned long auto_id = mysql_insert_id((*def->handler_ptr)->m);
             if (!auto_id) {
                 L_CRITICAL("Received zero auto-ID from SQL");
+                g_free(stmt);
                 return -1;
             }
 
