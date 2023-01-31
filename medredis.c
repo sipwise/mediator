@@ -226,15 +226,15 @@ static int medredis_get_reply(redisReply **reply) {
 /**********************************************************************/
 static void medredis_consume_replies(void) {
     medredis_command_t *cmd;
-    redisReply *reply;
+    redisReply *reply = NULL;
     while (con->append_counter > 0) {
-        redisGetReply(con->ctx, (void**)&reply);
-        if (reply) {
+        int ret = redisGetReply(con->ctx, (void**)&reply);
+        if (ret == REDIS_OK) {
             con->append_counter--;    
+            medredis_free_reply(&reply);
         } else {
             con->append_counter = 0;
         }
-        medredis_free_reply(&reply);
     }
     while ((cmd = g_queue_pop_head(con->command_queue))) {
         medredis_free_command(cmd);
