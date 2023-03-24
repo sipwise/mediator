@@ -1,3 +1,10 @@
+ngcp-mediator (11.3.1.0+0~mr11.3.1.0) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [776c5b7] MT#55628 fix possible segfault
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Fri, 24 Mar 2023 13:03:38 +0100
+
 ngcp-mediator (11.3.0.0+0~mr11.3.0.0) unstable; urgency=medium
 
   [ Richard Fuchs ]
