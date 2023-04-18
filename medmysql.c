@@ -1148,6 +1148,9 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_destination,
                     "r_user", e->r_user, e))
             return -1;
+        if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_destination,
+                    "r_ua", e->r_ua, e))
+            return -1;
         if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_source,
                     "header=History-Info", e->source_last_hih, e))
             return -1;

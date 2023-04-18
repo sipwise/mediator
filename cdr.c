@@ -731,6 +731,11 @@ static int cdr_parse_dstleg_json(json_object *json, cdr_entry_t *cdr)
         L_DEBUG("Call-Id '%s' does not contain 'r_user' key, '%s'", cdr->call_id->str, json_object_get_string(json));
     }
 
+    // responder_number
+    if (!cdr_parse_json_get_g_string(json, "r_ua", cdr->r_ua)) {
+        L_DEBUG("Call-Id '%s' does not contain 'r_ua' key, '%s'", cdr->call_id->str, json_object_get_string(json));
+    }
+
 ret:
     return 0;
 
@@ -1306,6 +1311,17 @@ static int cdr_parse_dstleg_list(char *dstleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_string_assign(cdr->r_user, tmp2);
+    *tmp1 = MED_SEP;
+    tmp2 = ++tmp1;
+
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
+        L_DEBUG("Call-Id '%s' has no separated response user agent, '%s'", cdr->call_id->str, tmp2);
+        return 0;
+    }
+    *tmp1 = '\0';
+    g_string_assign(cdr->r_ua, tmp2);
     *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 
