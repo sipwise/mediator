@@ -1,3 +1,14 @@
+ngcp-mediator (9.5.5.2+0~mr9.5.5.2) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [557c821] TT#182200 extra debugging output
+  * [9a232a7] MT#55628 move `q` into medmysql_str
+  * [cb72850] MT#55628 track individual CDRs
+  * [f0cd221] MT#55628 retry CDR insert one by one after failure
+  * [ca61644] MT#55628 fix Coverity RESOURCE_LEAK warning
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 15 May 2023 15:49:20 +0200
+
 ngcp-mediator (9.5.5.1+0~mr9.5.5.1) unstable; urgency=medium
 
   * New release.
