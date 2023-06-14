@@ -537,7 +537,8 @@ gboolean medredis_fetch_callids(GQueue *output) {
     unsigned int cursor = 0;
     size_t i = 0;
     redisReply *reply = NULL;
-    char *cmd = "SSCAN acc:meth::INVITE %u COUNT 1000";
+    static const char cmd[] = "SSCAN acc:meth::INVITE %u COUNT 1000";
+    static const char cmd_get_dont_clean_suffix[] = "HGET %s dont_clean_suffix";
     GHashTable *cid_table;
     char buffer[256];
     char *tmp;
@@ -579,7 +580,7 @@ gboolean medredis_fetch_callids(GQueue *output) {
             break;
         }
 
-        for (i= 0; i < reply->element[1]->elements; ++i) {
+        for (i = 0; i < reply->element[1]->elements; ++i) {
             char *cid;
             redisReply *entry = reply->element[1]->element[i];
             if (!entry) {
@@ -605,7 +606,20 @@ gboolean medredis_fetch_callids(GQueue *output) {
                 *tmp = '\0';
             }
 
-            cdr_truncate_call_id_suffix(cid);
+            int truncate_callid = 1;
+            snprintf(buffer, sizeof(buffer), cmd_get_dont_clean_suffix, entry->str);
+            redisReply *reply_get_dont_clean_suffix = medredis_command(buffer);
+            medredis_check_reply(buffer, reply_get_dont_clean_suffix, err);
+            if (reply_get_dont_clean_suffix->type == REDIS_REPLY_STRING && reply_get_dont_clean_suffix->str) {
+                if (!strcmp(reply_get_dont_clean_suffix->str,"1")) {
+                    truncate_callid = 0;
+                    L_WARNING("Preventing callid to be truncated since the original CALLID coming from endpoint has already more _pbx-1 suffixes\n");
+                }
+            }
+            medredis_free_reply(&reply_get_dont_clean_suffix);
+
+            if (truncate_callid)
+                cdr_truncate_call_id_suffix(cid);
 
             if (g_hash_table_insert(cid_table, cid, cid)) {
                 g_queue_push_tail(output, cid);
