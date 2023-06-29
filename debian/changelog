@@ -1,3 +1,14 @@
+ngcp-mediator (11.1.1.3+0~mr11.1.1.3) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [700a0f8] MT#55628 fix Coverity RESOURCE_LEAK warning
+  * [a28beae] MT#55628 fix possible segfault
+
+  [ Alessio Garzi ]
+  * [482dda2] MT#57281 New acc field "acc_dont_clean_suffix"
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 29 Jun 2023 17:54:47 +0200
+
 ngcp-mediator (11.1.1.2+0~mr11.1.1.2) unstable; urgency=medium
 
   [ Richard Fuchs ]
