@@ -1,3 +1,13 @@
+ngcp-mediator (11.2.1.2+0~mr11.2.1.2) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [968c9c1] MT#55628 fix possible segfault
+
+  [ Alessio Garzi ]
+  * [46253f3] MT#57281 New acc field "acc_dont_clean_suffix"
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 29 Jun 2023 17:54:45 +0200
+
 ngcp-mediator (11.2.1.1+0~mr11.2.1.1) unstable; urgency=medium
 
   * New release.
