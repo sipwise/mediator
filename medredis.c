@@ -1,5 +1,6 @@
 #include <hiredis/hiredis.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #include "medredis.h"
 #include "medmysql.h"
@@ -135,17 +136,22 @@ err:
 }
 
 /**********************************************************************/
-static redisReply *medredis_command(const char* cmd) {
+static redisReply *medredis_command(const char* cmd, ...) {
+    va_list args;
+
+    va_start(args, cmd);
     L_DEBUG("Performing redis query '%s'\n", cmd);
-    redisReply *reply = redisCommand(con->ctx, cmd);
+    redisReply *reply = redisvCommand(con->ctx, cmd, args);
     if (con->ctx->err == REDIS_ERR_EOF) {
         if (medredis_init() != 0) {
+            va_end(args);
             L_ERROR("Failed to reconnect to redis db\n");
             medredis_cleanup();
             return NULL;
         }
-        reply = redisCommand(con->ctx, cmd);
+        reply = redisvCommand(con->ctx, cmd, args);
     }
+    va_end(args);
     return reply;
 }
 
@@ -547,7 +553,7 @@ gboolean medredis_fetch_callids(GQueue *output) {
 
     do {
         snprintf(buffer, sizeof(buffer), cmd, cursor);
-        reply = medredis_command(buffer);
+        reply = medredis_command(cmd, cursor);
         medredis_check_reply(buffer, reply, err);
 
         if (reply->type != REDIS_REPLY_ARRAY) {
@@ -608,7 +614,7 @@ gboolean medredis_fetch_callids(GQueue *output) {
 
             int truncate_callid = 1;
             snprintf(buffer, sizeof(buffer), cmd_get_dont_clean_suffix, entry->str);
-            redisReply *reply_get_dont_clean_suffix = medredis_command(buffer);
+            redisReply *reply_get_dont_clean_suffix = medredis_command(cmd_get_dont_clean_suffix, entry->str);
             medredis_check_reply(buffer, reply_get_dont_clean_suffix, err);
             if (reply_get_dont_clean_suffix->type == REDIS_REPLY_STRING && reply_get_dont_clean_suffix->str) {
                 if (!strcmp(reply_get_dont_clean_suffix->str,"1")) {
