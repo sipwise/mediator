@@ -10,20 +10,20 @@
 #define PBXSUFFIX "_pbx-1"
 #define XFERSUFFIX "_xfer-1"
 
-#define medredis_check_reply(cmd, reply, err) do { \
+#define medredis_check_reply(reply, err, fmt, ...) do { \
     if (!(reply) && (!(con) || !(con)->ctx)) { \
-        L_ERROR("Failed to perform redis query '%s': no connection to server\n", \
-            (cmd)); \
+        L_ERROR("Failed to perform redis query '" fmt "': no connection to server\n", \
+                ##__VA_ARGS__); \
         goto err; \
     } \
     if (!(reply)) { \
-        L_ERROR("Failed to perform redis query '%s': %s\n", \
-                (cmd), (con)->ctx->errstr); \
+        L_ERROR("Failed to perform redis query '" fmt "': %s\n", \
+                ##__VA_ARGS__, (con)->ctx->errstr); \
         goto err; \
     } \
     if ((reply)->type == REDIS_REPLY_ERROR) { \
-        L_ERROR("Failed to perform redis query '%s': %s\n", \
-                (cmd), (reply)->str); \
+        L_ERROR("Failed to perform redis query '" fmt "': %s\n", \
+                ##__VA_ARGS__, (reply)->str); \
         goto err; \
     } \
 } while(0)
@@ -474,20 +474,20 @@ static int medredis_init_one(void) {
 
     if (config_redis_pass) {
         reply = redisCommand(con->ctx, "AUTH %s", config_redis_pass);
-        medredis_check_reply("AUTH", reply, err);
+        medredis_check_reply(reply, err, "AUTH");
         medredis_free_reply(&reply);
     }
 
     reply = redisCommand(con->ctx, "PING");
-    medredis_check_reply("PING", reply, err);
+    medredis_check_reply(reply, err, "PING");
     medredis_free_reply(&reply);
 
     reply = redisCommand(con->ctx, "SELECT %i", config_redis_db);
-    medredis_check_reply("SELECT", reply, err);
+    medredis_check_reply(reply, err, "SELECT %i", config_redis_db);
     medredis_free_reply(&reply);
 
     reply = redisCommand(con->ctx, "SCRIPT LOAD %s", SREM_KEY_LUA);
-    medredis_check_reply("SCRIPT LOAD", reply, err);
+    medredis_check_reply(reply, err, "SCRIPT LOAD %s", SREM_KEY_LUA);
     if (reply->type != REDIS_REPLY_STRING || reply->len >= sizeof(medredis_srem_key_lua)) {
         L_ERROR("Invalid reply from SCRIPT LOAD: %i/%lu\n", reply->type, (unsigned long) reply->len);
         goto err;
@@ -544,18 +544,16 @@ gboolean medredis_fetch_callids(GQueue *output) {
     unsigned int cursor = 0;
     size_t i = 0;
     redisReply *reply = NULL;
-    static const char cmd[] = "SSCAN acc:meth::INVITE %u COUNT 1000";
-    static const char cmd_get_dont_clean_suffix[] = "HGET %s dont_clean_suffix";
+#define SCAN_CMD "SSCAN acc:meth::INVITE %u COUNT 1000"
+#define GET_CLEAN_CMD "HGET %s dont_clean_suffix"
     GHashTable *cid_table;
-    char buffer[256];
     char *tmp;
 
     cid_table = g_hash_table_new(g_str_hash, g_str_equal);
 
     do {
-        snprintf(buffer, sizeof(buffer), cmd, cursor);
-        reply = medredis_command(cmd, cursor);
-        medredis_check_reply(buffer, reply, err);
+        reply = medredis_command(SCAN_CMD, cursor);
+        medredis_check_reply(reply, err, SCAN_CMD, cursor);
 
         if (reply->type != REDIS_REPLY_ARRAY) {
             L_ERROR("Invalid reply type for scan, expected array\n");
@@ -614,9 +612,8 @@ gboolean medredis_fetch_callids(GQueue *output) {
             }
 
             int truncate_callid = 1;
-            snprintf(buffer, sizeof(buffer), cmd_get_dont_clean_suffix, entry->str);
-            redisReply *reply_get_dont_clean_suffix = medredis_command(cmd_get_dont_clean_suffix, entry->str);
-            medredis_check_reply(buffer, reply_get_dont_clean_suffix, err);
+            redisReply *reply_get_dont_clean_suffix = medredis_command(GET_CLEAN_CMD, entry->str);
+            medredis_check_reply(reply_get_dont_clean_suffix, err, GET_CLEAN_CMD, entry->str);
             if (reply_get_dont_clean_suffix->type == REDIS_REPLY_STRING && reply_get_dont_clean_suffix->str) {
                 if (!strcmp(reply_get_dont_clean_suffix->str,"1")) {
                     truncate_callid = 0;
@@ -737,7 +734,7 @@ int medredis_fetch_records(char *callid,
             L_ERROR("Failed to get redis reply for command to fetch entries for cid '%s'\n", callid);
             goto err;    
         }
-        medredis_check_reply("smembers for cid", reply, err);
+        medredis_check_reply(reply, err, "smembers for cid");
         medredis_dump_reply(reply);
 
         if (reply->type != REDIS_REPLY_ARRAY) {
@@ -781,7 +778,7 @@ int medredis_fetch_records(char *callid,
         }
         if (!reply)
             break;
-        medredis_check_reply("get reply", reply, err);
+        medredis_check_reply(reply, err, "get reply");
         medredis_dump_reply(reply);
 
         e = medredis_reply_to_entry(reply, callid, key);
