@@ -13,6 +13,20 @@
 #include <inttypes.h>
 #include <json.h>
 
+/* Compiler support. */
+
+/* Supported since gcc 5.1.0 and clang 2.9.0. */
+#ifndef __has_attribute
+#define __has_attribute(x)	0
+#endif
+
+#if __has_attribute(__format__)
+#define MEDIATOR_ATTR_FORMAT(type, fmt, args) __attribute__((__format__(type, fmt, args)))
+#define MEDIATOR_ATTR_PRINTF(fmt, args) MEDIATOR_ATTR_FORMAT(__printf__, fmt, args)
+#else
+#define MEDIATOR_ATTR_FORMAT(type, fmt, args)
+#define MEDIATOR_ATTR_PRINTF(fmt, args)
+#endif
 
 #define MEDIATOR_DEFAULT_INTERVAL 10
 

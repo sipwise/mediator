@@ -136,6 +136,7 @@ err:
 }
 
 /**********************************************************************/
+MEDIATOR_ATTR_PRINTF(1, 2)
 static redisReply *medredis_command(const char* cmd, ...) {
     va_list args;
 
