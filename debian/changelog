@@ -1,3 +1,13 @@
+ngcp-mediator (11.4.1.1+0~mr11.4.1.1) unstable; urgency=medium
+
+  [ Alessio Garzi ]
+  * [c10ae63] MT#57281 New acc field "acc_dont_clean_suffix"
+
+  [ Guillem Jover ]
+  * [3797823] MT#57790 Switch medredis_command() to use redisvCommand()
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 11 Jul 2023 17:50:23 +0200
+
 ngcp-mediator (11.4.1.0+0~mr11.4.1.0) unstable; urgency=medium
 
   [ Alessio Garzi ]
