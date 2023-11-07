@@ -1,17 +1,4 @@
-ngcp-mediator (12.0.3.0+0~mr12.0.3.0) unstable; urgency=medium
-
-  * New release.
-
- -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 30 Oct 2023 17:04:53 +0100
-
-ngcp-mediator (12.0.2.0+0~mr12.0.2.0) unstable; urgency=medium
-
-  [ Guillem Jover ]
-  * [cc5a093] MT#58356 Update packaging for bookworm
-
- -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Sun, 15 Oct 2023 08:23:28 +0200
-
-ngcp-mediator (12.0.1.0+0~mr12.0.1.0) unstable; urgency=medium
+ngcp-mediator (12.0.0.0+0~mr12.0.0.0) unstable; urgency=medium
 
   [ Alessio Garzi ]
   * [6f156a0] MT#57281 New acc field "acc_dont_clean_suffix"
@@ -19,11 +6,12 @@ ngcp-mediator (12.0.1.0+0~mr12.0.1.0) unstable; urgency=medium
   [ Guillem Jover ]
   * [5f6139a] MT#57790 Switch medredis_command() to use redisvCommand()
   * [7b310f2] MT#57281 Mark medredis_command() with printf attribute
+  * [cc5a093] MT#58356 Update packaging for bookworm
 
   [ Richard Fuchs ]
   * [0cf1534] MT#57281 debug printing into medredis_check_reply
 
- -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Wed, 30 Aug 2023 18:04:03 +0200
+ -- Mykola Malkov <mmalkov@sipwise.com>  Tue, 07 Nov 2023 16:16:54 +0200
 
 ngcp-mediator (11.5.0.0+0~mr11.5.0.0) unstable; urgency=medium
 
