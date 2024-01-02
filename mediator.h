@@ -28,6 +28,8 @@
 #define MEDIATOR_ATTR_PRINTF(fmt, args)
 #endif
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(char, g_free)
+
 #define MEDIATOR_DEFAULT_INTERVAL 10
 
 #define MEDIATOR_SYSLOG_NAME "mediator"
