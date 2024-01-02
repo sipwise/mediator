@@ -14,6 +14,8 @@
 #include <json.h>
 
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(char, g_free)
+
 #define MEDIATOR_DEFAULT_INTERVAL 10
 
 #define MEDIATOR_SYSLOG_NAME "mediator"
