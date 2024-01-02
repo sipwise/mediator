@@ -685,26 +685,24 @@ int medmysql_fetch_records(char *callid,
     MYSQL_RES *res;
     MYSQL_ROW row;
     size_t callid_len = strlen(callid);
-    char query[strlen(MED_FETCH_QUERY) + callid_len * 7 + 1];
     int ret = 0;
-    int len;
     unsigned long long count = 0;
 
     char esc_callid[callid_len*2+1];
 
     mysql_real_escape_string(med_handler->m, esc_callid, callid, callid_len);
 
-    len = snprintf(query, sizeof(query), MED_FETCH_QUERY,
+    g_autoptr(char) query = g_strdup_printf(MED_FETCH_QUERY,
         esc_callid,
         esc_callid, esc_callid,
         esc_callid, esc_callid,
         esc_callid, esc_callid);
 
-    assert(len > 0 && (size_t)len < sizeof(query)); /* truncated - internal bug */
+    assert(query != NULL);
 
     /*L_DEBUG("q='%s'", query);*/
 
-    if(medmysql_query_wrapper(med_handler, query, len) != 0)
+    if(medmysql_query_wrapper(med_handler, query, strlen(query)) != 0)
     {
         L_CRITICAL("Error getting acc records for callid '%s': %s",
                 callid, mysql_error(med_handler->m));
