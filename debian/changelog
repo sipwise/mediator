@@ -1,3 +1,12 @@
+ngcp-mediator (10.5.2.3+0~mr10.5.2.3) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [6529074] MT#55628 fix Coverity RESOURCE_LEAK warning
+  * [a1afb01] MT#59064 introduce g_autoptr(char) type
+  * [107fe42] MT#59064 switch query string to g_autoptr type
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 04 Jan 2024 14:39:53 +0100
+
 ngcp-mediator (10.5.2.2+0~mr10.5.2.2) unstable; urgency=medium
 
   [ Richard Fuchs ]
