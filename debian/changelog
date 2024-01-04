@@ -1,3 +1,11 @@
+ngcp-mediator (10.5.4.2+0~mr10.5.4.2) unstable; urgency=medium
+
+  [ Richard Fuchs ]
+  * [f27a6aa] MT#59064 introduce g_autoptr(char) type
+  * [d8aef58] MT#59064 switch query string to g_autoptr type
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Thu, 04 Jan 2024 14:39:48 +0100
+
 ngcp-mediator (10.5.4.1+0~mr10.5.4.1) unstable; urgency=medium
 
   [ Richard Fuchs ]
