@@ -518,42 +518,31 @@ static int cdr_parse_srcleg_json(json_object *json, cdr_entry_t *cdr)
     // source_lcr_id
     if (!cdr_parse_json_get_uint64(json, "lcr", &cdr->source_lcr_id)) {
         L_DEBUG("Call-Id '%s' does not contain 'lcr' key (source lcr id), '%s'", cdr->call_id->str, json_object_get_string(json));
-        /// Simply return 0 in order to avoid issues with ACC records in the OLD format during an upgrade
-        /// Added in mr8.1, it should be changed to -1 in mr9.+
-        /// goto err;
-        goto ret;
+        goto err;
     }
 
     // source_concurrent_calls_quota
     if (!cdr_parse_json_get_g_string(json, "cc_quota", cdr->source_concurrent_calls_quota)) {
         L_DEBUG("Call-Id '%s' does not contain 'cc_quota' key (source concurrent calls quota), '%s'", cdr->call_id->str, json_object_get_string(json));
-        /// Added in mr8.3, it should be changed to -1 in mr9.+
-        /// goto err;
-        goto ret;
+        goto err;
     }
 
     // source_concurrent_calls_count
     if (!cdr_parse_json_get_g_string(json, "cc_sub", cdr->source_concurrent_calls_count)) {
         L_DEBUG("Call-Id '%s' does not contain 'cc_sub' key (source concurrent calls count), '%s'", cdr->call_id->str, json_object_get_string(json));
-        /// Added in mr8.3, it should be changed to -1 in mr9.+
-        /// goto err;
-        goto ret;
+        goto err;
     }
 
     // source_concurrent_calls_count_customer
     if (!cdr_parse_json_get_g_string(json, "cc_cust", cdr->source_concurrent_calls_count_customer)) {
         L_DEBUG("Call-Id '%s' does not contain 'cc_cust' key (source concurrent calls count customer), '%s'", cdr->call_id->str, json_object_get_string(json));
-        /// Added in mr8.3, it should be changed to -1 in mr9.+
-        /// goto err;
-        goto ret;
+        goto err;
     }
 
     // source_last_hih
     if (!cdr_parse_json_get_g_string(json, "last_hih", cdr->source_last_hih)) {
         L_DEBUG("Call-Id '%s' does not contain 'last_hih' key (source last hih), '%s'", cdr->call_id->str, json_object_get_string(json));
-        /// Added in mr9.4, it should be changed to -1 in mr10.+
-        /// goto err;
-        goto ret;
+        goto err;
     }
 
 ret:
@@ -700,25 +689,19 @@ static int cdr_parse_dstleg_json(json_object *json, cdr_entry_t *cdr)
     // destination_concurrent_calls_quota
     if (!cdr_parse_json_get_g_string(json, "cc_quota", cdr->destination_concurrent_calls_quota)) {
         L_DEBUG("Call-Id '%s' does not contain 'cc_quota' key (destination concurrent calls quota), '%s'", cdr->call_id->str, json_object_get_string(json));
-        /// Added in mr8.3, it should be changed to -1 in mr9.+
-        /// goto err;
-        goto ret;
+        goto err;
     }
 
     // destination_concurrent_calls_count
     if (!cdr_parse_json_get_g_string(json, "cc_sub", cdr->destination_concurrent_calls_count)) {
         L_DEBUG("Call-Id '%s' does not contain 'cc_sub' key (destination concurrent calls count), '%s'", cdr->call_id->str, json_object_get_string(json));
-        /// Added in mr8.3, it should be changed to -1 in mr9.+
-        /// goto err;
-        goto ret;
+        goto err;
     }
 
     // destination_concurrent_calls_count_customer
     if (!cdr_parse_json_get_g_string(json, "cc_cust", cdr->destination_concurrent_calls_count_customer)) {
         L_DEBUG("Call-Id '%s' does not contain 'cc_cust' key (destination concurrent calls count customer), '%s'", cdr->call_id->str, json_object_get_string(json));
-        /// Added in mr8.3, it should be changed to -1 in mr9.+
-        /// goto err;
-        goto ret;
+        goto err;
     }
 
     // hg_ext_response
@@ -1007,9 +990,7 @@ static int cdr_parse_srcleg_list(char *srcleg, cdr_entry_t *cdr)
     if(tmp1 == NULL)
     {
         L_DEBUG("Call-Id '%s' has no separated source lcr id, '%s'", cdr->call_id->str, tmp2);
-        /// Simply return 0 in order to avoid issues with ACC records in the OLD format during an upgrade
-        /// Added in mr8.1, it should be changed to -1 in mr9.+
-        return 0;
+        return -1;
     }
     *tmp1 = '\0';
     cdr->source_lcr_id = atoll(tmp2);
@@ -1020,8 +1001,7 @@ static int cdr_parse_srcleg_list(char *srcleg, cdr_entry_t *cdr)
     if(tmp1 == NULL)
     {
         L_DEBUG("Call-Id '%s' has no separated source concurrent calls quota, '%s'", cdr->call_id->str, tmp2);
-        /// Added in mr8.3, it should be changed to -1 in mr9.+
-        return 0;
+        return -1;
     }
     *tmp1 = '\0';
     g_string_assign(cdr->source_concurrent_calls_quota, tmp2);
@@ -1032,8 +1012,7 @@ static int cdr_parse_srcleg_list(char *srcleg, cdr_entry_t *cdr)
     if(tmp1 == NULL)
     {
         L_DEBUG("Call-Id '%s' has no separated source concurrent calls count, '%s'", cdr->call_id->str, tmp2);
-        /// Added in mr8.3, it should be changed to -1 in mr9.+
-        return 0;
+        return -1;
     }
     *tmp1 = '\0';
     g_string_assign(cdr->source_concurrent_calls_count, tmp2);
@@ -1044,8 +1023,7 @@ static int cdr_parse_srcleg_list(char *srcleg, cdr_entry_t *cdr)
     if(tmp1 == NULL)
     {
         L_DEBUG("Call-Id '%s' has no separated source concurrent calls customer count, '%s'", cdr->call_id->str, tmp2);
-        /// Added in mr8.3, it should be changed to -1 in mr9.+
-        return 0;
+        return -1;
     }
     *tmp1 = '\0';
     g_string_assign(cdr->source_concurrent_calls_count_customer, tmp2);
@@ -1260,8 +1238,7 @@ static int cdr_parse_dstleg_list(char *dstleg, cdr_entry_t *cdr)
     if(tmp1 == NULL)
     {
         L_DEBUG("Call-Id '%s' has no separated destination concurrent calls quota, '%s'", cdr->call_id->str, tmp2);
-        /// Added in mr8.3, it should be changed to -1 in mr9.+
-        return 0;
+        return -1;
     }
     *tmp1 = '\0';
     g_string_assign(cdr->destination_concurrent_calls_quota, tmp2);
@@ -1272,8 +1249,7 @@ static int cdr_parse_dstleg_list(char *dstleg, cdr_entry_t *cdr)
     if(tmp1 == NULL)
     {
         L_DEBUG("Call-Id '%s' has no separated destination concurrent calls count, '%s'", cdr->call_id->str, tmp2);
-        /// Added in mr8.3, it should be changed to -1 in mr9.+
-        return 0;
+        return -1;
     }
     *tmp1 = '\0';
     g_string_assign(cdr->destination_concurrent_calls_count, tmp2);
@@ -1284,8 +1260,7 @@ static int cdr_parse_dstleg_list(char *dstleg, cdr_entry_t *cdr)
     if(tmp1 == NULL)
     {
         L_DEBUG("Call-Id '%s' has no separated destination concurrent calls customer count, '%s'", cdr->call_id->str, tmp2);
-        /// Added in mr8.3, it should be changed to -1 in mr9.+
-        return 0;
+        return -1;
     }
     *tmp1 = '\0';
     g_string_assign(cdr->destination_concurrent_calls_count_customer, tmp2);
