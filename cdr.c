@@ -545,6 +545,15 @@ static int cdr_parse_srcleg_json(json_object *json, cdr_entry_t *cdr)
         goto err;
     }
 
+    // header_ppi
+    if (!cdr_parse_json_get_g_string(json, "ppi", cdr->header_ppi)) {
+        L_ERROR("Call-Id '%s' does not contain 'ppi' key (P-Preferred-Identity header), '%s'", cdr->call_id->str, json_object_get_string(json));
+        /// Simply return 0 in order to avoid issues with ACC records in the OLD format during an upgrade
+        /// Added in mr12.5, it should be changed to 'err' in mr13.+
+        /// goto err;
+        goto ret;
+    }
+
 ret:
     return 0;
 
@@ -1027,6 +1036,19 @@ static int cdr_parse_srcleg_list(char *srcleg, cdr_entry_t *cdr)
     }
     *tmp1 = '\0';
     g_string_assign(cdr->source_concurrent_calls_count_customer, tmp2);
+    *tmp1 = MED_SEP;
+    tmp2 = ++tmp1;
+
+    tmp1 = strchr(tmp2, MED_SEP);
+    if(tmp1 == NULL)
+    {
+        L_ERROR("Call-Id '%s' has no separated P-Preferred-Identity header, '%s'", cdr->call_id->str, tmp2);
+        /// Simply return 0 in order to avoid issues with ACC records in the OLD format during an upgrade
+        /// Added in mr12.5, it should be changed to -1 in mr13.+
+        return 0;
+    }
+    *tmp1 = '\0';
+    g_string_assign(cdr->header_ppi, tmp2);
     *tmp1 = MED_SEP;
     tmp2 = ++tmp1;
 

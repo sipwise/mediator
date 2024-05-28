@@ -1127,6 +1127,9 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_source,
                     "concurrent_calls_count_customer", e->source_concurrent_calls_count_customer, e))
             return -1;
+        if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_source,
+                    "header=P-Preferred-Identity", e->header_ppi, e))
+            return -1;
 
         if (medmysql_tag_cdr(batch, medmysql_tag_provider_customer, medmysql_tag_direction_destination,
                     "furnished_charging_info", e->furnished_charging_info, e))

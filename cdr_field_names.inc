@@ -38,6 +38,7 @@ F(furnished_charging_info)
 F(header_diversion)
 F(header_pai)
 F(header_u2u)
+F(header_ppi)
 
 F(group)
 
