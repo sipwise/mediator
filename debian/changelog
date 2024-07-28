@@ -1,3 +1,11 @@
+ngcp-mediator (13.0.0.0+0~mr13.0.0.0) unstable; urgency=medium
+
+  [ Marco Capetta ]
+  * [42dee46] MT#59993 Remove old backward compatibility from mr8.x to mr9.x
+  * [b2212ef] MT#59993 New field header_ppi (P-Preferred-Identity header)
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Sun, 28 Jul 2024 12:02:22 +0200
+
 ngcp-mediator (12.5.0.0+0~mr12.5.0.0) unstable; urgency=medium
 
   * New release.
