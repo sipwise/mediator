@@ -1,2 +1,3 @@
 ngcp-mediator: binary-without-manpage usr/bin/ngcp-mediator
 ngcp-mediator: init.d-script-not-included-in-package etc/init.d/ngcp-mediator
+ngcp-mediator: service-file-is-not-a-file [lib/systemd/system/mediator.service]
