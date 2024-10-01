@@ -1,3 +1,10 @@
+ngcp-mediator (13.0.1.0+0~mr13.0.1.0) unstable; urgency=medium
+
+  [ Michael Prokop ]
+  * [b7b9b49] MT#60916 lintian: ignore service-file-is-not-a-file for mediator.service
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 01 Oct 2024 09:59:30 +0200
+
 ngcp-mediator (13.0.0.0+0~mr13.0.0.0) unstable; urgency=medium
 
   [ Marco Capetta ]
