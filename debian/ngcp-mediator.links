@@ -1,1 +1,1 @@
-lib/systemd/system/ngcp-mediator.service lib/systemd/system/mediator.service
+usr/lib/systemd/system/ngcp-mediator.service usr/lib/systemd/system/mediator.service
