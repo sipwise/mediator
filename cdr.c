@@ -1711,3 +1711,20 @@ void cdr_truncate_call_id_suffix(char *callid)
         break;
     };
 }
+
+static bool cdr_verify_field(const GString *f, size_t max) {
+	return !(max && f->len > max);
+}
+
+// return false if one of the fields is too long
+bool cdr_verify_fields(const cdr_entry_t *cdr) {
+#define F(f, x) if (cdr_verify_field(cdr->f, x)) return false;
+#define FA(f, a, x) for (unsigned int j = 0; j < a; j++) if (cdr_verify_field(cdr->f[j], x)) return false;
+
+#include "cdr_field_names.inc"
+
+#undef F
+#undef FA
+
+	return true;
+}

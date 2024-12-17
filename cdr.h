@@ -2,6 +2,7 @@
 #define _CDR_H
 
 #include "mediator.h"
+#include <stdbool.h>
 
 #define MSG_INVITE "INVITE"
 #define MSG_BYE    "BYE"
@@ -64,6 +65,7 @@ int cdr_process_records(GQueue *records, uint64_t *cdr_count, struct medmysql_ba
         int do_intermediate);
 void cdr_parse_entry(med_entry_t *);
 void cdr_truncate_call_id_suffix(char *);
+bool cdr_verify_fields(const cdr_entry_t *);
 
 
 #endif /* _CDR_H */

@@ -1100,7 +1100,15 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
         CDRPRINT("),");
 
 	const char *end_ptr = batch->cdrs.str + batch->cdrs.len;
-	L_DEBUG("CDR entry to be written: %.*s", (int) (end_ptr - begin_ptr), begin_ptr);
+	size_t cdr_len = end_ptr - begin_ptr;
+	L_DEBUG("CDR entry to be written: %.*s", (int) cdr_len, begin_ptr);
+
+	if (!cdr_verify_fields(e)) {
+		L_WARNING("CDR field verification failed for record");
+		// backtrack
+		batch->cdrs.len -= cdr_len;
+		continue;
+	}
 
         single_cdr *single = g_slice_alloc(sizeof(*single));
         single->begin = begin_ptr;
@@ -1758,7 +1766,7 @@ static int medmysql_flush_cdr_batch(struct medmysql_cdr_batch *batch) {
         fclose(qlog);
     }
 
-    if (!batch->cdrs.len)
+    if (!batch->num_cdrs)
         return 0;
 
 
