@@ -1728,3 +1728,23 @@ bool cdr_verify_fields(const cdr_entry_t *cdr) {
 
 	return true;
 }
+
+bool cdr_write_error_record(const char *fn, const char *s, size_t len) {
+	FILE *fp = fopen(fn, "a");
+	if (!fp) {
+		L_CRITICAL("Could not open CDR error file for writing: %s", strerror(errno));
+		critical("Could not open CDR error file for writing, check log file for more details");
+		return false;
+	}
+	if (fprintf(fp, "%.*s\n", (int) len, s) <= 0) {
+		L_CRITICAL("Failed to write to CDR error file: %s", strerror(errno));
+		critical("Failed to write to CDR error file, check log file for more details");
+		return false;
+	}
+	if (fclose(fp)) {
+		L_CRITICAL("Could not write to CDR error file: %s", strerror(errno));
+		critical("Could not write to CDR error file, check log file for more details");
+		return false;
+	}
+	return true;
+}

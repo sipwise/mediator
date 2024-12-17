@@ -1106,6 +1106,9 @@ int medmysql_insert_cdrs(cdr_entry_t *entries, uint64_t count, struct medmysql_b
 	if (!cdr_verify_fields(e)) {
 		L_WARNING("CDR field verification failed for record");
 		// backtrack
+		if (config_cdr_error_file)
+			if (!cdr_write_error_record(config_cdr_error_file, begin_ptr, cdr_len))
+				return -1;
 		batch->cdrs.len -= cdr_len;
 		continue;
 	}

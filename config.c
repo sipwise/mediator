@@ -28,6 +28,7 @@ char *config_cdr_db;
 unsigned int config_cdr_port = MEDIATOR_DEFAULT_CDRPORT;
 char *config_intermediate_cdr_host;
 unsigned int config_intermediate_cdr_port = MEDIATOR_DEFAULT_CDRPORT;
+char *config_cdr_error_file;
 
 char *config_prov_host;
 char *config_prov_user;
@@ -68,6 +69,7 @@ enum config_option {
     OPT_CDR_DB = 'B',
     OPT_INTERMEDIATE_CDR_HOST = 'y',
     OPT_INTERMEDIATE_CDR_PORT = 'Y',
+    OPT_CDR_ERROR_FILE = 'E',
     OPT_PROV_HOST = 'S',
     OPT_PROV_PORT = 'T',
     OPT_PROV_USER = 'R',
@@ -110,6 +112,7 @@ struct option long_options[] = {
     { "cdr-db", required_argument, NULL, OPT_CDR_DB },
     { "intermediate-cdr-host", required_argument, NULL, OPT_INTERMEDIATE_CDR_HOST },
     { "intermediate-cdr-port", required_argument, NULL, OPT_INTERMEDIATE_CDR_PORT },
+    { "cdr-error-file", required_argument, NULL, OPT_CDR_ERROR_FILE },
     { "prov-host", required_argument, NULL, OPT_PROV_HOST },
     { "prov-port", required_argument, NULL, OPT_PROV_PORT },
     { "prov-user", required_argument, NULL, OPT_PROV_USER },
@@ -157,6 +160,7 @@ static void config_help(const char *self, int rc)
 "  -B, --cdr-db DB\tThe CDR db name (default = '%s').\n" \
 "  -y, --intermediate-cdr-host HOST\tThe CDR db host (default = '%s').\n" \
 "  -Y, --intermediate-cdr-port PORT\tThe CDR db port (default = '%d').\n" \
+"  -E, --cdr-error-file FILE\tThe CDR db port (default = none).\n" \
 "  -S, --prov-host HOST\tThe prov db host (default = '%s').\n" \
 "  -T, --prov-port PORT\tThe prov db port (default = '%d').\n" \
 "  -R, --prov-user USER\tThe prov db user (default = '%s').\n" \
@@ -267,6 +271,9 @@ static void config_set_option(enum config_option option, const char *value)
         break;
     case OPT_INTERMEDIATE_CDR_PORT:
         config_intermediate_cdr_port = atoi(value);
+        break;
+    case OPT_CDR_ERROR_FILE:
+        config_set_string_option(&config_cdr_error_file, value);
         break;
     case OPT_PROV_HOST:
         config_set_string_option(&config_prov_host, value);
@@ -463,6 +470,7 @@ void config_cleanup()
     free(config_cdr_pass);
     free(config_cdr_db);
     free(config_intermediate_cdr_host);
+    free(config_cdr_error_file);
     free(config_med_host);
     free(config_med_user);
     free(config_med_pass);
