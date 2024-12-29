@@ -1739,6 +1739,7 @@ bool cdr_write_error_record(const char *fn, const char *s, size_t len) {
 	if (fprintf(fp, "%.*s\n", (int) len, s) <= 0) {
 		L_CRITICAL("Failed to write to CDR error file: %s", strerror(errno));
 		critical("Failed to write to CDR error file, check log file for more details");
+		fclose(fp);
 		return false;
 	}
 	if (fclose(fp)) {
