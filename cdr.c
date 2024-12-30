@@ -1718,8 +1718,8 @@ static bool cdr_verify_field(const GString *f, size_t max) {
 
 // return false if one of the fields is too long
 bool cdr_verify_fields(const cdr_entry_t *cdr) {
-#define F(f, x) if (cdr_verify_field(cdr->f, x)) return false;
-#define FA(f, a, x) for (unsigned int j = 0; j < a; j++) if (cdr_verify_field(cdr->f[j], x)) return false;
+#define F(f, x) if (!cdr_verify_field(cdr->f, x)) return false;
+#define FA(f, a, x) for (unsigned int j = 0; j < a; j++) if (!cdr_verify_field(cdr->f[j], x)) return false;
 
 #include "cdr_field_names.inc"
 
