@@ -1,3 +1,17 @@
+ngcp-mediator (13.3.0.0+0~mr13.3.0.0) unstable; urgency=medium
+
+  [ Michael Prokop ]
+  * [f54c934] MT#61751 Install systemd service file in /usr
+
+  [ Richard Fuchs ]
+  * [707a179] MT#61757 add field lengths to field definitions
+  * [77f1cd6] MT#61757 add field length verification
+  * [ed0e5bf] MT#61757 support writing error CDRs to file
+  * [74f3ce2] MT#61757 fix possible resource leak
+  * [c9201d3] MT#61757 fix logic booboo/typo
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Tue, 28 Jan 2025 15:14:29 +0100
+
 ngcp-mediator (13.2.0.0+0~mr13.2.0.0) unstable; urgency=medium
 
   * New release.
