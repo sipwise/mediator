@@ -417,6 +417,11 @@ static medmysql_handler *medmysql_handler_init(const char *name, const char *hos
         L_CRITICAL("Error setting reconnect-option for %s db: %s", name, mysql_error(ret->m));
         goto err;
     }
+    if (medmysql_query_wrapper(ret, "SET SESSION binlog_format = 'STATEMENT'", 39))
+    {
+        L_WARNING("Error setting binlog_format = 'STATEMENT' for %s db: %s", name,
+                mysql_error(ret->m));
+    }
     if(mysql_autocommit(ret->m, 1) != 0)
     {
         L_CRITICAL("Error setting autocommit=1 for %s db: %s", name,
