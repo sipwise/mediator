@@ -1,3 +1,10 @@
+ngcp-mediator (12.5.1.2+0~mr12.5.1.2) unstable; urgency=medium
+
+  [ Rene Krenn ]
+  * [177062d] MT#62618 fix repl to work with ON DUPLICATE KEY
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 28 Jul 2025 14:57:47 +0200
+
 ngcp-mediator (12.5.1.1+0~mr12.5.1.1) unstable; urgency=medium
 
   * New release.
