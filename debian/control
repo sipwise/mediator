@@ -1,8 +1,6 @@
 Source: ngcp-mediator
 Section: utils
-Priority: optional
 Maintainer: Sipwise Development Team <support@sipwise.com>
-Rules-Requires-Root: no
 Build-Depends:
  debhelper-compat (= 13),
  default-libmysqlclient-dev,
@@ -10,7 +8,7 @@ Build-Depends:
  libhiredis-dev,
  libjson-c-dev,
  libsystemd-dev,
-Standards-Version: 4.6.2
+Standards-Version: 4.7.2
 Homepage: https://www.sipwise.com/
 
 Package: ngcp-mediator
