@@ -385,6 +385,53 @@ static int medmysql_query_wrapper_tx(medmysql_handler *mysql, const char *stmt_s
     return !!err;
 }
 
+static int medmysql_set_session_binlog_format(medmysql_handler *mysql) {
+    const char *query = "select LOWER(@@binlog_format)";
+    if (medmysql_query_wrapper(mysql, query, strlen(query))) {
+        L_CRITICAL("Error getting DB value (query '%s'): %s",
+                query, mysql_error(mysql->m));
+        return -1;
+    }
+    MYSQL_RES *res = mysql_store_result(mysql->m);
+    if (!res) {
+        L_CRITICAL("No result set returned from SQL (query '%s'): %s",
+                query, mysql_error(mysql->m));
+        return -1;
+    }
+    MYSQL_ROW row = mysql_fetch_row(res);
+    if (!row || !row[0]) {
+        L_CRITICAL("No row returned from SQL (query '%s'): %s",
+                query, mysql_error(mysql->m));
+        mysql_free_result(res);
+        return -1;
+    }
+
+    if (strcmp("mixed", row[0]))
+    {
+        L_INFO("db '%s' binlog_format=%s", mysql->name, row[0]);
+    }
+    else
+    {
+        const char *set_query = "SET SESSION binlog_format = 'STATEMENT'";
+        if (medmysql_query_wrapper(mysql, set_query, strlen(set_query)))
+        {
+            L_CRITICAL("Error setting session binlog_format = 'STATEMENT': %s",
+                mysql_error(mysql->m));
+            mysql_free_result(res);
+            return -1;
+        }
+        else
+        {
+            L_INFO("db '%s' change session binlog_format old=%s new=%s",
+                mysql->name, row[0], "statement");
+        }
+    }
+
+    mysql_free_result(res);
+
+    return 0;
+}
+
 static medmysql_handler *medmysql_handler_init(const char *name, const char *host, const char *user,
         const char *pass, const char *db, unsigned int port)
 {
@@ -417,11 +464,12 @@ static medmysql_handler *medmysql_handler_init(const char *name, const char *hos
         L_CRITICAL("Error setting reconnect-option for %s db: %s", name, mysql_error(ret->m));
         goto err;
     }
-    if (medmysql_query_wrapper(ret, "SET SESSION binlog_format = 'STATEMENT'", 39))
+
+    if (medmysql_set_session_binlog_format(ret) != 0)
     {
-        L_WARNING("Error setting binlog_format = 'STATEMENT' for %s db: %s", name,
-                mysql_error(ret->m));
+        goto err;
     }
+
     if(mysql_autocommit(ret->m, 1) != 0)
     {
         L_CRITICAL("Error setting autocommit=1 for %s db: %s", name,
