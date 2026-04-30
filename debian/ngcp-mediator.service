@@ -58,6 +58,9 @@ PrivateUsers=true
 # NOTE: service runs as root, so option does not matter
 RemoveIPC=true
 
+# Restrict service to allocation of certain address families only
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
 # Restrict access to the various process namespace types the Linux kernel provides
 RestrictNamespaces=true
 
