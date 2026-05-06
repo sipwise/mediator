@@ -49,6 +49,8 @@ extern int strict_leg_tokens;
 extern int config_max_acc_age;
 extern int config_intermediate_interval;
 
+extern int config_site_id;
+
 extern med_loglevel_t config_loglevel;
 
 int config_parse(int argc, char **argv);

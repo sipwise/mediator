@@ -269,8 +269,8 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    L_NOTICE("Up and running, daemonized=%d, pid-path='%s', interval=%d",
-            config_daemonize, config_pid_path, config_interval);
+    L_NOTICE("Up and running, daemonized=%d, pid-path='%s', interval=%d site-id=%d",
+            config_daemonize, config_pid_path, config_interval, config_site_id);
     sd_notify(0, "READY=1\n");
 
     maprefresh = 0;
