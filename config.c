@@ -47,6 +47,7 @@ int config_maintenance = 0;
 int strict_leg_tokens = 0;
 int config_max_acc_age = 0;
 int config_intermediate_interval = 0;
+int config_site_id = 1;
 
 med_loglevel_t config_loglevel = MEDIATOR_DEFAULT_LOGLEVEL;
 
@@ -89,6 +90,7 @@ enum config_option {
     OPT_LEG_TOKENS = 's',
     OPT_MAX_ACC_AGE = 'M',
     OPT_INTERMEDIATE_INTERVAL = 'I',
+    OPT_SITE_ID = 'j',
 };
 
 static const char options[] = "?a:c:e:D:i:dlL:h:u:p:b:o:H:U:P:B:O:S:t:T:r:R:A:N:Z:z:W:w:X:x:msM:I:y:Y:";
@@ -132,6 +134,7 @@ struct option long_options[] = {
     { "leg-tokens", no_argument, NULL, OPT_LEG_TOKENS },
     { "max-acc-age", required_argument, NULL, OPT_MAX_ACC_AGE },
     { "intermediate-interval", required_argument, NULL, OPT_INTERMEDIATE_INTERVAL },
+    { "site-id", required_argument, NULL, OPT_SITE_ID },
     { NULL, 0, NULL, 0 },
 };
 
@@ -180,6 +183,7 @@ static void config_help(const char *self, int rc)
 "  -s, --leg-tokens\tStrict acc fields (move to trash otherwise).\n" \
 "  -M, --max-acc-age\tMaximum age of acc records before trashing them (default = disabled).\n" \
 "  -I, --intermediate-interval\tHow often to write/update intermediate CDRs (default = disabled).\n" \
+"  -k, --site-id\tForce a specific multi site id to run with (default = 0).\n" \
 "  -?, --help\t\tDisplays this message.\n",
         MEDIATOR_VERSION, self, MEDIATOR_DEFAULT_CONFIG_FILE,
         MEDIATOR_DEFAULT_PIDPATH, MEDIATOR_DEFAULT_LOGLEVEL,
@@ -331,6 +335,9 @@ static void config_set_option(enum config_option option, const char *value)
         break;
     case OPT_INTERMEDIATE_INTERVAL:
         config_intermediate_interval = atoi(value);
+        break;
+    case OPT_SITE_ID:
+        config_site_id = atoi(value);
         break;
     }
 }

@@ -1898,9 +1898,9 @@ static int medmysql_flush_call_stat_info() {
         }
 
         query.len = sprintf(query.str,
-                "insert into %s.call_info set period='%s', sip_code='%s', amount=%" PRIu64 " on duplicate key update period='%s', sip_code='%s', amount=(amount+%" PRIu64 ");",
+                "insert into %s.call_info set site_id='%d', period='%s', sip_code='%s', amount=%" PRIu64 " on duplicate key update period='%s', sip_code='%s', amount=(amount+%" PRIu64 ");",
                 config_stats_db,
-                period_t->period, period_t->call_code, period_t->amount,
+                config_site_id, period_t->period, period_t->call_code, period_t->amount,
                 period_t->period, period_t->call_code, period_t->amount
             );
 
