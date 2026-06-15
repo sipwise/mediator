@@ -1,3 +1,14 @@
+ngcp-mediator (26.1.1.0+0~mr26.1.1.0) unstable; urgency=medium
+
+  [ Kirill Solomko ]
+  * [30ee509] MT#64920 mediator improve session binlog_format setup
+  * [23e81fd] MT#65050 add stats.call_info site_id support
+
+  [ Michael Prokop ]
+  * [8f3950e] MT#49340 systemd hardening: restrict RestrictAddressFamilies
+
+ -- Sipwise Jenkins Builder <jenkins@sipwise.com>  Mon, 15 Jun 2026 15:31:39 +0200
+
 ngcp-mediator (26.1.0.0+0~mr26.1.0.0) unstable; urgency=medium
 
   * New release.
